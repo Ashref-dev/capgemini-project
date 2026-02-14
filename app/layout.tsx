@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Figtree } from "next/font/google";
+import { ToastToaster } from "@/components/ui/toast";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const figtree = Figtree({subsets:['latin'],variable:'--font-sans'});
@@ -25,11 +27,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={figtree.variable}>
+    <html lang="fr" className={`${figtree.variable} transition-colors duration-200`} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-200`}
       >
-        {children}
+        <ThemeProvider defaultTheme="system" storageKey="capgemini-theme">
+          {children}
+          <ToastToaster />
+        </ThemeProvider>
       </body>
     </html>
   );
