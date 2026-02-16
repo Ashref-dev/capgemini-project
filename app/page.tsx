@@ -21,11 +21,8 @@ export default function Page() {
             <Link href='/auth/sign-up'>
               <Button>Sign Up</Button>
             </Link>
-            <Link href='/test-toast'>
-              <Button variant='outline'>Toast Demo</Button>
-            </Link>
-            <Link href='/test-logos'>
-              <Button variant='outline'>Logos</Button>
+            <Link href='/examples'>
+              <Button variant='outline'>Exemples</Button>
             </Link>
           </nav>
         </div>

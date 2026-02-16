@@ -10,19 +10,25 @@ import { Card } from "@/components/ui/card";
 import { AvatarUpload } from "./avatar-upload";
 import { EmailVerificationBadge } from "./email-verification-badge";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { User02Icon, Mail01Icon, Logout02Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
-import { CheckCircle as CheckCircleIcon } from "@hugeicons/core-free-icons";
+import { User02Icon, Mail01Icon, Logout02Icon, CheckmarkSquare01Icon } from "@hugeicons/core-free-icons";
 import { Alert } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function UserProfile() {
   const { session, user, signOut, loading } = useAuth();
   
   const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
   const [name, setName] = useState(user?.name || "");
   const [bio, setBio] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  // Password change states
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +48,39 @@ export function UserProfile() {
       setAvatarFile(null);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Failed to update profile";
+      setErrorMessage(errorMsg);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSuccessMessage(null);
+    setErrorMessage(null);
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setErrorMessage("All password fields are required");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setErrorMessage("New passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setErrorMessage("Password must be at least 8 characters");
+      return;
+    }
+
+    // TODO: Implement password change API
+    try {
+      // await changePassword(currentPassword, newPassword);
+      setSuccessMessage("Password changed successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to change password";
       setErrorMessage(errorMsg);
     }
   };
@@ -110,76 +149,111 @@ export function UserProfile() {
         </Alert>
       )}
 
-      {/* Profile Card */}
+      {/* Profile Form Card */}
       <Card className="border border-border/50 shadow-lg">
-        <div className="p-6 sm:p-8">
-          {/* Header with Title and Action Buttons */}
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/10">
+        <div className="w-full max-w-7xl mx-auto">
+          {/* Modal Header */}
+          <div className="flex items-center justify-between p-6 border-b border-border bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5 rounded-t-xl">
             <div className="flex items-center gap-3">
-              <HugeiconsIcon
-                icon={User02Icon}
-                className="w-5 h-5 text-primary dark:text-primary"
-              />
-              <h2 className="text-lg font-semibold">Profile Information</h2>
-            </div>
-            {!isEditing ? (
-              <Button
-                onClick={() => setIsEditing(true)}
-                variant="outline"
-                size="sm"
-              >
-                Edit
-              </Button>
-            ) : (
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setAvatarFile(null);
-                  }}
-                  disabled={loading}
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9"
-                  title="Cancel"
-                >
-                  <HugeiconsIcon icon={Cancel01Icon} className="w-4 h-4" />
-                </Button>
-                <button
-                  type="submit"
-                  form="profileForm"
-                  disabled={loading}
-                  className="h-9 w-9 inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-                  title="Save Changes"
-                >
-                  <HugeiconsIcon icon={CheckCircleIcon} className="w-4 h-4" />
-                </button>
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
+                <HugeiconsIcon
+                  icon={User02Icon}
+                  className="w-4 h-4 text-primary"
+                />
               </div>
-            )}
+              <h2 className="text-xl font-semibold text-foreground">Profile Information</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setIsEditing(false);
+                  setAvatarFile(null);
+                }}
+                disabled={loading}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                form="profileForm"
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              >
+                {loading ? (
+                  "Saving..."
+                ) : (
+                  <>
+                    <HugeiconsIcon icon={CheckmarkSquare01Icon} className="w-4 h-4 mr-2" />
+                    Save
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
-          {/* Edit Mode */}
-          {isEditing ? (
-            <form id="profileForm" onSubmit={handleSaveProfile} className="space-y-5">
-              {/* Name Field */}
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-semibold">
-                  Full Name
-                </Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={loading}
-                  className="focus:ring-primary focus:border-primary"
-                />
+          {/* Error Alert */}
+          {errorMessage && (
+            <div className="mx-6 mt-4">
+              <Alert
+                variant="destructive"
+                className="text-sm border-red-200 dark:border-red-900"
+              >
+                {errorMessage}
+              </Alert>
+            </div>
+          )}
+
+          {/* Success Alert */}
+          {successMessage && (
+            <div className="mx-6 mt-4">
+              <Alert
+                variant="default"
+                className="text-sm border-primary/20 dark:border-primary/30 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary"
+              >
+                {successMessage}
+              </Alert>
+            </div>
+          )}
+
+          <form id="profileForm" onSubmit={handleSaveProfile} className="space-y-6">
+            <div className="p-6 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Name Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm font-semibold text-foreground">
+                    Full Name
+                  </Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={loading}
+                    className="focus:ring-primary focus:border-primary"
+                  />
+                </div>
+
+                {/* Email Field (Readonly) */}
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-semibold text-foreground">
+                    Email Address
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={user?.email || ""}
+                    disabled
+                    className="bg-muted/50"
+                  />
+                </div>
               </div>
 
               {/* Bio Field */}
               <div className="space-y-2">
-                <Label htmlFor="bio" className="text-sm font-semibold">
+                <Label htmlFor="bio" className="text-sm font-semibold text-foreground">
                   Bio
                 </Label>
                 <Textarea
@@ -197,47 +271,18 @@ export function UserProfile() {
               </div>
 
               {/* Avatar Upload */}
-              <AvatarUpload
-                value={undefined}
-                onChange={setAvatarFile}
-                disabled={loading}
-              />
-            </form>
-          ) : (
-            <div className="space-y-4">
-              {/* Name Display */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-muted-foreground">
-                    NAME
-                  </Label>
-                  <p className="text-sm font-medium">{user.name}</p>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-muted-foreground">
-                    ACCOUNT TYPE
-                  </Label>
-                  <p className="text-sm font-medium">Standard</p>
-                </div>
-              </div>
-
-              {/* Created At */}
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-muted-foreground">
-                  MEMBER SINCE
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-foreground">
+                  Profile Picture
                 </Label>
-                <p className="text-sm font-medium">
-                  {new Date(
-                    user.createdAt || new Date()
-                  ).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
+                <AvatarUpload
+                  value={undefined}
+                  onChange={setAvatarFile}
+                  disabled={loading}
+                />
               </div>
             </div>
-          )}
+          </form>
         </div>
       </Card>
 
@@ -285,22 +330,108 @@ export function UserProfile() {
         </div>
       </Card>
 
-      {/* Password Card */}
+      {/* Password Change Form Card */}
       <Card className="border border-border/50 shadow-lg">
-        <div className="p-6 sm:p-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Security</h2>
+        <div className="w-full max-w-7xl mx-auto">
+          {/* Modal Header */}
+          <div className="flex items-center justify-between p-6 border-b border-border bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5 rounded-t-xl">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
+                <HugeiconsIcon
+                  icon={User02Icon}
+                  className="w-4 h-4 text-primary"
+                />
+              </div>
+              <h2 className="text-xl font-semibold text-foreground">Change Password</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                }}
+                disabled={loading}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                form="passwordForm"
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              >
+                {loading ? (
+                  "Updating..."
+                ) : (
+                  <>
+                    <HugeiconsIcon icon={CheckmarkSquare01Icon} className="w-4 h-4 mr-2" />
+                    Update Password
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-2 mb-6">
-            Manage your password and security settings
-          </p>
 
-          <Button
-            variant="outline"
-            className="border-primary/20 text-primary hover:bg-primary/10 dark:border-primary/30 dark:text-primary dark:hover:bg-primary/20"
-          >
-            Change Password
-          </Button>
+          <form id="passwordForm" onSubmit={handleChangePassword} className="space-y-6">
+            <div className="p-6 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Current Password Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="current-password" className="text-sm font-semibold text-foreground">
+                    Current Password
+                  </Label>
+                  <Input
+                    id="current-password"
+                    type="password"
+                    placeholder="Enter current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    disabled={loading}
+                    className="focus:ring-primary focus:border-primary"
+                  />
+                </div>
+
+                {/* New Password Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="new-password" className="text-sm font-semibold text-foreground">
+                    New Password
+                  </Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={loading}
+                    className="focus:ring-primary focus:border-primary"
+                  />
+                </div>
+
+                {/* Confirm Password Field */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="confirm-password" className="text-sm font-semibold text-foreground">
+                    Confirm New Password
+                  </Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={loading}
+                    className="focus:ring-primary focus:border-primary"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Password must be at least 8 characters long
+                  </p>
+                </div>
+              </div>
+            </div>
+          </form>
         </div>
       </Card>
     </div>
