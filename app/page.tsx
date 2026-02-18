@@ -1,157 +1,163 @@
+"use client";
+
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CapgeminiLogo } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
 import Link from 'next/link';
+import { HugeiconsIcon } from "@hugeicons/react";
+import { UserAdd01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { cn } from "@/lib/utils";
+import { AnimatedBackground } from "@/components/ui/animated-background";
 
 export default function Page() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className='min-h-screen bg-gradient-to-br from-background via-secondary/5 to-accent/10'>
+    <div className='min-h-screen relative overflow-hidden bg-transparent selection:bg-purple-100 dark:selection:bg-purple-900/50'>
+      <AnimatedBackground />
+
       {/* Header */}
-      <header className='border-b border-border/50 backdrop-blur-sm'>
-        <div className='max-w-6xl mx-auto px-4 py-6 flex items-center justify-between'>
+      <header 
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent",
+          scrolled 
+            ? "bg-white/70 dark:bg-black/70 backdrop-blur-md py-3 shadow-sm border-border/10" 
+            : "bg-transparent py-6"
+        )}
+      >
+        <div className='max-w-7xl mx-auto px-4 flex items-center justify-between'>
+          {/* Logo à gauche */}
           <Link href="/" className="flex items-center">
             <CapgeminiLogo size="md" />
           </Link>
-          <nav className='flex items-center gap-4'>
-            <ThemeToggle variant="ghost" size="icon" />
-            <Link href='/auth/sign-in'>
-              <Button variant='ghost'>Sign In</Button>
+
+          {/* Navigation au centre */}
+          <nav className='hidden md:flex items-center gap-8'>
+            <Link href="/" className="text-foreground/80 dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors font-medium text-sm">
+              Home
             </Link>
-            <Link href='/auth/sign-up'>
-              <Button>Sign Up</Button>
+            <Link href="/why-capgemini" className="text-foreground/80 dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors font-medium text-sm">
+              Why Capgemini
             </Link>
-            <Link href='/examples'>
-              <Button variant='outline'>Exemples</Button>
+            <Link href="/success-stories" className="text-foreground/80 dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors font-medium text-sm">
+              Success Stories
+            </Link>
+            <Link href="/solutions" className="text-foreground/80 dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors font-medium text-sm">
+              Solutions
             </Link>
           </nav>
+
+          {/* Actions à droite */}
+          <div className='flex items-center gap-4'>
+            <ThemeToggle variant="ghost" size="icon" />
+            <Link href='/auth/sign-in'>
+              <Button variant='ghost' className="hidden sm:flex items-center gap-2 text-foreground/80 dark:text-foreground hover:text-primary">
+                Log in
+                <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Link href='/auth/sign-up'>
+              <Button className="hidden sm:flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20 transition-all hover:scale-105">
+                <HugeiconsIcon icon={UserAdd01Icon} className="w-4 h-4" />
+                Register
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className='max-w-6xl mx-auto px-4 py-20'>
-        <div className='text-center mb-16'>
-          <h1 className='text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight'>
-            Welcome to Your
-            <span className='block text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-secondary'>
-              Professional Dashboard
-            </span>
-          </h1>
-          <p className='text-xl text-muted-foreground mb-8 max-w-2xl mx-auto'>
-            A modern, fully-featured application with authentication, database integration,
-            and professional UI components built with Next.js, Drizzle ORM, and better-auth.
-          </p>
-          <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-            <Link href='/auth/sign-up'>
-              <Button size='lg' className='text-lg px-8'>
-                Get Started Free
-              </Button>
-            </Link>
-            <Link href='/auth/sign-in'>
-              <Button size='lg' variant='outline' className='text-lg px-8'>
-                Sign In
-              </Button>
-            </Link>
-          </div>
-        </div>
+      {/* Hero Section with Glassmorphism */}
+      <main className='relative z-10 flex items-center justify-center min-h-screen px-4 pt-20 pb-10'>
+        <div className='max-w-7xl mx-auto w-full'>
+          {/* Glassmorphism Container - plus transparent et adaptable */}
+          <div className='relative bg-white/10 dark:bg-black/10 backdrop-blur-md rounded-3xl border border-white/20 dark:border-white/5 shadow-2xl p-8 md:p-12 lg:p-16 overflow-hidden transition-all duration-300 hover:bg-white/15 dark:hover:bg-black/15 font-sans group'>
+            
+            {/* Gradient Blob Effect */}
+            <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/20 rounded-full blur-[100px] pointer-events-none opacity-50 dark:opacity-20 animate-pulse"></div>
+            <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-400/20 rounded-full blur-[100px] pointer-events-none opacity-50 dark:opacity-20 animate-pulse delay-700"></div>
 
-        {/* Features Grid */}
-        <div className='grid md:grid-cols-3 gap-6 my-20'>
-          <Card className='p-8 hover:shadow-lg transition-shadow'>
-            <div className='text-4xl mb-4'>🔐</div>
-            <h3 className='text-xl font-semibold text-foreground mb-2'>
-              Secure Authentication
-            </h3>
-            <p className='text-muted-foreground'>
-              Email/password authentication with industry-standard security practices
-            </p>
-          </Card>
+            {/* Content Wrapper */}
+            <div className="relative z-10 flex flex-col items-center text-center">
+              
+              {/* Announcement Badge */}
+              <div className='inline-flex items-center gap-2 bg-primary/5 dark:bg-primary/10 backdrop-blur-sm text-primary dark:text-primary px-4 py-1.5 rounded-full text-sm font-medium mb-8 border border-primary/10 hover:border-primary/20 transition-all hover:scale-105 cursor-default'>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                Together, we build more
+                <Link href="/ar-vr" className="flex items-center gap-1 ml-1 hover:underline font-semibold">
+                  Read more
+                  <HugeiconsIcon icon={ArrowRight01Icon} className="w-3 h-3" />
+                </Link>
+              </div>
 
-          <Card className='p-8 hover:shadow-lg transition-shadow'>
-            <div className='text-4xl mb-4'>💾</div>
-            <h3 className='text-xl font-semibold text-foreground mb-2'>
-              Database Powered
-            </h3>
-            <p className='text-muted-foreground'>
-              PostgreSQL with Drizzle ORM for type-safe queries and migrations
-            </p>
-          </Card>
+              {/* Main Title - Responsive Typography using fluid text */}
+              <h1 className='w-full max-w-6xl text-[2.5rem] sm:text-[3.5rem] md:text-[4.5rem] lg:text-[5.5rem] font-bold text-foreground dark:text-white mb-6 leading-[1.1] tracking-tight antialiased'>
+                Transforming connections
+                <span className='block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-primary dark:from-blue-400 dark:via-indigo-400 dark:to-blue-300 pb-2'>
+                  into opportunities
+                </span>
+              </h1>
 
-          <Card className='p-8 hover:shadow-lg transition-shadow'>
-            <div className='text-4xl mb-4'>🎨</div>
-            <h3 className='text-xl font-semibold text-foreground mb-2'>
-              Beautiful UI
-            </h3>
-            <p className='text-muted-foreground'>
-              27+ shadcn/ui components with Tailwind CSS and custom styling
-            </p>
-          </Card>
-        </div>
+              {/* Subtitle - New Font Style */}
+              <p className='text-lg sm:text-xl md:text-2xl text-muted-foreground dark:text-gray-400 mb-10 max-w-3xl leading-relaxed font-light'>
+                Great ideas grow with the right partners. Join us to accelerate your digital transformation journey.
+              </p>
 
-        {/* Stats Section */}
-        <div className='grid md:grid-cols-4 gap-6 my-20'>
-          <Card className='p-6 border-primary/20 bg-primary/5'>
-            <div className='text-3xl font-bold text-primary mb-2'>27+</div>
-            <p className='text-muted-foreground'>UI Components</p>
-          </Card>
-          <Card className='p-6 border-secondary/20 bg-secondary/5'>
-            <div className='text-3xl font-bold text-secondary mb-2'>5</div>
-            <p className='text-muted-foreground'>API Endpoints</p>
-          </Card>
-          <Card className='p-6 border-accent/20 bg-accent/5'>
-            <div className='text-3xl font-bold text-accent mb-2'>2</div>
-            <p className='text-muted-foreground'>Database Tables</p>
-          </Card>
-          <Card className='p-6 border-foreground/10 bg-foreground/5'>
-            <div className='text-3xl font-bold text-foreground mb-2'>100%</div>
-            <p className='text-muted-foreground'>Type-Safe</p>
-          </Card>
-        </div>
-
-        {/* Stack Section */}
-        <Card className='p-12 mb-20'>
-          <h2 className='text-3xl font-bold text-foreground mb-8 text-center'>
-            Built With Modern Stack
-          </h2>
-          <div className='grid md:grid-cols-2 lg:grid-cols-4 gap-6'>
-            <div>
-              <div className='font-semibold text-foreground mb-2'>Frontend</div>
-              <ul className='text-sm text-muted-foreground space-y-1'>
-                <li>Next.js 16.1</li>
-                <li>React 19</li>
-                <li>Tailwind CSS 4</li>
-              </ul>
-            </div>
-            <div>
-              <div className='font-semibold text-foreground mb-2'>Authentication</div>
-              <ul className='text-sm text-muted-foreground space-y-1'>
-                <li>better-auth 1.4</li>
-                <li>Email/Password</li>
-                <li>OAuth Ready</li>
-              </ul>
-            </div>
-            <div>
-              <div className='font-semibold text-foreground mb-2'>Database</div>
-              <ul className='text-sm text-muted-foreground space-y-1'>
-                <li>PostgreSQL 17</li>
-                <li>Drizzle ORM</li>
-                <li>Type-Safe</li>
-              </ul>
-            </div>
-            <div>
-              <div className='font-semibold text-foreground mb-2'>Development</div>
-              <ul className='text-sm text-muted-foreground space-y-1'>
-                <li>TypeScript</li>
-                <li>Bun Runtime</li>
-                <li>Turbopack</li>
-              </ul>
+              {/* Action Buttons */}
+              <div className='flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center'>
+                <Link href='/auth/sign-up'>
+                  <Button size='lg' className='w-full sm:w-auto h-14 px-8 text-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 rounded-full hover:scale-105 transition-all duration-300 font-semibold'>
+                    Get Started Now
+                  </Button>
+                </Link>
+                <Link href='/learn-more'>
+                  <Button size='lg' variant='outline' className='w-full sm:w-auto h-14 px-8 text-lg border-primary/20 bg-white/40 dark:bg-black/40 hover:bg-white/60 dark:hover:bg-black/60 backdrop-blur-sm text-foreground dark:text-white rounded-full transition-all duration-300 group font-medium'>
+                    View Demo
+                    <HugeiconsIcon icon={ArrowRight01Icon} className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
-        </Card>
+        </div>
       </main>
 
+      {/* Examples Section - Kept for demonstration */}
+      <section className='relative z-10 py-20 px-4'>
+        <div className='max-w-6xl mx-auto'>
+          <div className='text-center mb-12'>
+            <h2 className='text-3xl font-bold text-foreground dark:text-white mb-4'>
+              Explore Our Platform
+            </h2>
+            <p className='text-muted-foreground dark:text-gray-300'>
+              Discover the features and capabilities of our application
+            </p>
+          </div>
+          
+          <div className='flex justify-center'>
+            <Link href='/examples'>
+              <Button variant='outline' size='lg' className="text-lg px-8">
+                View Examples
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className='border-t border-border/50 py-8 text-center text-muted-foreground'>
+      <footer className='relative z-10 border-t border-border/50 py-8 text-center text-muted-foreground dark:text-gray-300 bg-white/5 dark:bg-black/5 backdrop-blur-sm'>
         <p>Built with ❤️ using Next.js, React, and modern web technologies</p>
       </footer>
     </div>
