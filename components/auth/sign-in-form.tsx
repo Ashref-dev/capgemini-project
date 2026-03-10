@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuth } from "../../lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,10 +61,13 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
         onSuccess?.();
         router.push("/dashboard");
       } else {
+        const responseError = response?.error;
         const msg =
-          (typeof response?.error === "string"
-            ? response.error
-            : response?.error?.message) || "Invalid email or password";
+          (typeof responseError === "string"
+            ? responseError
+            : responseError && typeof responseError === "object" && "message" in responseError && typeof responseError.message === "string"
+              ? responseError.message
+              : "Invalid email or password");
         setFormError(msg);
         toast.error(msg);
       }

@@ -1,9 +1,7 @@
-// DEPRECATED: This file is no longer used.
-// Authentication is now handled via lib/auth-server.ts (Server Actions) and lib/hooks/use-auth.ts (React hook)
-// This file is kept for backwards compatibility but contains no implementation.
+import { createAuthClient } from "better-auth/react";
 
-export const authClient = null;
-export const signUp = null;
-export const signIn = null;
-export const signOut = null;
-export const useSession = null;
+export const authClient = createAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+});
+
+export const { signIn, signUp, signOut, useSession, getSession } = authClient;

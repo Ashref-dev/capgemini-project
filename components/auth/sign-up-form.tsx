@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuth } from "../../lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -89,10 +89,13 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
         onSuccess?.();
         router.push("/dashboard");
       } else {
+        const responseError = response?.error;
         const msg =
-          (typeof response?.error === "string"
-            ? response.error
-            : response?.error?.message) || "Sign up failed";
+          (typeof responseError === "string"
+            ? responseError
+            : responseError && typeof responseError === "object" && "message" in responseError && typeof responseError.message === "string"
+              ? responseError.message
+              : "Sign up failed");
         setFormError(msg);
         toast.error(msg);
       }
@@ -146,6 +149,7 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
           </Button>
           <Button
             type="submit"
+            form="sign-up-form"
             disabled={loading}
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
           >
@@ -185,7 +189,7 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
           </TabsList>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form id="sign-up-form" onSubmit={handleSubmit} className="space-y-6">
           <div className="p-6 pt-4">
             <TabsContent value="basic" className="mt-0 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

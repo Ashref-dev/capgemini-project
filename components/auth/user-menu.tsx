@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuth } from "../../lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

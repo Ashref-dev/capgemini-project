@@ -1,127 +1,66 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, getSession } from "@/lib/auth-server";
-import type { AuthUser, AuthSession } from "@/lib/auth-utils";
+import { useCallback } from "react";
+import { authClient, useSession } from "@/lib/auth-client";
+
+type AuthResult = { error?: unknown } | undefined;
 
 export interface UseAuthReturn {
-  session: AuthSession | null;
-  user: AuthUser | null;
+  session: ReturnType<typeof useSession>["data"];
+  user: ReturnType<typeof useSession>["data"] extends infer T
+    ? T extends { user: infer U }
+      ? U
+      : null
+    : null;
   isAuthenticated: boolean;
   loading: boolean;
   error: Error | null;
-  signIn: (email: string, password: string) => Promise<any>;
-  signUp: (email: string, password: string, name?: string) => Promise<any>;
+  signIn: (email: string, password: string) => Promise<AuthResult>;
+  signUp: (email: string, password: string, name?: string) => Promise<AuthResult>;
   signOut: () => Promise<void>;
 }
 
+function normalizeError(error: unknown): Error | null {
+  if (!error) return null;
+  if (error instanceof Error) return error;
+  if (typeof error === "string") return new Error(error);
+  return new Error("Authentication error");
+}
+
 export function useAuth(): UseAuthReturn {
-  const [session, setSession] = useState<AuthSession | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const sessionState = useSession();
+  const session = sessionState.data;
+  const user = session?.user ?? null;
+  const error = normalizeError(sessionState.error);
 
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const sessionData = await getSession();
-        setSession(sessionData);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error("Failed to fetch session"));
-      } finally {
-        setLoading(false);
-      }
-    };
+  const signIn = useCallback(async (email: string, password: string) => {
+    const result = await authClient.signIn.email({
+      email,
+      password,
+    });
 
-    fetchSession();
+    return result;
   }, []);
 
-  const signIn = useCallback(
-    async (email: string, password: string) => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await authSignIn(email, password);
-        
-        if ("error" in response) {
-          const error = new Error(response.error);
-          setError(error);
-          throw error;
-        }
-        
-        setSession({
-          id: response.session.id,
-          userId: response.session.userId,
-          token: response.session.token,
-          expiresAt: response.session.expiresAt,
-          user: response.user,
-        });
-        
-        return response;
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error("Sign in failed");
-        setError(error);
-        throw error;
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
+  const signUp = useCallback(async (email: string, password: string, name?: string) => {
+    const result = await authClient.signUp.email({
+      email,
+      password,
+      name: name?.trim() || email.split("@")[0],
+    });
 
-  const signUp = useCallback(
-    async (email: string, password: string, name?: string) => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await authSignUp(email, password, name || email.split("@")[0]);
-        
-        if ("error" in response) {
-          const error = new Error(response.error);
-          setError(error);
-          throw error;
-        }
-        
-        setSession({
-          id: response.session.id,
-          userId: response.session.userId,
-          token: response.session.token,
-          expiresAt: response.session.expiresAt,
-          user: response.user,
-        });
-        
-        return response;
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error("Sign up failed");
-        setError(error);
-        throw error;
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
+    return result;
+  }, []);
 
   const signOut = useCallback(async () => {
-    try {
-      setLoading(true);
-      await authSignOut();
-      setSession(null);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error("Sign out failed"));
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+    await authClient.signOut();
   }, []);
-
-  const user = session?.user || null;
-  const isAuthenticated = !!session;
 
   return {
     session,
     user,
-    isAuthenticated,
-    loading,
+    isAuthenticated: !!session?.user,
+    loading: sessionState.isPending,
     error,
     signIn,
     signUp,

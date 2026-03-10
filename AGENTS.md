@@ -200,10 +200,64 @@ bun upgrade  # Mettre à jour Bun lui-même
 - **Optimisation images** avec Next.js Image
 - **Code splitting** automatique avec App Router
 
-## � FORM DESIGN SYSTEM - STANDARD MODAL FORM
+## 🎬 ANIMATION SYSTEM - FRAMER MOTION
 
 ### Règle d'Or
-**TOUS les formulaires de l'application DOIVENT suivre le design modal standardisé.** Aucune exception autorisée.
+**TOUTES les animations de l'application DOIVENT utiliser Framer Motion.** Aucune exception autorisée.
+
+### Technologies Animations
+- **Next.js** : Plateforme principale
+- **TailwindCSS** : Styles et transitions CSS
+- **Framer Motion** : Animations fluides et interactives
+- **Shadcn/UI** : Composants UI de base
+
+### Imports Requis
+```tsx
+import { motion } from 'framer-motion';
+import { animate, useSpring, useMotionValue } from 'framer-motion';
+```
+
+### Animations Standards
+```tsx
+// Animation au hover
+<motion.div
+  whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+  className="card"
+>
+
+// Animation d'entrée
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5, ease: "easeOut" }}
+>
+
+// Animation au scroll
+<motion.div
+  whileInView={{ opacity: 1, x: 0 }}
+  initial={{ opacity: 0, x: -50 }}
+  viewport={{ once: true }}
+>
+```
+
+### Cas d'Usage
+- **Modales** : Animations d'entrée/sortie fluides
+- **Boutons** : Micro-interactions (hover, tap)
+- **Cartes** : Animations au survol et focus
+- **Pages** : Transitions entre routes
+- **Loading** : Animations de chargement élégantes
+
+### Bonnes Pratiques
+- Utiliser `whileHover` pour les interactions simples
+- Préférer `initial`/`animate` pour les entrées
+- Ajouter `layout` pour les animations de layout
+- Utiliser `whileInView` pour les animations au scroll
+- Garder les performances optimisées avec `layoutId`
+
+## � dialogue DESIGN SYSTEM - STANDARD MODAL FORM
+
+### Règle d'Or
+**TOUS les dialogues de l'application DOIVENT suivre le design modal standardisé.** Aucune exception autorisée.
 
 ### Structure Standard
 ```tsx
