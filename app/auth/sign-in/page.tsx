@@ -1,5 +1,5 @@
-import { SignInForm } from "@/components/auth/sign-in-form";
-import { Card } from "@/components/ui/card";
+import { SignInForm } from "@/frontend/components/auth/sign-in-form";
+import { Card } from "@/frontend/components/ui/card";
 
 export const metadata = {
   title: "Sign In | Capgemini",

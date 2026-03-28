@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuth } from "@/frontend/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { UserProfile } from "@/components/auth/user-profile";
-import { UserMenu } from "@/components/auth/user-menu";
-import { Spinner } from "@/components/ui/spinner";
-import { CapgeminiLogo } from "@/components/icons";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { cn } from "@/lib/utils";
+import { UserProfile } from "@/frontend/components/auth/user-profile";
+import { UserMenu } from "@/frontend/components/auth/user-menu";
+import { Spinner } from "@/frontend/components/ui/spinner";
+import { CapgeminiLogo } from "@/frontend/components/icons";
+import { ThemeToggle } from "@/frontend/components/theme-toggle";
+import { cn } from "@/frontend/lib/utils";
 
 export default function DashboardPage() {
   const router = useRouter();

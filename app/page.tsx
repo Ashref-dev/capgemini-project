@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { CapgeminiLogo } from '@/components/icons';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { Button } from '@/frontend/components/ui/button';
+import { Card } from '@/frontend/components/ui/card';
+import { CapgeminiLogo } from '@/frontend/components/icons';
+import { ThemeToggle } from '@/frontend/components/theme-toggle';
 import Link from 'next/link';
 import { HugeiconsIcon } from "@hugeicons/react";
 import { UserAdd01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import { cn } from "@/lib/utils";
-import { AnimatedBackground } from "@/components/ui/animated-background";
+import { cn } from "@/frontend/lib/utils";
+import { AnimatedBackground } from "@/frontend/components/ui/animated-background";
 
 export default function Page() {
   const [scrolled, setScrolled] = useState(false);
