@@ -62,7 +62,7 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
       if (!response.error) {
         toast.success("Connexion réussie !");
         onSuccess?.();
-        router.replace("/dashboard");
+        router.replace(userType === "partner" ? "/partner" : "/dashboard");
         router.refresh();
       } else {
         setFormError(response.error);

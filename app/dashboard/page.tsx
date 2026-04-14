@@ -1,90 +1,76 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { useAuth } from "@/frontend/hooks/use-auth";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { UserProfile } from "@/frontend/components/auth/user-profile";
-import { UserMenu } from "@/frontend/components/auth/user-menu";
-import { Spinner } from "@/frontend/components/ui/spinner";
-import { CapgeminiLogo } from "@/frontend/components/icons";
-import { ThemeToggle } from "@/frontend/components/theme-toggle";
-import { cn } from "@/frontend/lib/utils";
+import { useAuth } from "@/frontend/hooks/use-auth"
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const { user, isAuthenticated, loading } = useAuth();
-  const [isClient, setIsClient] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const { user } = useAuth()
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  if (!user) return null
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const isAdmin = user.role === "admin" || user.role === "manager"
 
-  useEffect(() => {
-    if (!loading && !isAuthenticated && isClient) {
-      router.push("/auth/sign-in");
-    }
-  }, [loading, isAuthenticated, isClient, router]);
-
-  // Loading state
-  if (!isClient || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/10">
-        <div className="flex flex-col items-center gap-3">
-          <Spinner />
-          <p className="text-muted-foreground">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Redirect if not authenticated
-  if (!isAuthenticated || !user) {
-    return null;
-  }
-
-  // Dashboard
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-background">
-      {/* Header */}
-      <header 
-        className={cn(
-          "sticky top-0 z-50 transition-all duration-300 border-b border-transparent",
-          scrolled 
-            ? "bg-white/70 dark:bg-black/70 backdrop-blur-md py-3 shadow-sm border-border/10" 
-            : "bg-transparent py-4"
-        )}
-      >
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center">
-              <CapgeminiLogo size="md" />
-            </Link>
-            <nav className="hidden md:flex items-center gap-6 border-l border-border/50 pl-6 text-sm font-medium">
-              <span className="text-foreground/80 cursor-default">Dashboard</span>
-            </nav>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <ThemeToggle variant="ghost" size="icon" />
-            <UserMenu />
-          </div>
-        </div>
-      </header>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">
+          Bienvenue, {user.name}
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Tableau de bord de gestion des partenariats
+        </p>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:py-12">
-        <UserProfile />
-      </main>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <DashboardCard
+          title="Partenaires"
+          description="Voir et gérer les partenaires"
+          href="/dashboard/partners"
+        />
+        <DashboardCard
+          title="Contacts"
+          description="Contacts des partenaires"
+          href="/dashboard/contacts"
+        />
+        <DashboardCard
+          title="Offres"
+          description={isAdmin ? "Gérer les offres" : "Consulter les offres"}
+          href="/dashboard/offers"
+        />
+        <DashboardCard
+          title="Événements"
+          description={isAdmin ? "Gérer les événements" : "Consulter les événements"}
+          href="/dashboard/events"
+        />
+        <DashboardCard
+          title="Historique statuts"
+          description="Historique des changements de statut"
+          href="/dashboard/status-history"
+        />
+        <DashboardCard
+          title="Dashboard BI"
+          description="Analyses et indicateurs"
+          href="/dashboard/bi"
+        />
+        {isAdmin && (
+          <DashboardCard
+            title="Demandes partenariat"
+            description="Gérer les demandes de partenariat"
+            href="/dashboard/partnership-requests"
+          />
+        )}
+      </div>
     </div>
-  );
+  )
+}
+
+function DashboardCard({ title, description, href }: { title: string; description: string; href: string }) {
+  return (
+    <a
+      href={href}
+      className="block p-5 rounded-xl border border-border bg-card hover:bg-accent/5 transition-colors"
+    >
+      <h3 className="font-semibold text-foreground">{title}</h3>
+      <p className="text-sm text-muted-foreground mt-1">{description}</p>
+    </a>
+  )
 }

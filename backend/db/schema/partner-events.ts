@@ -5,16 +5,16 @@ import {
   text,
   date,
   integer,
+  doublePrecision,
   timestamp,
   index,
-  check,
 } from "drizzle-orm/pg-core"
 import { sql, relations } from "drizzle-orm"
 import { partners } from "./partners"
 
 /**
  * Partner events table schema
- * Événements organisés avec les partenaires
+ * Événements organisés avec les partenaires — correspond exactement à la table partner_events
  */
 export const partnerEvents = pgTable(
   "partner_events",
@@ -33,17 +33,14 @@ export const partnerEvents = pgTable(
     numConversions: integer("num_conversions"),
     eventBudget: integer("event_budget"),
     satisfactionScore: integer("satisfaction_score"),
-    eventStatus: varchar("event_status", { length: 50 })
-      .default("planifie")
-      .$type<"planifie" | "en_cours" | "termine" | "annule">(),
+    eventStatus: varchar("event_status", { length: 50 }).default("planifie"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`),
     notes: text("notes"),
-    createdAt: timestamp("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull()
-      .$onUpdate(() => new Date()),
+    eventRevenue: integer("event_revenue"),
+    roiEvent: doublePrecision("roi_event"),
   },
   (table) => ({
     partnerIdIdx: index("idx_partner_events_partner").on(table.partnerId),

@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/frontend/hooks/use-auth";
+import { useRouter } from "next/navigation";
 import { Button } from "@/frontend/components/ui/button";
 import {
   DropdownMenu,
@@ -13,6 +14,7 @@ import {
 
 export function UserMenu() {
   const { user, isAuthenticated, signOut, loading } = useAuth();
+  const router = useRouter();
 
   if (!isAuthenticated || !user) {
     return null;
@@ -21,10 +23,14 @@ export function UserMenu() {
   const handleSignOut = async () => {
     try {
       await signOut();
+      router.push("/auth/sign-in");
     } catch (error) {
       console.error("Sign out failed:", error);
     }
   };
+
+  const profileHref = user.userType === "partner" ? "/partner/profile" : "/dashboard/profile";
+  const dashboardHref = user.userType === "partner" ? "/partner" : "/dashboard";
 
   return (
     <DropdownMenu>
@@ -52,13 +58,17 @@ export function UserMenu() {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem asChild>
-          <a href="/settings">Settings</a>
+          <a href={dashboardHref}>Tableau de bord</a>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem asChild>
+          <a href={profileHref}>Mon Profil</a>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={handleSignOut} disabled={loading}>
-          {loading ? "Signing out..." : "Sign Out"}
+        <DropdownMenuItem onClick={handleSignOut} disabled={loading} className="text-red-600 focus:text-red-600">
+          {loading ? "Déconnexion..." : "Se déconnecter"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

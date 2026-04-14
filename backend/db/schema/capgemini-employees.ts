@@ -5,6 +5,7 @@ import {
   text,
   boolean,
   timestamp,
+  integer,
   check,
 } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
@@ -25,6 +26,10 @@ export const capgeminiEmployees = pgTable(
       .$type<"admin" | "manager" | "commercial" | "analyst" | "rh">(),
     isActive: boolean("is_active").default(true),
     passwordHash: text("password_hash"),
+    phone: varchar("phone", { length: 50 }),
+    department: varchar("department", { length: 100 }),
+    salary: integer("salary"),
+    hireDate: timestamp("hire_date", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`),
   }

@@ -3,14 +3,11 @@ import {
   serial,
   varchar,
   text,
-  boolean,
   timestamp,
   integer,
-  decimal,
+  bigint,
   date,
   index,
-  unique,
-  check,
 } from "drizzle-orm/pg-core"
 import { sql, relations } from "drizzle-orm"
 import { partnerContacts } from "./partner-contacts"
@@ -25,14 +22,13 @@ import { marketingPartners } from "./marketing-partners"
 
 /**
  * Partners table schema
- * Table principale des partenaires
+ * Table principale des partenaires — correspond exactement à la table partners dans PostgreSQL
  */
 export const partners = pgTable(
   "partners",
   {
     id: serial("id").primaryKey(),
-    category: varchar("category", { length: 50 }).notNull(),
-    categories: text("categories").array().default(sql`'{}'::text[]`),
+    categories: varchar("categories", { length: 50 }),
     name: varchar("name", { length: 200 }).notNull(),
     legalName: varchar("legal_name", { length: 200 }),
     taxId: varchar("tax_id", { length: 50 }),
@@ -42,36 +38,22 @@ export const partners = pgTable(
     address: text("address"),
     logoUrl: text("logo_url"),
     description: text("description"),
-    isActive: boolean("is_active").default(true),
-    
-    // Champs BI/Analytics
     partnerSubcategory: varchar("partner_subcategory", { length: 100 }),
-    partnershipLevel: varchar("partnership_level", { length: 50 })
-      .$type<"basique" | "actif" | "stratégique" | "exclusif">(),
+    partnershipLevel: varchar("partnership_level", { length: 50 }),
     partnershipStartDate: date("partnership_start_date"),
-    partnershipStatus: varchar("partnership_status", { length: 50 })
-      .default("actif")
-      .$type<"prospect" | "en_negociation" | "actif" | "inactif" | "termine">(),
-    annualBudgetTnd: integer("annual_budget_tnd"),
+    partnershipStatus: varchar("partnership_status", { length: 50 }).default("actif"),
+    annualBudgetTnd: bigint("annual_budget_tnd", { mode: "number" }),
     satisfactionScore: integer("satisfaction_score"),
-    numEmployees: integer("num_employees"),
+    numEmployees: bigint("num_employees", { mode: "number" }),
     country: varchar("country", { length: 100 }).default("Tunisie"),
-    location: varchar("location", { length: 255 }),
     contractEndDate: date("contract_end_date"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`),
     passwordHash: text("password_hash"),
-    
-    createdAt: timestamp("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull()
-      .$onUpdate(() => new Date()),
+    lastEventDate: date("last_event_date"),
+    annualRevenueGenerated: integer("annual_revenue_generated"),
   },
   (table) => ({
-    categoryIdx: index("idx_partners_category").on(table.category),
     statusIdx: index("idx_partners_status").on(table.partnershipStatus),
-    locationIdx: index("idx_partners_location").on(table.location),
   })
 )
 

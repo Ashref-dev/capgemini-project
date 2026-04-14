@@ -1,5 +1,6 @@
 import {
   pgTable,
+  pgEnum,
   serial,
   varchar,
   text,
@@ -13,9 +14,11 @@ import {
 import { sql, relations } from "drizzle-orm"
 import { partners } from "./partners"
 
+export const discountTypeEnum = pgEnum("discount_type", ["percentage", "fixed"])
+
 /**
  * Offers table schema
- * Offres et promotions
+ * Offres et promotions — correspond exactement à la table offers dans PostgreSQL
  */
 export const offers = pgTable(
   "offers",
@@ -26,27 +29,18 @@ export const offers = pgTable(
       .references(() => partners.id, { onDelete: "cascade" }),
     title: varchar("title", { length: 200 }).notNull(),
     description: text("description"),
-    discountType: varchar("discount_type", { length: 50 })
-      .$type<"percentage" | "fixed">()
-      .notNull(),
-    discountValue: decimal("discount_value", { precision: 10, scale: 2 }).notNull(),
+    discountType: discountTypeEnum("discount_type").notNull(),
     startDate: date("start_date"),
     endDate: date("end_date"),
     termsConditions: text("terms_conditions"),
     isActive: boolean("is_active").default(true),
-    
-    // Champs analytics
     usageCount: integer("usage_count").default(0),
     totalValueTnd: decimal("total_value_tnd", { precision: 12, scale: 2 }).default("0"),
     targetAudience: varchar("target_audience", { length: 100 }),
-    
-    createdAt: timestamp("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull()
-      .$onUpdate(() => new Date()),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`),
   },
   (table) => ({
     partnerIdIdx: index("idx_offers_partner").on(table.partnerId),

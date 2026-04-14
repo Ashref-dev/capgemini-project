@@ -19,6 +19,10 @@ export { universityPartners, type UniversityPartner, type NewUniversityPartner }
 export { technologyPartners, type TechnologyPartner, type NewTechnologyPartner } from "./technology-partners"
 export { studentRecruitments, type StudentRecruitment, type NewStudentRecruitment } from "./student-recruitments"
 export { vendorProjects, type VendorProject, type NewVendorProject } from "./vendor-projects"
+export { partnershipRequests, type PartnershipRequest, type NewPartnershipRequest } from "./partnership-requests"
+export { partnerDocuments, type PartnerDocument, type NewPartnerDocument } from "./partner-documents"
+export { partnerMeetings, type PartnerMeeting, type NewPartnerMeeting } from "./partner-meetings"
+export { partnerNotifications, type PartnerNotification, type NewPartnerNotification } from "./partner-notifications"
 
 // Relations
 export { partnersRelations } from "./partners"
@@ -33,3 +37,6 @@ export { universityPartnersRelations } from "./university-partners"
 export { technologyPartnersRelations } from "./technology-partners"
 export { studentRecruitmentsRelations } from "./student-recruitments"
 export { vendorProjectsRelations } from "./vendor-projects"
+export { partnerDocumentsRelations } from "./partner-documents"
+export { partnerMeetingsRelations } from "./partner-meetings"
+export { partnerNotificationsRelations } from "./partner-notifications"

@@ -28,13 +28,10 @@ export const partnerContacts = pgTable(
     phone: varchar("phone", { length: 20 }),
     role: varchar("role", { length: 100 }),
     isPrimary: boolean("is_primary").default(false),
-    createdAt: timestamp("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull()
-      .$onUpdate(() => new Date()),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`),
   },
   (table) => ({
     partnerIdIdx: index("idx_partner_contacts_partner").on(table.partnerId),

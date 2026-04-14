@@ -10,6 +10,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { UserAdd01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/frontend/lib/utils";
 import { AnimatedBackground } from "@/frontend/components/ui/animated-background";
+import { WhyCapgemini } from "@/frontend/components/why-capgemini";
+import { Footer } from "@/frontend/components/footer";
 
 export default function Page() {
   const [scrolled, setScrolled] = useState(false);
@@ -46,9 +48,9 @@ export default function Page() {
             <Link href="/" className="text-foreground/80 dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors font-medium text-sm">
               Home
             </Link>
-            <Link href="/why-capgemini" className="text-foreground/80 dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors font-medium text-sm">
+            <a href="#why-capgemini" className="text-foreground/80 dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors font-medium text-sm">
               Why Capgemini
-            </Link>
+            </a>
             <Link href="/success-stories" className="text-foreground/80 dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors font-medium text-sm">
               Success Stories
             </Link>
@@ -61,15 +63,9 @@ export default function Page() {
           <div className='flex items-center gap-4'>
             <ThemeToggle variant="ghost" size="icon" />
             <Link href='/auth/sign-in'>
-              <Button variant='ghost' className="hidden sm:flex items-center gap-2 text-foreground/80 dark:text-foreground hover:text-primary">
-                Log in
-                <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4" />
-              </Button>
-            </Link>
-            <Link href='/auth/sign-up'>
               <Button className="hidden sm:flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20 transition-all hover:scale-105">
-                <HugeiconsIcon icon={UserAdd01Icon} className="w-4 h-4" />
-                Register
+                <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4" />
+                Se connecter
               </Button>
             </Link>
           </div>
@@ -96,7 +92,7 @@ export default function Page() {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                 </span>
                 Together, we build more
-                <Link href="/ar-vr" className="flex items-center gap-1 ml-1 hover:underline font-semibold">
+                <Link href="/solutions" className="flex items-center gap-1 ml-1 hover:underline font-semibold">
                   Read more
                   <HugeiconsIcon icon={ArrowRight01Icon} className="w-3 h-3" />
                 </Link>
@@ -117,14 +113,14 @@ export default function Page() {
 
               {/* Action Buttons */}
               <div className='flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center'>
-                <Link href='/auth/sign-up'>
+                <Link href='/success-stories/apply'>
                   <Button size='lg' className='w-full sm:w-auto h-14 px-8 text-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 rounded-full hover:scale-105 transition-all duration-300 font-semibold'>
-                    Get Started Now
+                    Devenir partenaire
                   </Button>
                 </Link>
-                <Link href='/learn-more'>
+                <Link href='/auth/sign-in'>
                   <Button size='lg' variant='outline' className='w-full sm:w-auto h-14 px-8 text-lg border-primary/20 bg-white/40 dark:bg-black/40 hover:bg-white/60 dark:hover:bg-black/60 backdrop-blur-sm text-foreground dark:text-white rounded-full transition-all duration-300 group font-medium'>
-                    View Demo
+                    Se connecter
                     <HugeiconsIcon icon={ArrowRight01Icon} className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
@@ -134,32 +130,11 @@ export default function Page() {
         </div>
       </main>
 
-      {/* Examples Section - Kept for demonstration */}
-      <section className='relative z-10 py-20 px-4'>
-        <div className='max-w-6xl mx-auto'>
-          <div className='text-center mb-12'>
-            <h2 className='text-3xl font-bold text-foreground dark:text-white mb-4'>
-              Explore Our Platform
-            </h2>
-            <p className='text-muted-foreground dark:text-gray-300'>
-              Discover the features and capabilities of our application
-            </p>
-          </div>
-          
-          <div className='flex justify-center'>
-            <Link href='/examples'>
-              <Button variant='outline' size='lg' className="text-lg px-8">
-                View Examples
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Why Capgemini Section */}
+      <WhyCapgemini />
 
       {/* Footer */}
-      <footer className='relative z-10 border-t border-border/50 py-8 text-center text-muted-foreground dark:text-gray-300 bg-white/5 dark:bg-black/5 backdrop-blur-sm'>
-        <p>Built with ❤️ using Next.js, React, and modern web technologies</p>
-      </footer>
+      <Footer />
     </div>
   );
 }

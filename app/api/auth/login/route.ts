@@ -96,13 +96,6 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      if (!partner.isActive) {
-        return NextResponse.json(
-          { error: "Ce compte partenaire est désactivé" },
-          { status: 403 }
-        )
-      }
-
       if (!partner.passwordHash) {
         return NextResponse.json(
           { error: "Aucun mot de passe configuré pour ce compte" },
@@ -122,7 +115,7 @@ export async function POST(request: NextRequest) {
         sub: String(partner.id),
         email: partner.email!,
         name: partner.name,
-        category: partner.category,
+        category: partner.categories || undefined,
         userType: "partner",
       })
 
@@ -131,7 +124,7 @@ export async function POST(request: NextRequest) {
           id: String(partner.id),
           email: partner.email!,
           name: partner.name,
-          category: partner.category,
+          category: partner.categories || undefined,
           userType: "partner",
         },
       })
