@@ -12,6 +12,7 @@ import { CodeResult } from "./code-result"
 import { InteractiveTable } from "./interactive-table"
 import { LineChart } from "./line-chart"
 import { PieChart } from "./pie-chart"
+import { ReportPreview } from "./report-preview"
 import { Spinner } from "@/frontend/components/ui/spinner"
 import {
   Card,
@@ -181,6 +182,16 @@ function isCodeResultPayload(value: unknown): value is React.ComponentProps<type
   return isRecord(value) && typeof value.code === "string"
 }
 
+function isReportPreviewPayload(value: unknown): value is React.ComponentProps<typeof ReportPreview> {
+  return (
+    isRecord(value) &&
+    typeof value.title === "string" &&
+    typeof value.markdown === "string" &&
+    typeof value.topic === "string" &&
+    typeof value.generatedAt === "string"
+  )
+}
+
 function stringifyJson(value: unknown) {
   try {
     return JSON.stringify(value, null, 2)
@@ -229,6 +240,8 @@ function renderToolResult(toolName: string, payload: unknown) {
       return isPieChartPayload(payload) ? <PieChart {...payload} /> : null
     case "createTable":
       return isInteractiveTablePayload(payload) ? <InteractiveTable {...payload} /> : null
+    case "generateReport":
+      return isReportPreviewPayload(payload) ? <ReportPreview {...payload} /> : null
     case "executeCode":
     case "runCode":
     case "createCodeResult":

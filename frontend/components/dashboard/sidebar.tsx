@@ -10,6 +10,9 @@ import {
   ContactBookIcon,
   AnalyticsUpIcon,
   AiChat02Icon,
+  FileAttachmentIcon,
+  PresentationBarChart01Icon,
+  SpeedTrain01Icon,
   Calendar03Icon,
   Discount01Icon,
   ClockIcon,
@@ -55,6 +58,21 @@ const navItems: NavItem[] = [
     label: "AI Agent",
     href: "/dashboard/agent",
     icon: AiChat02Icon,
+  },
+  {
+    label: "Reports",
+    href: "/dashboard/reports",
+    icon: FileAttachmentIcon,
+  },
+  {
+    label: "Live Demo",
+    href: "/dashboard/demo",
+    icon: PresentationBarChart01Icon,
+  },
+  {
+    label: "Benchmark",
+    href: "/dashboard/benchmark",
+    icon: SpeedTrain01Icon,
   },
   {
     label: "Demandes partenariat",

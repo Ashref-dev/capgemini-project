@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useAuth } from "@/frontend/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { DashboardSidebar } from "@/frontend/components/dashboard/sidebar"
+import { DashboardTourController } from "@/frontend/components/dashboard/dashboard-tour-controller"
 import { UserMenu } from "@/frontend/components/auth/user-menu"
 import { ThemeToggle } from "@/frontend/components/theme-toggle"
 import { Spinner } from "@/frontend/components/ui/spinner"
@@ -44,6 +45,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen flex bg-background">
+      <DashboardTourController />
       <DashboardSidebar userRole={user.role} />
 
       <div className="flex-1 flex flex-col min-h-screen">
