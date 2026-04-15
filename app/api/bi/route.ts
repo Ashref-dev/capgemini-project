@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     // University recruitment summary
     const recruitmentSummary = await dwPool.query(
       `SELECT COUNT(*) as total_students,
-              SUM(converted_to_cdi) as total_cdi,
+              SUM(converted_to_cdi::int) as total_cdi,
               AVG(satisfaction_score) as avg_satisfaction
        FROM fact_university_recruitment`
     )
