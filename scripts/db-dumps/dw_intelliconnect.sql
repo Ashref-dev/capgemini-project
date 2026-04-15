@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict wigcDjiN2hHW0bO0ObL8lP08BbbTzA5QxEhAEauwZShXaLaj7hfulYlWWbnXCee
+\restrict bojurbdOdtRobPtvgyl9qHERlTgBARXau9Vko5smj7D0drVPIcuuluHj4lehgeS
 
 -- Dumped from database version 18.2 (Homebrew)
 -- Dumped by pg_dump version 18.2 (Homebrew)
@@ -604,5 +604,5 @@ ALTER TABLE ONLY public.fact_university_recruitment
 -- PostgreSQL database dump complete
 --
 
-\unrestrict wigcDjiN2hHW0bO0ObL8lP08BbbTzA5QxEhAEauwZShXaLaj7hfulYlWWbnXCee
+\unrestrict bojurbdOdtRobPtvgyl9qHERlTgBARXau9Vko5smj7D0drVPIcuuluHj4lehgeS
 

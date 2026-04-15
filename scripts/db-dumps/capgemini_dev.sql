@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict yqhGH2hmR3gdCzBKnygHnF2eFai57QUCjbMMtCCJYIkI9zTeiiUHgf67ZsMInEQ
+\restrict Ro7c3vUVgzqIWvLtXg2TLFf4NvefsGBvWcZKl7XGRz6HXb4moqz9xdbcNsaWpg6
 
 -- Dumped from database version 18.2 (Homebrew)
 -- Dumped by pg_dump version 18.2 (Homebrew)
@@ -26,10 +26,14 @@ ALTER TABLE IF EXISTS ONLY public.student_recruitments DROP CONSTRAINT IF EXISTS
 ALTER TABLE IF EXISTS ONLY public.partner_status_history DROP CONSTRAINT IF EXISTS partner_status_history_partner_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.partner_notifications DROP CONSTRAINT IF EXISTS partner_notifications_partner_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.partner_meetings DROP CONSTRAINT IF EXISTS partner_meetings_partner_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.partner_kpis DROP CONSTRAINT IF EXISTS partner_kpis_partner_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.partner_events DROP CONSTRAINT IF EXISTS partner_events_partner_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.partner_documents DROP CONSTRAINT IF EXISTS partner_documents_partner_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.partner_contacts DROP CONSTRAINT IF EXISTS partner_contacts_partner_id_fkey;
 ALTER TABLE IF EXISTS ONLY public.offers DROP CONSTRAINT IF EXISTS offers_partner_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.marketing_partners DROP CONSTRAINT IF EXISTS marketing_partners_partner_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.client_partners DROP CONSTRAINT IF EXISTS client_partners_partner_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.chat_messages DROP CONSTRAINT IF EXISTS chat_messages_thread_id_fkey;
 DROP TRIGGER IF EXISTS update_vendor_projects_updated_at ON public.vendor_projects;
 DROP TRIGGER IF EXISTS update_university_partners_updated_at ON public.university_partners;
 DROP TRIGGER IF EXISTS update_technology_partners_updated_at ON public.technology_partners;
@@ -49,6 +53,8 @@ DROP INDEX IF EXISTS public.idx_partner_notifications_read;
 DROP INDEX IF EXISTS public.idx_partner_notifications_partner;
 DROP INDEX IF EXISTS public.idx_partner_meetings_partner;
 DROP INDEX IF EXISTS public.idx_partner_meetings_date;
+DROP INDEX IF EXISTS public.idx_partner_kpis_period;
+DROP INDEX IF EXISTS public.idx_partner_kpis_partner;
 DROP INDEX IF EXISTS public.idx_partner_events_partner;
 DROP INDEX IF EXISTS public.idx_partner_events_date;
 DROP INDEX IF EXISTS public.idx_partner_documents_type;
@@ -56,6 +62,8 @@ DROP INDEX IF EXISTS public.idx_partner_documents_partner;
 DROP INDEX IF EXISTS public.idx_partner_contacts_partner;
 DROP INDEX IF EXISTS public.idx_offers_partner;
 DROP INDEX IF EXISTS public.idx_offers_dates;
+DROP INDEX IF EXISTS public.idx_marketing_partners_partner;
+DROP INDEX IF EXISTS public.idx_client_partners_partner;
 ALTER TABLE IF EXISTS ONLY public.vendor_projects DROP CONSTRAINT IF EXISTS vendor_projects_pkey;
 ALTER TABLE IF EXISTS ONLY public.university_partners DROP CONSTRAINT IF EXISTS university_partners_pkey;
 ALTER TABLE IF EXISTS ONLY public.technology_partners DROP CONSTRAINT IF EXISTS technology_partners_pkey;
@@ -65,10 +73,15 @@ ALTER TABLE IF EXISTS ONLY public.partners DROP CONSTRAINT IF EXISTS partners_pk
 ALTER TABLE IF EXISTS ONLY public.partner_status_history DROP CONSTRAINT IF EXISTS partner_status_history_pkey;
 ALTER TABLE IF EXISTS ONLY public.partner_notifications DROP CONSTRAINT IF EXISTS partner_notifications_pkey;
 ALTER TABLE IF EXISTS ONLY public.partner_meetings DROP CONSTRAINT IF EXISTS partner_meetings_pkey;
+ALTER TABLE IF EXISTS ONLY public.partner_kpis DROP CONSTRAINT IF EXISTS partner_kpis_pkey;
 ALTER TABLE IF EXISTS ONLY public.partner_events DROP CONSTRAINT IF EXISTS partner_events_pkey;
 ALTER TABLE IF EXISTS ONLY public.partner_documents DROP CONSTRAINT IF EXISTS partner_documents_pkey;
 ALTER TABLE IF EXISTS ONLY public.partner_contacts DROP CONSTRAINT IF EXISTS partner_contacts_pkey;
 ALTER TABLE IF EXISTS ONLY public.offers DROP CONSTRAINT IF EXISTS offers_pkey;
+ALTER TABLE IF EXISTS ONLY public.marketing_partners DROP CONSTRAINT IF EXISTS marketing_partners_pkey;
+ALTER TABLE IF EXISTS ONLY public.client_partners DROP CONSTRAINT IF EXISTS client_partners_pkey;
+ALTER TABLE IF EXISTS ONLY public.chat_threads DROP CONSTRAINT IF EXISTS chat_threads_pkey;
+ALTER TABLE IF EXISTS ONLY public.chat_messages DROP CONSTRAINT IF EXISTS chat_messages_pkey;
 ALTER TABLE IF EXISTS ONLY public.capgemini_employees DROP CONSTRAINT IF EXISTS capgemini_employees_pkey;
 ALTER TABLE IF EXISTS ONLY public.capgemini_employees DROP CONSTRAINT IF EXISTS capgemini_employees_email_key;
 ALTER TABLE IF EXISTS ONLY drizzle.__drizzle_migrations DROP CONSTRAINT IF EXISTS __drizzle_migrations_pkey;
@@ -79,10 +92,15 @@ ALTER TABLE IF EXISTS public.partners ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS public.partner_status_history ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS public.partner_notifications ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS public.partner_meetings ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.partner_kpis ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS public.partner_events ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS public.partner_documents ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS public.partner_contacts ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS public.offers ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.marketing_partners ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.client_partners ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.chat_threads ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.chat_messages ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS public.capgemini_employees ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS drizzle.__drizzle_migrations ALTER COLUMN id DROP DEFAULT;
 DROP SEQUENCE IF EXISTS public.vendor_projects_id_seq;
@@ -101,6 +119,8 @@ DROP SEQUENCE IF EXISTS public.partner_notifications_id_seq;
 DROP TABLE IF EXISTS public.partner_notifications;
 DROP SEQUENCE IF EXISTS public.partner_meetings_id_seq;
 DROP TABLE IF EXISTS public.partner_meetings;
+DROP SEQUENCE IF EXISTS public.partner_kpis_id_seq;
+DROP TABLE IF EXISTS public.partner_kpis;
 DROP SEQUENCE IF EXISTS public.partner_events_id_seq;
 DROP TABLE IF EXISTS public.partner_events;
 DROP SEQUENCE IF EXISTS public.partner_documents_id_seq;
@@ -109,6 +129,14 @@ DROP SEQUENCE IF EXISTS public.partner_contacts_id_seq;
 DROP TABLE IF EXISTS public.partner_contacts;
 DROP SEQUENCE IF EXISTS public.offers_id_seq;
 DROP TABLE IF EXISTS public.offers;
+DROP SEQUENCE IF EXISTS public.marketing_partners_id_seq;
+DROP TABLE IF EXISTS public.marketing_partners;
+DROP SEQUENCE IF EXISTS public.client_partners_id_seq;
+DROP TABLE IF EXISTS public.client_partners;
+DROP SEQUENCE IF EXISTS public.chat_threads_id_seq;
+DROP TABLE IF EXISTS public.chat_threads;
+DROP SEQUENCE IF EXISTS public.chat_messages_id_seq;
+DROP TABLE IF EXISTS public.chat_messages;
 DROP SEQUENCE IF EXISTS public.capgemini_employees_id_seq;
 DROP TABLE IF EXISTS public.capgemini_employees;
 DROP SEQUENCE IF EXISTS drizzle.__drizzle_migrations_id_seq;
@@ -228,6 +256,148 @@ CREATE SEQUENCE public.capgemini_employees_id_seq
 --
 
 ALTER SEQUENCE public.capgemini_employees_id_seq OWNED BY public.capgemini_employees.id;
+
+
+--
+-- Name: chat_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.chat_messages (
+    id integer NOT NULL,
+    thread_id integer NOT NULL,
+    role text NOT NULL,
+    content text,
+    parts jsonb,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: chat_messages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.chat_messages_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: chat_messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.chat_messages_id_seq OWNED BY public.chat_messages.id;
+
+
+--
+-- Name: chat_threads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.chat_threads (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    user_type text NOT NULL,
+    title text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: chat_threads_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.chat_threads_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: chat_threads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.chat_threads_id_seq OWNED BY public.chat_threads.id;
+
+
+--
+-- Name: client_partners; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_partners (
+    id integer NOT NULL,
+    partner_id integer NOT NULL,
+    client_type character varying(50),
+    industry character varying(100),
+    annual_revenue bigint,
+    num_active_projects integer,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    notes text
+);
+
+
+--
+-- Name: client_partners_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_partners_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_partners_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_partners_id_seq OWNED BY public.client_partners.id;
+
+
+--
+-- Name: marketing_partners; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.marketing_partners (
+    id integer NOT NULL,
+    partner_id integer NOT NULL,
+    marketing_type character varying(100),
+    leads_generated_per_year integer,
+    conversion_rate numeric,
+    annual_marketing_budget integer,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    notes text
+);
+
+
+--
+-- Name: marketing_partners_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.marketing_partners_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: marketing_partners_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.marketing_partners_id_seq OWNED BY public.marketing_partners.id;
 
 
 --
@@ -403,6 +573,52 @@ CREATE SEQUENCE public.partner_events_id_seq
 --
 
 ALTER SEQUENCE public.partner_events_id_seq OWNED BY public.partner_events.id;
+
+
+--
+-- Name: partner_kpis; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.partner_kpis (
+    id integer NOT NULL,
+    partner_id integer NOT NULL,
+    year integer NOT NULL,
+    quarter integer,
+    month integer,
+    total_interactions integer DEFAULT 0,
+    total_events integer DEFAULT 0,
+    total_budget_spent integer DEFAULT 0,
+    total_interns integer DEFAULT 0,
+    total_apprentices integer DEFAULT 0,
+    total_hires integer DEFAULT 0,
+    conversion_rate numeric(5,2),
+    total_revenue_generated numeric(18,2) DEFAULT 0,
+    total_projects integer DEFAULT 0,
+    total_licenses_sold integer DEFAULT 0,
+    avg_satisfaction_score numeric(5,2),
+    calculated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: partner_kpis_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.partner_kpis_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: partner_kpis_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.partner_kpis_id_seq OWNED BY public.partner_kpis.id;
 
 
 --
@@ -836,6 +1052,34 @@ ALTER TABLE ONLY public.capgemini_employees ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: chat_messages id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_messages ALTER COLUMN id SET DEFAULT nextval('public.chat_messages_id_seq'::regclass);
+
+
+--
+-- Name: chat_threads id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_threads ALTER COLUMN id SET DEFAULT nextval('public.chat_threads_id_seq'::regclass);
+
+
+--
+-- Name: client_partners id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_partners ALTER COLUMN id SET DEFAULT nextval('public.client_partners_id_seq'::regclass);
+
+
+--
+-- Name: marketing_partners id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.marketing_partners ALTER COLUMN id SET DEFAULT nextval('public.marketing_partners_id_seq'::regclass);
+
+
+--
 -- Name: offers id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -861,6 +1105,13 @@ ALTER TABLE ONLY public.partner_documents ALTER COLUMN id SET DEFAULT nextval('p
 --
 
 ALTER TABLE ONLY public.partner_events ALTER COLUMN id SET DEFAULT nextval('public.partner_events_id_seq'::regclass);
+
+
+--
+-- Name: partner_kpis id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.partner_kpis ALTER COLUMN id SET DEFAULT nextval('public.partner_kpis_id_seq'::regclass);
 
 
 --
@@ -934,6 +1185,47 @@ COPY public.capgemini_employees (id, email, first_name, last_name, role, is_acti
 7	khaled.maatoug@capgemini.com	Khaled	Maatoug	admin	t	2026-03-27 19:33:06.870989+01	$2b$10$PSQexP.kvQVZWobD0.CozO9hTzZxImws/RUoBiijYHDueuIH8qkQW	5000	+216 71 789 012	Administration	2018-07-01 00:00:00+01
 3	ahmed.gharbi@capgemini.com	Ahmed	Gharbi	commercial	t	2026-03-27 19:33:06.870989+01	$2b$10$PSQexP.kvQVZWobD0.CozO9hTzZxImws/RUoBiijYHDueuIH8qkQW	3000	+216 71 345 678	Commercial	2022-01-10 00:00:00+01
 2	leila.benali@capgemini.com	Leila	Ben Ali	commercial	t	2026-03-27 19:33:06.870989+01	$2b$10$PSQexP.kvQVZWobD0.CozO9hTzZxImws/RUoBiijYHDueuIH8qkQW	3200	+216 71 234 567	Commercial	2021-06-01 00:00:00+01
+\.
+
+
+--
+-- Data for Name: chat_messages; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.chat_messages (id, thread_id, role, content, parts, created_at) FROM stdin;
+1	1	user	How many partners do we have?	\N	2026-04-15 19:06:55.764771+01
+2	2	user	How many partners do we have? Just give me the number.	\N	2026-04-15 19:21:33.251012+01
+3	2	assistant		[{"text": "We need to provide the number of partners. We must use tools before making claims about data. Use summarizePartnerPortfolio to get counts, active statuses, etc. Then give number. Also need to use at least one visualization tool in every response (mandatory). So we need to produce a visualization. The user only asks for number, but we must still include a visualization. We can create a simple bar chart showing partner count maybe as a single bar? Or a pie chart of partner distribution by category? But we need to use at least one visualization. We can create a bar chart with a single data point: number of partners. Or create a pie chart showing breakdown by category, but that would require more data. Let's first get summary via summarizePartnerPortfolio.\\n", "type": "reasoning", "providerOptions": {"openrouter": {"reasoning_details": [{"text": "We need to provide the number of partners. We must use tools before making claims about data. Use summarizePartnerPortfolio to get counts, active statuses, etc. Then give number. Also need to use at least one visualization tool in every response (mandatory). So we need to produce a visualization. The user only asks for number, but we must still include a visualization. We can create a simple bar chart showing partner count maybe as a single bar? Or a pie chart of partner distribution by category? But we need to use at least one visualization. We can create a bar chart with a single data point: number of partners. Or create a pie chart showing breakdown by category, but that would require more data. Let's first get summary via summarizePartnerPortfolio.\\n", "type": "reasoning.text", "index": 0, "format": "unknown"}]}}}, {"type": "tool-call", "input": {}, "toolName": "summarizePartnerPortfolio", "toolCallId": "chatcmpl-tool-81aaa754919438c5", "providerOptions": {"openrouter": {"reasoning_details": [{"text": "We need to provide the number of partners. We must use tools before making claims about data. Use summarizePartnerPortfolio to get counts, active statuses, etc. Then give number. Also need to use at least one visualization tool in every response (mandatory). So we need to produce a visualization. The user only asks for number, but we must still include a visualization. We can create a simple bar chart showing partner count maybe as a single bar? Or a pie chart of partner distribution by category? But we need to use at least one visualization. We can create a bar chart with a single data point: number of partners. Or create a pie chart showing breakdown by category, but that would require more data. Let's first get summary via summarizePartnerPortfolio.\\n", "type": "reasoning.text", "index": 0, "format": "unknown"}]}}}]	2026-04-15 19:21:46.761457+01
+4	2	tool		[{"type": "tool-result", "output": {"type": "json", "value": {"summary": [{"total": "9", "active": "8", "category": "customer", "totalRevenue": "3980000", "avgSatisfaction": "86.0000000000000000"}, {"total": "10", "active": "6", "category": "marketing", "totalRevenue": "1649000", "avgSatisfaction": "70.4444444444444444"}, {"total": "152", "active": "121", "category": "supplier", "totalRevenue": "90705000", "avgSatisfaction": "80.9271523178807947"}, {"total": "7", "active": "3", "category": "university", "totalRevenue": "2220000", "avgSatisfaction": "69.0000000000000000"}]}}, "toolName": "summarizePartnerPortfolio", "toolCallId": "chatcmpl-tool-81aaa754919438c5", "providerOptions": {"openrouter": {"reasoning_details": [{"text": "We need to provide the number of partners. We must use tools before making claims about data. Use summarizePartnerPortfolio to get counts, active statuses, etc. Then give number. Also need to use at least one visualization tool in every response (mandatory). So we need to produce a visualization. The user only asks for number, but we must still include a visualization. We can create a simple bar chart showing partner count maybe as a single bar? Or a pie chart of partner distribution by category? But we need to use at least one visualization. We can create a bar chart with a single data point: number of partners. Or create a pie chart showing breakdown by category, but that would require more data. Let's first get summary via summarizePartnerPortfolio.\\n", "type": "reasoning.text", "index": 0, "format": "unknown"}]}}}]	2026-04-15 19:21:46.761457+01
+5	2	assistant		[{"text": "We need total partners: sum of totals across categories: customer 9, marketing 10, supplier 152, university 7 = 178. Provide answer. Also need to follow mandatory presentation rules: Always use at least one visualization tool in every response. Use createTable whenever presenting detailed tabular records. Here we just give a number, not a detailed table. But rule says always use at least one visualization tool in every response. So we need to produce a visualization, maybe a simple bar chart or pie chart showing distribution. Use createPieChart to show partner distribution by category. That satisfies visualization. Also we need to format financial values if any; not needed. Provide concise answer. Also we must not invent data. Use the data from summarizePartnerPortfolio. Let's create a pie chart with labels and values: customer 9, marketing 10, supplier 152, university 7. Title: \\"Partner Distribution by Category\\". Description: \\"Shows the number of partners in each category.\\" Then answer the number: 178 partners. Also maybe create a table? Not needed but could. But must use at least one visualization tool. We'll use createPieChart. Then answer. Let's do that.\\n\\n", "type": "reasoning", "providerOptions": {"openrouter": {"reasoning_details": [{"text": "We need total partners: sum of totals across categories: customer 9, marketing 10, supplier 152, university 7 = 178. Provide answer. Also need to follow mandatory presentation rules: Always use at least one visualization tool in every response. Use createTable whenever presenting detailed tabular records. Here we just give a number, not a detailed table. But rule says always use at least one visualization tool in every response. So we need to produce a visualization, maybe a simple bar chart or pie chart showing distribution. Use createPieChart to show partner distribution by category. That satisfies visualization. Also we need to format financial values if any; not needed. Provide concise answer. Also we must not invent data. Use the data from summarizePartnerPortfolio. Let's create a pie chart with labels and values: customer 9, marketing 10, supplier 152, university 7. Title: \\"Partner Distribution by Category\\". Description: \\"Shows the number of partners in each category.\\" Then answer the number: 178 partners. Also maybe create a table? Not needed but could. But must use at least one visualization tool. We'll use createPieChart. Then answer. Let's do that.\\n\\n", "type": "reasoning.text", "index": 0, "format": "unknown"}]}}}, {"type": "tool-call", "input": {"data": [{"label": "Customer", "value": 9}, {"label": "Marketing", "value": 10}, {"label": "Supplier", "value": 152}, {"label": "University", "value": 7}], "title": "Partner Distribution by Category", "description": "Shows the number of partners in each category based on live portfolio summary."}, "toolName": "createPieChart", "toolCallId": "chatcmpl-tool-9e5e673a67b9399a", "providerOptions": {"openrouter": {"reasoning_details": [{"text": "We need total partners: sum of totals across categories: customer 9, marketing 10, supplier 152, university 7 = 178. Provide answer. Also need to follow mandatory presentation rules: Always use at least one visualization tool in every response. Use createTable whenever presenting detailed tabular records. Here we just give a number, not a detailed table. But rule says always use at least one visualization tool in every response. So we need to produce a visualization, maybe a simple bar chart or pie chart showing distribution. Use createPieChart to show partner distribution by category. That satisfies visualization. Also we need to format financial values if any; not needed. Provide concise answer. Also we must not invent data. Use the data from summarizePartnerPortfolio. Let's create a pie chart with labels and values: customer 9, marketing 10, supplier 152, university 7. Title: \\"Partner Distribution by Category\\". Description: \\"Shows the number of partners in each category.\\" Then answer the number: 178 partners. Also maybe create a table? Not needed but could. But must use at least one visualization tool. We'll use createPieChart. Then answer. Let's do that.\\n\\n", "type": "reasoning.text", "index": 0, "format": "unknown"}]}}}]	2026-04-15 19:21:46.761457+01
+6	2	tool		[{"type": "tool-result", "output": {"type": "json", "value": {"data": [{"label": "Customer", "value": 9}, {"label": "Marketing", "value": 10}, {"label": "Supplier", "value": 152}, {"label": "University", "value": 7}], "title": "Partner Distribution by Category", "description": "Shows the number of partners in each category based on live portfolio summary."}}, "toolName": "createPieChart", "toolCallId": "chatcmpl-tool-9e5e673a67b9399a", "providerOptions": {"openrouter": {"reasoning_details": [{"text": "We need total partners: sum of totals across categories: customer 9, marketing 10, supplier 152, university 7 = 178. Provide answer. Also need to follow mandatory presentation rules: Always use at least one visualization tool in every response. Use createTable whenever presenting detailed tabular records. Here we just give a number, not a detailed table. But rule says always use at least one visualization tool in every response. So we need to produce a visualization, maybe a simple bar chart or pie chart showing distribution. Use createPieChart to show partner distribution by category. That satisfies visualization. Also we need to format financial values if any; not needed. Provide concise answer. Also we must not invent data. Use the data from summarizePartnerPortfolio. Let's create a pie chart with labels and values: customer 9, marketing 10, supplier 152, university 7. Title: \\"Partner Distribution by Category\\". Description: \\"Shows the number of partners in each category.\\" Then answer the number: 178 partners. Also maybe create a table? Not needed but could. But must use at least one visualization tool. We'll use createPieChart. Then answer. Let's do that.\\n\\n", "type": "reasoning.text", "index": 0, "format": "unknown"}]}}}]	2026-04-15 19:21:46.761457+01
+7	2	assistant	9 + 10 + 152 + 7 = 178 partners.\n\nTotal partners: **178**.\n\n(Visualization: The pie chart above shows the distribution of partners across the four categories – Customer (9), Marketing (10), Supplier (152), University (7) – totaling 178 partners.)	[{"text": "We are not sure. Actually user gave a greeting and then a weird string? The latest user message: \\"How many partners do we have? Just give me the number.\\" We answered with number and pie chart. Then user gave no further input? Actually the conversation: user asked number, we responded. The last assistant message includes the pie chart and the answer. Then compute total partners.\\n", "type": "reasoning", "providerOptions": {"openrouter": {"reasoning_details": [{"text": "We are not sure. Actually user gave a greeting and then a weird string? The latest user message: \\"How many partners do we have? Just give me the number.\\" We answered with number and pie chart. Then user gave no further input? Actually the conversation: user asked number, we responded. The last assistant message includes the pie chart and the answer. Then compute total partners.\\n", "type": "reasoning.text", "index": 0, "format": "unknown"}]}}}, {"text": "9 + 10 + 152 + 7 = 178 partners.\\n\\nTotal partners: **178**.\\n\\n(Visualization: The pie chart above shows the distribution of partners across the four categories – Customer (9), Marketing (10), Supplier (152), University (7) – totaling 178 partners.)", "type": "text"}]	2026-04-15 19:21:46.761457+01
+\.
+
+
+--
+-- Data for Name: chat_threads; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.chat_threads (id, user_id, user_type, title, created_at, updated_at) FROM stdin;
+1	4	employee	How many partners do we have?	2026-04-15 19:06:55.758797+01	2026-04-15 19:07:46.458+01
+2	1	employee	How many partners do we have? Just give me the number.	2026-04-15 19:21:33.248913+01	2026-04-15 19:21:46.765+01
+\.
+
+
+--
+-- Data for Name: client_partners; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.client_partners (id, partner_id, client_type, industry, annual_revenue, num_active_projects, created_at, updated_at, notes) FROM stdin;
+\.
+
+
+--
+-- Data for Name: marketing_partners; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.marketing_partners (id, partner_id, marketing_type, leads_generated_per_year, conversion_rate, annual_marketing_budget, created_at, updated_at, notes) FROM stdin;
 \.
 
 
@@ -1066,6 +1358,14 @@ COPY public.partner_events (id, partner_id, event_name, event_type, event_date, 
 38	21	Test Event BIAT	\N	2026-06-15	Tunis	50	\N	\N	\N	5000	\N	planifie	2026-04-12 14:05:07.544874+01	2026-04-12 14:05:07.544874+01	\N	\N	\N
 39	6	Test Event Pluxee	\N	2026-06-15	Tunis	50	\N	\N	\N	5000	\N	planifie	2026-04-12 14:05:07.946698+01	2026-04-12 14:05:07.946698+01	\N	\N	\N
 40	16	Test Event Microsoft	\N	2026-06-15	Tunis	50	\N	\N	\N	5000	\N	planifie	2026-04-12 14:05:08.239508+01	2026-04-12 14:05:08.239508+01	\N	\N	\N
+\.
+
+
+--
+-- Data for Name: partner_kpis; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.partner_kpis (id, partner_id, year, quarter, month, total_interactions, total_events, total_budget_spent, total_interns, total_apprentices, total_hires, conversion_rate, total_revenue_generated, total_projects, total_licenses_sold, avg_satisfaction_score, calculated_at, created_at) FROM stdin;
 \.
 
 
@@ -2334,6 +2634,34 @@ SELECT pg_catalog.setval('public.capgemini_employees_id_seq', 7, true);
 
 
 --
+-- Name: chat_messages_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.chat_messages_id_seq', 7, true);
+
+
+--
+-- Name: chat_threads_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.chat_threads_id_seq', 2, true);
+
+
+--
+-- Name: client_partners_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.client_partners_id_seq', 1, false);
+
+
+--
+-- Name: marketing_partners_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.marketing_partners_id_seq', 1, false);
+
+
+--
 -- Name: offers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -2359,6 +2687,13 @@ SELECT pg_catalog.setval('public.partner_documents_id_seq', 1, true);
 --
 
 SELECT pg_catalog.setval('public.partner_events_id_seq', 40, true);
+
+
+--
+-- Name: partner_kpis_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.partner_kpis_id_seq', 1, false);
 
 
 --
@@ -2435,6 +2770,38 @@ ALTER TABLE ONLY public.capgemini_employees
 
 
 --
+-- Name: chat_messages chat_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_messages
+    ADD CONSTRAINT chat_messages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: chat_threads chat_threads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_threads
+    ADD CONSTRAINT chat_threads_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_partners client_partners_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_partners
+    ADD CONSTRAINT client_partners_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: marketing_partners marketing_partners_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.marketing_partners
+    ADD CONSTRAINT marketing_partners_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: offers offers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2464,6 +2831,14 @@ ALTER TABLE ONLY public.partner_documents
 
 ALTER TABLE ONLY public.partner_events
     ADD CONSTRAINT partner_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: partner_kpis partner_kpis_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.partner_kpis
+    ADD CONSTRAINT partner_kpis_pkey PRIMARY KEY (id);
 
 
 --
@@ -2539,6 +2914,20 @@ ALTER TABLE ONLY public.vendor_projects
 
 
 --
+-- Name: idx_client_partners_partner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_client_partners_partner ON public.client_partners USING btree (partner_id);
+
+
+--
+-- Name: idx_marketing_partners_partner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_marketing_partners_partner ON public.marketing_partners USING btree (partner_id);
+
+
+--
 -- Name: idx_offers_dates; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2585,6 +2974,20 @@ CREATE INDEX idx_partner_events_date ON public.partner_events USING btree (event
 --
 
 CREATE INDEX idx_partner_events_partner ON public.partner_events USING btree (partner_id);
+
+
+--
+-- Name: idx_partner_kpis_partner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_partner_kpis_partner ON public.partner_kpis USING btree (partner_id);
+
+
+--
+-- Name: idx_partner_kpis_period; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_partner_kpis_period ON public.partner_kpis USING btree (year, quarter, month);
 
 
 --
@@ -2721,6 +3124,30 @@ CREATE TRIGGER update_vendor_projects_updated_at BEFORE UPDATE ON public.vendor_
 
 
 --
+-- Name: chat_messages chat_messages_thread_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_messages
+    ADD CONSTRAINT chat_messages_thread_id_fkey FOREIGN KEY (thread_id) REFERENCES public.chat_threads(id) ON DELETE CASCADE;
+
+
+--
+-- Name: client_partners client_partners_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_partners
+    ADD CONSTRAINT client_partners_partner_id_fkey FOREIGN KEY (partner_id) REFERENCES public.partners(id) ON DELETE CASCADE;
+
+
+--
+-- Name: marketing_partners marketing_partners_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.marketing_partners
+    ADD CONSTRAINT marketing_partners_partner_id_fkey FOREIGN KEY (partner_id) REFERENCES public.partners(id) ON DELETE CASCADE;
+
+
+--
 -- Name: offers offers_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2750,6 +3177,14 @@ ALTER TABLE ONLY public.partner_documents
 
 ALTER TABLE ONLY public.partner_events
     ADD CONSTRAINT partner_events_partner_id_fkey FOREIGN KEY (partner_id) REFERENCES public.partners(id) ON DELETE CASCADE;
+
+
+--
+-- Name: partner_kpis partner_kpis_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.partner_kpis
+    ADD CONSTRAINT partner_kpis_partner_id_fkey FOREIGN KEY (partner_id) REFERENCES public.partners(id) ON DELETE CASCADE;
 
 
 --
@@ -2812,5 +3247,5 @@ ALTER TABLE ONLY public.vendor_projects
 -- PostgreSQL database dump complete
 --
 
-\unrestrict yqhGH2hmR3gdCzBKnygHnF2eFai57QUCjbMMtCCJYIkI9zTeiiUHgf67ZsMInEQ
+\unrestrict Ro7c3vUVgzqIWvLtXg2TLFf4NvefsGBvWcZKl7XGRz6HXb4moqz9xdbcNsaWpg6
 
