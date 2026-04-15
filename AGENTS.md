@@ -428,8 +428,104 @@ Avant de proposer du code :
 - [ ] Tester le responsive design
 - [ ] Vérifier l'accessibilité
 
+## 🔒 SENIOR ENGINEER QUALITY GATE
+
+### Zero Tolerance Policy
+These rules are NON-NEGOTIABLE. Any AI assistant or contributor violating them MUST fix before merge.
+
+### TypeScript Discipline
+- **NEVER** use `as any`, `@ts-ignore`, `@ts-expect-error` — fix the type, not the checker
+- **NEVER** use `Function` type — use specific signatures `(arg: Type) => ReturnType`
+- **NEVER** leave untyped function parameters — every param gets a type
+- **ALWAYS** enable strict mode — `"strict": true` in tsconfig
+- **PREFER** `unknown` over `any` when type is genuinely unknown, then narrow with guards
+- **PREFER** discriminated unions over boolean flags for state machines
+- **PREFER** `satisfies` for type-safe object literals: `const config = { ... } satisfies Config`
+
+### Error Handling
+- **NEVER** empty catch blocks `catch(e) {}` — log, rethrow, or handle meaningfully
+- **NEVER** swallow errors silently — every catch must either recover or propagate
+- **ALWAYS** use toast notifications for user-facing errors (see Toast System above)
+- **ALWAYS** use structured error responses in API routes: `{ error: string, details?: unknown }`
+- **ALWAYS** validate external input at API boundaries (request body, query params, URL params)
+- **PREFER** early returns / guard clauses over deeply nested if-else
+
+### Component Quality
+- **NEVER** use inline styles except for truly dynamic values (computed widths, positions)
+- **NEVER** hardcode colors — use CSS variables and Tailwind theme tokens
+- **NEVER** use `<img>` — use Next.js `<Image>` for optimization
+- **NEVER** use `<a>` for internal links — use Next.js `<Link>`
+- **ALWAYS** add loading states to async operations (buttons, forms, data fetching)
+- **ALWAYS** add error states to data-dependent components
+- **ALWAYS** add empty states when data can be empty (tables, lists, grids)
+- **ALWAYS** handle the 3 states: loading → error → success/empty
+- **PREFER** server components by default, `'use client'` only when needed
+
+### Data Fetching
+- **NEVER** fetch inside useEffect for initial data — use server components or SWR/React Query
+- **NEVER** store server state in useState — use proper cache (SWR, React Query, or server components)
+- **ALWAYS** show loading skeletons, never blank white screens
+- **ALWAYS** handle API error responses gracefully on the client
+- **ALWAYS** debounce search inputs (300ms minimum)
+- **PREFER** optimistic updates for better perceived performance
+
+### API Routes
+- **ALWAYS** authenticate first: `const user = await getSessionUser(req); if (!user) return 401`
+- **ALWAYS** validate request body with zod or manual checks before processing
+- **ALWAYS** wrap handler logic in try-catch with structured error response
+- **ALWAYS** use correct HTTP methods (GET for reads, POST for creates, PUT/PATCH for updates, DELETE for deletes)
+- **NEVER** return 200 for errors — use proper status codes (400, 401, 403, 404, 500)
+- **NEVER** expose internal error details to clients in production
+
+### Performance
+- **NEVER** load entire tables into memory — paginate with LIMIT/OFFSET or cursor
+- **NEVER** N+1 query — use JOINs or batch queries
+- **NEVER** bundle heavy libraries client-side without dynamic import
+- **ALWAYS** use `dynamic(() => import(...), { ssr: false })` for heavy client components
+- **ALWAYS** use database indexes for frequently queried columns
+- **PREFER** server-side data aggregation over client-side computation
+
+### Testing Mindset
+- **ALWAYS** test the feature manually after implementation — lsp_diagnostics ≠ working software
+- **ALWAYS** verify in both light and dark mode
+- **ALWAYS** check responsive design (mobile, tablet, desktop)
+- **ALWAYS** test with empty data, maximum data, and edge cases
+- **NEVER** delete failing tests to make the build pass — fix the code
+
+### Git Discipline
+- **NEVER** commit .env, credentials, or secrets
+- **NEVER** commit node_modules, .next, or build artifacts
+- **ALWAYS** write meaningful commit messages: `feat:`, `fix:`, `refactor:`, `docs:`
+- **ALWAYS** keep commits atomic — one logical change per commit
+- **PREFER** small PRs over massive ones
+
+### UI/UX Excellence
+- **EVERY** interactive element needs a hover state
+- **EVERY** clickable element needs a cursor: pointer
+- **EVERY** form needs validation feedback (inline errors, not just toast)
+- **EVERY** destructive action needs a confirmation dialog
+- **EVERY** long operation needs a loading indicator
+- **EVERY** table needs sorting on at least one column
+- **EVERY** list needs an empty state message
+- **NEVER** show raw database IDs, timestamps, or enum values to users — humanize them
+- **NEVER** truncate text without a tooltip showing the full content
+- **ALWAYS** use consistent spacing: 4px grid (p-1, p-2, p-4, p-6, p-8)
+- **ALWAYS** use transition animations on state changes (hover, open/close, appear/disappear)
+- **ALWAYS** use Framer Motion for page transitions and content reveals
+- **ALWAYS** support keyboard navigation for all interactive elements
+
+### AI Agent Standards
+- **ALWAYS** use the AI SDK `tool()` pattern with zod `inputSchema` for type-safe tools
+- **ALWAYS** stream responses with `toUIMessageStreamResponse()`
+- **ALWAYS** include at least one visualization tool result per agent response (chart or table)
+- **ALWAYS** query real database — never fabricate data
+- **ALWAYS** handle tool execution errors gracefully and report them to the user
+- **ALWAYS** persist chat threads and messages for continuity
+- **NEVER** expose raw SQL or database errors to the user
+- **NEVER** allow the agent to modify data — read-only tools only (unless explicitly approved)
+
 ---
 
-**Dernière mise à jour** : 16 Février 2026  
-**Version** : 1.0.0  
+**Dernière mise à jour** : 15 Avril 2026
+**Version** : 2.0.0
 

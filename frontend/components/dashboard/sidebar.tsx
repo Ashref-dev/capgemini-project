@@ -9,6 +9,7 @@ import {
   UserGroupIcon,
   ContactBookIcon,
   AnalyticsUpIcon,
+  AiChat02Icon,
   Calendar03Icon,
   Discount01Icon,
   ClockIcon,
@@ -49,6 +50,11 @@ const navItems: NavItem[] = [
     label: "Dashboard BI",
     href: "/dashboard/bi",
     icon: AnalyticsUpIcon,
+  },
+  {
+    label: "AI Agent",
+    href: "/dashboard/agent",
+    icon: AiChat02Icon,
   },
   {
     label: "Demandes partenariat",

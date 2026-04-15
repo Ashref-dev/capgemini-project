@@ -5,6 +5,7 @@
 
 // Partnership platform - Core
 export { partners, type Partner, type NewPartner } from "./partners"
+export { chatThreads, chatMessages, type ChatThread, type NewChatThread, type ChatMessage, type NewChatMessage } from "./chat-messages"
 export { partnerContacts, type PartnerContact, type NewPartnerContact } from "./partner-contacts"
 export { offers, type Offer, type NewOffer } from "./offers"
 export { partnerEvents, type PartnerEvent, type NewPartnerEvent } from "./partner-events"
