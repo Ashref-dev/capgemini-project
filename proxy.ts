@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const sessionToken = request.cookies.get("session_token")?.value;
 
   if (!sessionToken && (request.nextUrl.pathname.startsWith("/dashboard") || request.nextUrl.pathname.startsWith("/partner"))) {
