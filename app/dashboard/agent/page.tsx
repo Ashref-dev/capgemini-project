@@ -168,6 +168,9 @@ export default function AgentPage() {
   const [deletingThreadId, setDeletingThreadId] = React.useState<number | null>(null)
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const loadedThreadRef = React.useRef<number | null>(null)
+  const setMessagesRef = React.useRef<(messages: UIMessage[] | ((messages: UIMessage[]) => UIMessage[])) => void>(() => {
+    // This is replaced immediately after useChat initializes.
+  })
 
   const { messages, sendMessage, setMessages, status } = useChat({
     id: activeThreadId ? String(activeThreadId) : "new-chat",
@@ -176,6 +179,10 @@ export default function AgentPage() {
       toast.error("Agent Error", { description: error.message })
     },
   })
+
+  React.useEffect(() => {
+    setMessagesRef.current = setMessages
+  }, [setMessages])
 
   const isLoading = status === "submitted" || status === "streaming"
 
@@ -222,7 +229,7 @@ export default function AgentPage() {
         }>(response)
 
         setActiveThreadId(data.thread.id)
-        setMessages(data.messages.map(toUIMessage))
+        setMessagesRef.current(data.messages.map(toUIMessage))
         loadedThreadRef.current = data.thread.id
         setIsSidebarOpen(false)
       } catch (error) {
@@ -232,7 +239,7 @@ export default function AgentPage() {
         setIsThreadLoading(false)
       }
     },
-    [setMessages]
+    []
   )
 
   const createNewThread = React.useCallback(async () => {
@@ -255,7 +262,7 @@ export default function AgentPage() {
       const data = await readJsonResponse<{ thread: ThreadRecord }>(response)
 
       setActiveThreadId(data.thread.id)
-      setMessages([])
+      setMessagesRef.current([])
       loadedThreadRef.current = data.thread.id
       setInput("")
       setIsSidebarOpen(false)
@@ -267,7 +274,7 @@ export default function AgentPage() {
     } finally {
       setIsCreatingThread(false)
     }
-  }, [fetchThreads, isCreatingThread, setMessages])
+  }, [fetchThreads, isCreatingThread])
 
   React.useEffect(() => {
     let isMounted = true
@@ -288,7 +295,7 @@ export default function AgentPage() {
         }
       } else {
         setActiveThreadId(null)
-        setMessages([])
+        setMessagesRef.current([])
         loadedThreadRef.current = null
       }
 
@@ -300,7 +307,7 @@ export default function AgentPage() {
     return () => {
       isMounted = false
     }
-  }, [fetchThreads, loadThread, setMessages])
+  }, [fetchThreads, loadThread])
 
   React.useEffect(() => {
     if (status === "ready" && messages.length > 0) {
@@ -381,7 +388,7 @@ export default function AgentPage() {
             await loadThread(nextThreadId)
           } else {
             setActiveThreadId(null)
-            setMessages([])
+            setMessagesRef.current([])
             loadedThreadRef.current = null
           }
         }
@@ -396,7 +403,7 @@ export default function AgentPage() {
         setDeletingThreadId(null)
       }
     },
-    [activeThreadId, fetchThreads, loadThread, setMessages, threads]
+    [activeThreadId, fetchThreads, loadThread, threads]
   )
 
   const sidebarContent = (
@@ -437,16 +444,24 @@ export default function AgentPage() {
             const isDeleting = deletingThreadId === thread.id
 
             return (
-              <button
+              <div
                 key={thread.id}
-                type="button"
+                role="button"
+                tabIndex={0}
                 onClick={() => void loadThread(thread.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault()
+                    void loadThread(thread.id)
+                  }
+                }}
                 className={cn(
-                  "group flex w-full cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 text-left transition-colors",
+                  "group flex w-full cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   isActive
                     ? "border-primary/30 bg-primary/10"
                     : "border-border bg-card/60 hover:bg-muted/60"
                 )}
+                aria-pressed={isActive}
               >
                 <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600/10 text-blue-600">
                   <HugeiconsIcon icon={MessageEdit01Icon} className="h-4 w-4" />
@@ -481,7 +496,7 @@ export default function AgentPage() {
                     <span>{thread.messageCount} message{thread.messageCount > 1 ? "s" : ""}</span>
                   </div>
                 </div>
-              </button>
+              </div>
             )
           })}
         </div>

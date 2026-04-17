@@ -193,18 +193,24 @@ function isReportPreviewPayload(value: unknown): value is React.ComponentProps<t
 }
 
 function stringifyJson(value: unknown) {
+  if (value === undefined) {
+    return "undefined"
+  }
+
   try {
-    return JSON.stringify(value, null, 2)
+    const serialized = JSON.stringify(value, null, 2)
+    return serialized ?? "undefined"
   } catch {
     return String(value)
   }
 }
 
-function hashString(value: string) {
+function hashString(value: string | undefined) {
+  const normalizedValue = typeof value === "string" ? value : String(value ?? "undefined")
   let hash = 0
 
-  for (let index = 0; index < value.length; index += 1) {
-    hash = (hash * 31 + value.charCodeAt(index)) >>> 0
+  for (let index = 0; index < normalizedValue.length; index += 1) {
+    hash = (hash * 31 + normalizedValue.charCodeAt(index)) >>> 0
   }
 
   return hash.toString(36)

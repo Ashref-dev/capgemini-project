@@ -35,8 +35,13 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <div className="flex items-center justify-center h-full w-full bg-gray-200 dark:bg-gray-700 rounded-full text-sm font-semibold">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-full border border-border/60 bg-background p-0 overflow-hidden shadow-sm transition-colors hover:bg-muted"
+          aria-label="Ouvrir le menu utilisateur"
+        >
+          <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-primary/5 text-sm font-semibold text-foreground">
             <span>{user.name?.charAt(0) || user.email?.charAt(0) || "U"}</span>
           </div>
         </Button>

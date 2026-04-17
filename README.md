@@ -182,7 +182,7 @@ Separate database for the BI dashboard. Uses raw pg pool, not Drizzle.
 ## AI Agent
 
 The AI agent is a ReAct-style tool-calling chatbot at /dashboard/agent.
-Model: NVIDIA Nemotron 3 Super (free via OpenRouter).
+Model: openrouter/elephant-alpha (via OpenRouter).
 Streaming: Vercel AI SDK v6 with server-sent events.
 Persistence: Chat threads and messages stored in PostgreSQL.
 

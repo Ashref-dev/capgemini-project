@@ -117,7 +117,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
   )
 
   return (
-    <aside className="w-60 border-r border-border bg-card/50 flex flex-col h-full">
+    <aside className="sticky top-0 flex h-screen w-60 flex-col border-r border-border bg-card/50 shadow-[1px_0_0_rgba(0,0,0,0.02)]">
       {/* Logo */}
       <div className="p-4 border-b border-border bg-gradient-to-r from-primary/5 to-transparent">
         <Link href="/dashboard" className="flex items-center gap-3">
@@ -130,7 +130,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1">
+      <nav className="flex-1 min-h-0 space-y-1 overflow-y-auto p-3">
         {visibleItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
           return (
@@ -152,7 +152,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="p-3 border-t border-border">
+      <div className="border-t border-border p-3">
         <div className="text-xs text-muted-foreground text-center">
           Capgemini © 2026
         </div>

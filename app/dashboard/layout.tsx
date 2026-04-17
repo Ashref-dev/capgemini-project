@@ -44,13 +44,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex items-stretch bg-background">
       <DashboardTourController />
       <DashboardSidebar userRole={user.role} />
 
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         {/* Top bar */}
-        <header className="h-16 border-b border-border bg-card/80 backdrop-blur-sm flex items-center justify-between px-6 shadow-sm">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card/80 px-6 shadow-sm backdrop-blur-sm">
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground">
               Connecté en tant que{" "}
@@ -69,7 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6">
+        <main className="min-w-0 flex-1 p-6">
           {children}
         </main>
       </div>
