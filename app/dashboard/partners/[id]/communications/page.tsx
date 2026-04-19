@@ -24,6 +24,7 @@ import { Badge } from "@/frontend/components/ui/badge"
 import { Spinner } from "@/frontend/components/ui/spinner"
 import { toast } from "@/frontend/components/ui/toast"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/frontend/components/ui/tabs"
+import { AddButton } from "@/frontend/components/ui/add-button"
 import { useAuth } from "@/frontend/hooks/use-auth"
 import Link from "next/link"
 
@@ -280,10 +281,7 @@ export default function PartnerCommunicationsPage() {
         {/* ─── MEETINGS TAB ─── */}
         <TabsContent value="meetings" className="mt-4 space-y-4">
           <div className="flex justify-end">
-            <Button onClick={() => setShowMeetingForm(!showMeetingForm)} className="bg-blue-600 hover:bg-blue-700 text-white">
-              <HugeiconsIcon icon={Add01Icon} className="w-4 h-4 mr-2" />
-              Nouvelle réunion
-            </Button>
+            <AddButton label="Nouvelle réunion" onClick={() => setShowMeetingForm(!showMeetingForm)} />
           </div>
 
           {showMeetingForm && (
@@ -414,10 +412,7 @@ export default function PartnerCommunicationsPage() {
         {/* ─── DOCUMENTS TAB ─── */}
         <TabsContent value="documents" className="mt-4 space-y-4">
           <div className="flex justify-end">
-            <Button onClick={() => setShowUpload(!showUpload)} className="bg-blue-600 hover:bg-blue-700 text-white">
-              <HugeiconsIcon icon={Upload04Icon} className="w-4 h-4 mr-2" />
-              Ajouter un document
-            </Button>
+            <AddButton label="Ajouter un document" onClick={() => setShowUpload(!showUpload)} />
           </div>
 
           {showUpload && (
@@ -499,10 +494,7 @@ export default function PartnerCommunicationsPage() {
         {/* ─── NOTIFICATIONS TAB ─── */}
         <TabsContent value="notifications" className="mt-4 space-y-4">
           <div className="flex justify-end">
-            <Button onClick={() => setShowNotifForm(!showNotifForm)} className="bg-blue-600 hover:bg-blue-700 text-white">
-              <HugeiconsIcon icon={Mail01Icon} className="w-4 h-4 mr-2" />
-              Envoyer une notification
-            </Button>
+            <AddButton label="Envoyer une notification" onClick={() => setShowNotifForm(!showNotifForm)} />
           </div>
 
           {showNotifForm && (

@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/frontend/hooks/use-auth"
-import { Badge } from "@/frontend/components/ui/badge"
 import { Spinner } from "@/frontend/components/ui/spinner"
 import { toast } from "@/frontend/components/ui/toast"
+import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/frontend/components/ui/capgemini-table"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Clock01Icon } from "@hugeicons/core-free-icons"
+import { SparklesText } from "@/frontend/components/ui/sparkles-text"
 
 interface StatusHistory {
   id: number
@@ -15,6 +18,26 @@ interface StatusHistory {
   changedBy: string | null
   changeReason: string | null
   partner?: { id: number; name: string } | null
+}
+
+function statusVariant(s: string): "success" | "warning" | "error" | "neutral" | "info" {
+  switch (s) {
+    case "actif": return "success"
+    case "en_negociation": return "warning"
+    case "inactif": return "error"
+    case "termine": return "error"
+    default: return "neutral"
+  }
+}
+
+function statusGradient(s: string): string {
+  switch (s) {
+    case "actif": return "from-emerald-500/10 to-transparent"
+    case "en_negociation": return "from-amber-500/10 to-transparent"
+    case "inactif": return "from-red-500/10 to-transparent"
+    case "termine": return "from-red-500/10 to-transparent"
+    default: return "from-muted/20 to-transparent"
+  }
 }
 
 export default function StatusHistoryPage() {
@@ -34,69 +57,78 @@ export default function StatusHistoryPage() {
     }
   }, [])
 
-  useEffect(() => {
-    fetchHistory()
-  }, [fetchHistory])
-
-  const statusColor = (s: string) => {
-    switch (s) {
-      case "actif": return "default"
-      case "en_negociation": return "secondary"
-      case "inactif": return "outline"
-      case "termine": return "destructive"
-      default: return "outline"
-    }
-  }
+  useEffect(() => { fetchHistory() }, [fetchHistory])
 
   if (!user) return null
 
+  const columns: CapgeminiTableColumn<StatusHistory>[] = [
+    {
+      key: "partner", label: "Partenaire", weight: 2,
+      render: h => <span className="font-semibold text-sm text-foreground">{h.partner?.name || `Partenaire #${h.partnerId}`}</span>,
+    },
+    {
+      key: "old", label: "Ancien statut", weight: 1.5,
+      render: h => h.oldStatus
+        ? <StatusBadge status={statusVariant(h.oldStatus)} label={h.oldStatus.replace("_", " ")} />
+        : <span className="text-muted-foreground text-xs">—</span>,
+    },
+    {
+      key: "new", label: "Nouveau statut", weight: 1.5,
+      render: h => <StatusBadge status={statusVariant(h.newStatus)} label={h.newStatus.replace("_", " ")} />,
+    },
+    {
+      key: "date", label: "Date", weight: 2,
+      render: h => (
+        <span className="text-sm text-foreground font-mono">
+          {new Date(h.changedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+        </span>
+      ),
+    },
+    {
+      key: "by", label: "Modifié par", weight: 1.5,
+      render: h => <span className="text-sm text-muted-foreground">{h.changedBy || "—"}</span>,
+    },
+    {
+      key: "reason", label: "Raison", weight: 2,
+      render: h => <span className="text-sm text-muted-foreground truncate block max-w-[200px]">{h.changeReason || "—"}</span>,
+    },
+  ]
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Historique des statuts</h1>
-        <p className="text-sm text-muted-foreground mt-1">{history.length} changement{history.length > 1 ? "s" : ""}</p>
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center py-12"><Spinner /></div>
-      ) : history.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">Aucun historique</div>
-      ) : (
-        <div className="overflow-x-auto border border-border rounded-lg">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="text-left p-3 font-medium">Partenaire</th>
-                <th className="text-left p-3 font-medium">Ancien statut</th>
-                <th className="text-left p-3 font-medium">Nouveau statut</th>
-                <th className="text-left p-3 font-medium">Date</th>
-                <th className="text-left p-3 font-medium">Modifié par</th>
-                <th className="text-left p-3 font-medium">Raison</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map((h) => (
-                <tr key={h.id} className="border-b border-border last:border-0">
-                  <td className="p-3 font-medium">{h.partner?.name || `Partenaire #${h.partnerId}`}</td>
-                  <td className="p-3">
-                    <Badge variant={statusColor(h.oldStatus || "") as "default" | "secondary" | "destructive" | "outline"}>
-                      {h.oldStatus || "—"}
-                    </Badge>
-                  </td>
-                  <td className="p-3">
-                    <Badge variant={statusColor(h.newStatus) as "default" | "secondary" | "destructive" | "outline"}>
-                      {h.newStatus}
-                    </Badge>
-                  </td>
-                  <td className="p-3">{new Date(h.changedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
-                  <td className="p-3 text-muted-foreground">{h.changedBy || "—"}</td>
-                  <td className="p-3 max-w-xs truncate text-muted-foreground">{h.changeReason || "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
+          <HugeiconsIcon icon={Clock01Icon} className="w-5 h-5 text-primary" />
         </div>
-      )}
+        <div>
+          <SparklesText text="Historique des statuts" className="text-2xl" />
+          <p className="text-sm text-muted-foreground mt-1">{history.length} changement{history.length > 1 ? "s" : ""}</p>
+        </div>
+      </div>
+      <CapgeminiTable<StatusHistory>
+        title="Changements de statut"
+        subtitle="Tous les changements de statut des partenaires"
+        data={history}
+        columns={columns}
+        loading={loading}
+        emptyMessage="Aucun historique disponible"
+        keyExtractor={h => h.id}
+        getRowGradient={h => statusGradient(h.newStatus)}
+        renderDetail={(h, onClose) => (
+          <DetailPanel onClose={onClose} title={`Changement #${h.id}`}>
+            <div className="grid grid-cols-2 gap-3">
+              <DetailCard label="Partenaire" value={h.partner?.name || `#${h.partnerId}`} />
+              <DetailCard label="Date" value={new Date(h.changedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })} />
+              <DetailCard label="Ancien statut" value={h.oldStatus ? <StatusBadge status={statusVariant(h.oldStatus)} label={h.oldStatus.replace("_", " ")} /> : "—"} />
+              <DetailCard label="Nouveau statut" value={<StatusBadge status={statusVariant(h.newStatus)} label={h.newStatus.replace("_", " ")} />} />
+              <DetailCard label="Modifié par" value={h.changedBy || "—"} />
+            </div>
+            {h.changeReason && (
+              <DetailCard label="Raison du changement" value={<p className="text-sm text-foreground leading-relaxed">{h.changeReason}</p>} />
+            )}
+          </DetailPanel>
+        )}
+      />
     </div>
   )
 }

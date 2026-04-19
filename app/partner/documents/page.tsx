@@ -1,19 +1,21 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   FileAttachmentIcon,
   Upload04Icon,
   Download04Icon,
-  Delete02Icon,
+  Search01Icon,
 } from "@hugeicons/core-free-icons"
 import { Button } from "@/frontend/components/ui/button"
 import { Input } from "@/frontend/components/ui/input"
 import { Label } from "@/frontend/components/ui/label"
 import { Spinner } from "@/frontend/components/ui/spinner"
 import { toast } from "@/frontend/components/ui/toast"
+import { AddButton } from "@/frontend/components/ui/add-button"
+import { FileCard, extToFormat } from "@/frontend/components/ui/file-card"
 
 interface Document {
   id: number
@@ -36,15 +38,17 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`
 }
 
-function getFileIcon(name: string): string {
-  const ext = name.split(".").pop()?.toLowerCase() || ""
-  if (["pdf"].includes(ext)) return "📄"
-  if (["doc", "docx"].includes(ext)) return "📝"
-  if (["xls", "xlsx", "csv"].includes(ext)) return "📊"
-  if (["ppt", "pptx"].includes(ext)) return "📑"
-  if (["png", "jpg", "jpeg", "gif"].includes(ext)) return "🖼️"
-  if (["zip", "rar"].includes(ext)) return "📦"
-  return "📎"
+function getExt(name: string): string {
+  return name.split(".").pop()?.toLowerCase() || "code"
+}
+
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06 } },
+}
+const item = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" as const } },
 }
 
 export default function PartnerMyDocumentsPage() {
@@ -52,6 +56,7 @@ export default function PartnerMyDocumentsPage() {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
+  const [search, setSearch] = useState("")
   const [description, setDescription] = useState("")
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
@@ -59,9 +64,7 @@ export default function PartnerMyDocumentsPage() {
     try {
       const res = await fetch("/api/partner/documents")
       const data = await res.json()
-      if (res.ok) {
-        setDocuments(data.documents || [])
-      }
+      if (res.ok) setDocuments(data.documents || [])
     } catch {
       toast.error("Erreur", { description: "Impossible de charger les documents" })
     } finally {
@@ -75,10 +78,7 @@ export default function PartnerMyDocumentsPage() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedFile) {
-      toast.error("Veuillez sélectionner un fichier")
-      return
-    }
+    if (!selectedFile) { toast.error("Veuillez selectionner un fichier"); return }
 
     setUploading(true)
     const formData = new FormData()
@@ -86,16 +86,11 @@ export default function PartnerMyDocumentsPage() {
     if (description.trim()) formData.append("description", description.trim())
 
     try {
-      const res = await fetch("/api/partner/documents", {
-        method: "POST",
-        body: formData,
-      })
+      const res = await fetch("/api/partner/documents", { method: "POST", body: formData })
       const data = await res.json()
       if (res.ok) {
-        toast.success("Document ajouté", { description: `${selectedFile.name} a été uploadé avec succès.` })
-        setSelectedFile(null)
-        setDescription("")
-        setShowUpload(false)
+        toast.success("Document ajoute", { description: `${selectedFile.name} uploade avec succes.` })
+        setSelectedFile(null); setDescription(""); setShowUpload(false)
         fetchDocuments()
       } else {
         toast.error("Erreur", { description: data.error })
@@ -111,141 +106,166 @@ export default function PartnerMyDocumentsPage() {
     window.open(`/api/documents/download?id=${doc.id}`, "_blank")
   }
 
+  const filtered = documents.filter((d) =>
+    d.originalName.toLowerCase().includes(search.toLowerCase()) ||
+    (d.description || "").toLowerCase().includes(search.toLowerCase())
+  )
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl font-bold flex items-center gap-2 text-foreground">
             <HugeiconsIcon icon={FileAttachmentIcon} className="w-6 h-6 text-primary" />
             Mes Documents
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {documents.length} document{documents.length > 1 ? "s" : ""} associé{documents.length > 1 ? "s" : ""} à votre partenariat
+            {documents.length} document{documents.length !== 1 ? "s" : ""} associe{documents.length !== 1 ? "s" : ""} a votre partenariat
           </p>
         </div>
-        <Button
+        <AddButton
           onClick={() => setShowUpload(!showUpload)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <HugeiconsIcon icon={Upload04Icon} className="w-4 h-4 mr-2" />
-          Ajouter un document
-        </Button>
-      </div>
+          label="Ajouter un document"
+          className="shrink-0"
+        />
+      </motion.div>
 
-      {/* Upload Form */}
-      {showUpload && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="border border-border rounded-xl p-6 bg-card"
-        >
-          <h3 className="font-semibold mb-4">Uploader un document</h3>
-          <form onSubmit={handleUpload} className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-foreground">Fichier *</Label>
-              <Input
-                type="file"
-                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.txt,.rtf,.png,.jpg,.jpeg,.gif,.zip,.rar"
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                Formats acceptés : PDF, Word, Excel, CSV, PowerPoint, Images, Archives (max 50 Mo)
-              </p>
+      {/* Upload form */}
+      <AnimatePresence>
+        {showUpload && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden"
+          >
+            <div className="border border-border rounded-xl p-6 bg-card shadow-sm">
+              <h3 className="font-semibold mb-4 text-foreground">Uploader un document</h3>
+              <form onSubmit={handleUpload} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-foreground">Fichier *</Label>
+                    <Input
+                      type="file"
+                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.txt,.rtf,.png,.jpg,.jpeg,.gif,.zip,.rar"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">PDF, Word, Excel, CSV, PowerPoint, Images, Archives — max 50 Mo</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-foreground">Description</Label>
+                    <Input
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Description du document (optionnel)"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={uploading} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    {uploading ? "Upload en cours..." : "Uploader"}
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={() => { setShowUpload(false); setSelectedFile(null); setDescription("") }}>
+                    Annuler
+                  </Button>
+                </div>
+              </form>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-foreground">Description</Label>
-              <Input
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Description du document (optionnel)"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button type="submit" disabled={uploading} className="bg-blue-600 hover:bg-blue-700 text-white">
-                {uploading ? "Upload en cours..." : "Uploader"}
-              </Button>
-              <Button type="button" variant="ghost" onClick={() => { setShowUpload(false); setSelectedFile(null); setDescription("") }}>
-                Annuler
-              </Button>
-            </div>
-          </form>
-        </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Search */}
+      {documents.length > 0 && (
+        <div className="relative max-w-sm">
+          <HugeiconsIcon icon={Search01Icon} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher un document..."
+            className="pl-9"
+          />
+        </div>
       )}
 
-      {/* Documents List */}
+      {/* Grid */}
       {loading ? (
-        <div className="flex justify-center py-12"><Spinner /></div>
+        <div className="flex justify-center py-20"><Spinner /></div>
       ) : documents.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <HugeiconsIcon icon={FileAttachmentIcon} className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>Aucun document trouvé</p>
-          <p className="text-xs mt-1">Uploadez votre premier document ou attendez qu&apos;un employé en ajoute un.</p>
+        <div className="text-center py-20 text-muted-foreground">
+          <HugeiconsIcon icon={FileAttachmentIcon} className="w-14 h-14 mx-auto mb-4 opacity-20" />
+          <p className="font-medium">Aucun document</p>
+          <p className="text-xs mt-1">Uploadez votre premier document ou attendez qu&apos;un employe en ajoute un.</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16 text-muted-foreground">
+          <p>Aucun resultat pour &laquo;&nbsp;{search}&nbsp;&raquo;</p>
         </div>
       ) : (
-        <div className="border border-border rounded-lg overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 border-b border-border">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">Document</th>
-                <th className="text-left px-4 py-3 font-medium">Description</th>
-                <th className="text-left px-4 py-3 font-medium">Taille</th>
-                <th className="text-left px-4 py-3 font-medium">Ajouté par</th>
-                <th className="text-left px-4 py-3 font-medium">Date</th>
-                <th className="text-left px-4 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {documents.map((doc) => (
-                <motion.tr
-                  key={doc.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="border-b border-border last:border-0 hover:bg-muted/30"
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{getFileIcon(doc.originalName)}</span>
-                      <div>
-                        <div className="font-medium">{doc.originalName}</div>
-                        <div className="text-xs text-muted-foreground">{doc.fileType}</div>
-                      </div>
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+        >
+          {filtered.map((doc) => {
+            const format = extToFormat(getExt(doc.originalName))
+            return (
+              <motion.div key={doc.id} variants={item}>
+                <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="shrink-0 mt-1">
+                      <FileCard formatFile={format} />
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">
-                    {doc.description || "—"}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatFileSize(doc.fileSize)}</td>
-                  <td className="px-4 py-3">
-                    <div className="text-sm">{doc.uploadedBy}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {doc.uploadedByType === "employee" ? "Employé Capgemini" : "Moi"}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-foreground truncate" title={doc.originalName}>
+                        {doc.originalName}
+                      </p>
+                      {doc.description && (
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{doc.description}</p>
+                      )}
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs">
-                    {new Date(doc.createdAt).toLocaleDateString("fr-FR", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-blue-600 hover:text-blue-700"
-                      onClick={() => handleDownload(doc)}
-                    >
-                      <HugeiconsIcon icon={Download04Icon} className="w-4 h-4 mr-1" />
-                      Télécharger
-                    </Button>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground space-y-1 border-t border-border pt-3">
+                    <div className="flex justify-between">
+                      <span>Taille</span>
+                      <span className="font-medium text-foreground">{formatFileSize(doc.fileSize)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Ajoute par</span>
+                      <span className="font-medium text-foreground">
+                        {doc.uploadedByType === "employee" ? "Capgemini" : "Moi"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Date</span>
+                      <span className="font-medium text-foreground">
+                        {new Date(doc.createdAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-blue-600 border-blue-200 dark:border-blue-900 hover:bg-blue-50 dark:hover:bg-blue-950"
+                    onClick={() => handleDownload(doc)}
+                  >
+                    <HugeiconsIcon icon={Download04Icon} className="w-4 h-4 mr-2" />
+                    Telecharger
+                  </Button>
+                </div>
+              </motion.div>
+            )
+          })}
+        </motion.div>
       )}
     </div>
   )

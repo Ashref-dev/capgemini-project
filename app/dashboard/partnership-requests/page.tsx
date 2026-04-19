@@ -1,14 +1,16 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import { useAuth } from "@/frontend/hooks/use-auth"
 import { toast } from "@/frontend/components/ui/toast"
 import { Button } from "@/frontend/components/ui/button"
 import { Card } from "@/frontend/components/ui/card"
 import { Textarea } from "@/frontend/components/ui/textarea"
 import { cn } from "@/frontend/lib/utils"
-import { motion } from "framer-motion"
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
+import { SparklesText } from "@/frontend/components/ui/sparkles-text"
+import { GradientStatCard } from "@/frontend/components/ui/gradient-stat-card"
 import {
   CheckmarkCircle02Icon,
   Cancel01Icon,
@@ -154,27 +156,22 @@ export default function PartnershipRequestsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Demandes de partenariat</h1>
-        <p className="text-muted-foreground mt-1">Gérez les demandes de partenariat soumises par les entreprises.</p>
+      <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
+          <HugeiconsIcon icon={UserGroupIcon} className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <SparklesText text="Demandes de partenariat" className="text-2xl" />
+          <p className="text-muted-foreground mt-1">Gérez les demandes de partenariat soumises par les entreprises.</p>
+        </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: "Total", value: counts.total, icon: UserGroupIcon, color: "text-primary" },
-          { label: "En attente", value: counts.pending, icon: Clock01Icon, color: "text-amber-500" },
-          { label: "Acceptées", value: counts.accepted, icon: CheckmarkCircle02Icon, color: "text-emerald-500" },
-          { label: "Refusées", value: counts.rejected, icon: Cancel01Icon, color: "text-red-500" },
-        ].map((stat) => (
-          <Card key={stat.label} className="p-4 flex items-center gap-3">
-            <HugeiconsIcon icon={stat.icon} className={cn("w-5 h-5", stat.color)} />
-            <div>
-              <div className="text-xl font-bold text-foreground">{stat.value}</div>
-              <div className="text-xs text-muted-foreground">{stat.label}</div>
-            </div>
-          </Card>
-        ))}
+        <GradientStatCard icon={UserGroupIcon} value={counts.total} label="Total" glowColor="blue" index={0} />
+        <GradientStatCard icon={Clock01Icon} value={counts.pending} label="En attente" glowColor="amber" index={1} />
+        <GradientStatCard icon={CheckmarkCircle02Icon} value={counts.accepted} label="Acceptées" glowColor="emerald" index={2} />
+        <GradientStatCard icon={Cancel01Icon} value={counts.rejected} label="Refusées" glowColor="red" index={3} />
       </div>
 
       {/* Filters */}
@@ -214,13 +211,7 @@ export default function PartnershipRequestsPage() {
           {requests.map((req, i) => {
             const isExpanded = expandedId === req.id
             return (
-              <motion.div
-                key={req.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: i * 0.03 }}
-              >
-                <Card className="overflow-hidden">
+              <RequestCard key={req.id} index={i}>
                   {/* Header */}
                   <div
                     onClick={() => setExpandedId(isExpanded ? null : req.id)}
@@ -409,13 +400,53 @@ export default function PartnershipRequestsPage() {
                       </div>
                     </motion.div>
                   )}
-                </Card>
-              </motion.div>
+              </RequestCard>
             )
           })}
         </div>
       )}
     </div>
+  )
+}
+
+function RequestCard({ children, index }: { children: React.ReactNode; index: number }) {
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+  const springConfig = { damping: 15, stiffness: 150 }
+  const springX = useSpring(mouseX, springConfig)
+  const springY = useSpring(mouseY, springConfig)
+  const rotateX = useTransform(springY, [-0.5, 0.5], ["10.5deg", "-10.5deg"])
+  const rotateY = useTransform(springX, [-0.5, 0.5], ["-10.5deg", "10.5deg"])
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5)
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5)
+  }
+
+  function handleMouseLeave() {
+    mouseX.set(0)
+    mouseY.set(0)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.03 }}
+      style={{ perspective: "1000px" }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <motion.div
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        className="overflow-hidden rounded-2xl border border-[#0070AD]/20 bg-white shadow-sm dark:border-white/10 dark:bg-white/5"
+      >
+        <div style={{ transform: "translateZ(30px)", transformStyle: "preserve-3d" }}>
+          {children}
+        </div>
+      </motion.div>
+    </motion.div>
   )
 }
 

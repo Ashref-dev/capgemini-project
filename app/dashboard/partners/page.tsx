@@ -2,14 +2,17 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/frontend/hooks/use-auth"
-import { Badge } from "@/frontend/components/ui/badge"
 import { Input } from "@/frontend/components/ui/input"
 import { Button } from "@/frontend/components/ui/button"
-import { Spinner } from "@/frontend/components/ui/spinner"
 import { toast } from "@/frontend/components/ui/toast"
 import { Label } from "@/frontend/components/ui/label"
 import { Textarea } from "@/frontend/components/ui/textarea"
 import Link from "next/link"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Delete01Icon, Building06Icon } from "@hugeicons/core-free-icons"
+import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/frontend/components/ui/capgemini-table"
+import { SparklesText } from "@/frontend/components/ui/sparkles-text"
+import { AddButton } from "@/frontend/components/ui/add-button"
 
 interface Partner {
   id: number
@@ -146,15 +149,20 @@ export default function PartnersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Partenaires</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {partners.length} partenaire{partners.length > 1 ? "s" : ""}
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
+            <HugeiconsIcon icon={Building06Icon} className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <SparklesText text="Partenaires" className="text-2xl" />
+            <p className="text-sm text-muted-foreground mt-1">
+              {partners.length} partenaire{partners.length > 1 ? "s" : ""}
+            </p>
+          </div>
         </div>
         {isAdmin && (
           <Link href="/dashboard/partners/new">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white">+ Nouveau partenaire</Button>
+            <AddButton label="Nouveau partenaire" />
           </Link>
         )}
       </div>
@@ -180,95 +188,99 @@ export default function PartnersPage() {
         )}
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-12"><Spinner /></div>
-      ) : partners.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">Aucun partenaire trouvé</div>
-      ) : (
-        <div className="border border-border rounded-lg overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 border-b border-border">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">Nom</th>
-                <th className="text-left px-4 py-3 font-medium">Catégorie</th>
-                <th className="text-left px-4 py-3 font-medium">Niveau</th>
-                <th className="text-left px-4 py-3 font-medium">Statut</th>
-                <th className="text-left px-4 py-3 font-medium">Pays</th>
-                <th className="text-left px-4 py-3 font-medium">Email</th>
-                <th className="text-left px-4 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {partners.map((p) => (
-                <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30">
-                  <td className="px-4 py-3">
-                    <div className="font-medium">{p.name}</div>
-                    {p.partnerSubcategory && <div className="text-xs text-muted-foreground">{p.partnerSubcategory}</div>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge variant="secondary" className="text-xs">
-                      {categoryLabels[p.categories || ""] || p.categories}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{p.partnershipLevel || "—"}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[p.partnershipStatus?.trim() || ""] || ""}`}>
-                      {p.partnershipStatus?.replace("_", " ") || "—"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{p.country || "—"}</td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs">{p.email || "—"}</td>
-                  <td className="px-4 py-3">
-                      <div className="flex gap-1">
-                        <Link href={`/dashboard/partners/${p.id}/communications`}>
-                          <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">Communications</Button>
-                        </Link>
-                        <Link href={`/dashboard/partners/${p.id}/documents`}>
-                          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">Documents</Button>
-                        </Link>
-                        {isAdmin && (
-                          <>
-                            <Link href={`/dashboard/partners/${p.id}/edit`}>
-                              <Button variant="ghost" size="sm">Modifier</Button>
-                            </Link>
-                        {p.partnershipStatus?.trim() !== "inactif" ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-orange-600 hover:text-orange-700"
-                            onClick={() => {
-                              setStatusModal({ open: true, partner: p, action: "suspend" })
-                              setStatusReason("")
-                            }}
-                          >
-                            Suspendre
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-green-600 hover:text-green-700"
-                            onClick={() => {
-                              setStatusModal({ open: true, partner: p, action: "reactivate" })
-                              setStatusReason("")
-                            }}
-                          >
-                            Réactiver
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" onClick={() => handleDelete(p.id, p.name)}>
-                          Supprimer
-                        </Button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <CapgeminiTable<Partner>
+        title="Partenaires"
+        subtitle="Cliquer sur un partenaire pour voir les détails"
+        data={partners}
+        columns={[
+          {
+            key: "name", label: "Nom", weight: 2,
+            render: p => (
+              <div>
+                <p className="font-semibold text-sm text-foreground">{p.name}</p>
+                {p.legalName && p.legalName !== p.name && <p className="text-xs text-muted-foreground">{p.legalName}</p>}
+                {p.partnerSubcategory && <p className="text-xs text-primary/70">{p.partnerSubcategory}</p>}
+              </div>
+            ),
+          },
+          {
+            key: "cat", label: "Catégorie", weight: 1.5,
+            render: p => <StatusBadge status="neutral" label={categoryLabels[p.categories || ""] || p.categories || "—"} />,
+          },
+          {
+            key: "level", label: "Niveau", weight: 1.2,
+            render: p => <span className="text-sm text-muted-foreground">{p.partnershipLevel || "—"}</span>,
+          },
+          {
+            key: "status", label: "Statut", weight: 1.2,
+            render: p => {
+              const s = p.partnershipStatus?.trim() || ""
+              const v = s === "actif" ? "success" : s === "en_negociation" ? "warning" : s === "termine" ? "error" : "neutral"
+              return <StatusBadge status={v} label={s.replace("_", " ") || "—"} />
+            },
+          },
+          {
+            key: "country", label: "Pays", weight: 1,
+            render: p => <span className="text-sm text-muted-foreground">{p.country || "—"}</span>,
+          },
+          {
+            key: "email", label: "Email", weight: 1.8,
+            render: p => <span className="text-xs text-muted-foreground">{p.email || "—"}</span>,
+          },
+          {
+            key: "actions", label: "", weight: 1.5,
+            render: p => (
+              <div className="flex flex-wrap gap-1" onClick={e => e.stopPropagation()}>
+                <Link href={`/dashboard/partners/${p.id}/communications`}>
+                  <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 text-xs px-2">Comms</Button>
+                </Link>
+                <Link href={`/dashboard/partners/${p.id}/documents`}>
+                  <Button variant="ghost" size="sm" className="text-blue-500 hover:text-blue-600 text-xs px-2">Docs</Button>
+                </Link>
+                {isAdmin && (
+                  <>
+                    <Link href={`/dashboard/partners/${p.id}/edit`}>
+                      <Button variant="ghost" size="sm" className="text-xs px-2">Modifier</Button>
+                    </Link>
+                    {p.partnershipStatus?.trim() !== "inactif" ? (
+                      <Button variant="ghost" size="sm" className="text-orange-500 hover:text-orange-600 text-xs px-2" onClick={() => { setStatusModal({ open: true, partner: p, action: "suspend" }); setStatusReason("") }}>Suspendre</Button>
+                    ) : (
+                      <Button variant="ghost" size="sm" className="text-green-500 hover:text-green-600 text-xs px-2" onClick={() => { setStatusModal({ open: true, partner: p, action: "reactivate" }); setStatusReason("") }}>Réactiver</Button>
+                    )}
+                    <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 p-1" onClick={() => handleDelete(p.id, p.name)}>
+                      <HugeiconsIcon icon={Delete01Icon} className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            ),
+          },
+        ] satisfies CapgeminiTableColumn<Partner>[]}
+        loading={loading}
+        emptyMessage="Aucun partenaire trouvé"
+        keyExtractor={p => p.id}
+        getRowGradient={p => {
+          const s = p.partnershipStatus?.trim() || ""
+          return s === "actif" ? "from-emerald-500/8 to-transparent" : s === "en_negociation" ? "from-amber-500/8 to-transparent" : s === "termine" ? "from-red-500/8 to-transparent" : "from-slate-500/8 to-transparent"
+        }}
+        renderDetail={(p, onClose) => (
+          <DetailPanel onClose={onClose} title={p.name}>
+            <div className="grid grid-cols-2 gap-3">
+              <DetailCard label="Raison sociale" value={p.legalName || "—"} />
+              <DetailCard label="Catégorie" value={categoryLabels[p.categories || ""] || p.categories || "—"} />
+              <DetailCard label="Sous-catégorie" value={p.partnerSubcategory || "—"} />
+              <DetailCard label="Niveau" value={p.partnershipLevel || "—"} />
+              <DetailCard label="Statut" value={<StatusBadge status={p.partnershipStatus?.trim() === "actif" ? "success" : p.partnershipStatus?.trim() === "en_negociation" ? "warning" : p.partnershipStatus?.trim() === "termine" ? "error" : "neutral"} label={p.partnershipStatus?.replace("_", " ") || "—"} />} />
+              <DetailCard label="Pays" value={p.country || "—"} />
+              <DetailCard label="Email" value={p.email || "—"} />
+              <DetailCard label="Téléphone" value={p.phone || "—"} />
+              <DetailCard label="Depuis" value={p.partnershipStartDate ? new Date(p.partnershipStartDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "—"} />
+              <DetailCard label="Score satisfaction" value={p.satisfactionScore != null ? `${p.satisfactionScore}/10` : "—"} />
+              <DetailCard label="Budget annuel" value={p.annualBudgetTnd != null ? `${p.annualBudgetTnd.toLocaleString()} TND` : "—"} />
+            </div>
+          </DetailPanel>
+        )}
+      />
 
       {/* Suspension/Reactivation Modal */}
       {statusModal.open && statusModal.partner && (

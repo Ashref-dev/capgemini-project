@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/frontend/hooks/use-auth"
-import { Badge } from "@/frontend/components/ui/badge"
 import { Input } from "@/frontend/components/ui/input"
 import { Button } from "@/frontend/components/ui/button"
 import { Spinner } from "@/frontend/components/ui/spinner"
@@ -11,12 +10,11 @@ import { Label } from "@/frontend/components/ui/label"
 import { Textarea } from "@/frontend/components/ui/textarea"
 import { motion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  MortarboardIcon,
-  Add01Icon,
-  Delete01Icon,
-  CheckmarkSquare01Icon,
-} from "@hugeicons/core-free-icons"
+import { MortarboardIcon, Delete01Icon } from "@hugeicons/core-free-icons"
+import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/frontend/components/ui/capgemini-table"
+import { SparklesText } from "@/frontend/components/ui/sparkles-text"
+import { GradientStatCard } from "@/frontend/components/ui/gradient-stat-card"
+import { AddButton } from "@/frontend/components/ui/add-button"
 
 interface Recruitment {
   id: number
@@ -209,41 +207,26 @@ export default function HRRecruitmentsPage() {
             <HugeiconsIcon icon={MortarboardIcon} className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Recrutements Étudiants</h1>
+            <SparklesText text="Recrutements Étudiants" className="text-2xl" />
             <p className="text-sm text-muted-foreground">
               {recruitments.length} recrutement{recruitments.length > 1 ? "s" : ""}
             </p>
           </div>
         </div>
-        <Button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <HugeiconsIcon icon={Add01Icon} className="w-4 h-4 mr-2" />
-          Nouveau recrutement
-        </Button>
+          <AddButton label="Nouveau recrutement" onClick={() => setShowForm(!showForm)} />
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-xl border border-border bg-card">
-          <div className="text-sm text-muted-foreground">Total Recrutements</div>
-          <div className="text-2xl font-bold mt-1">{recruitments.length}</div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="p-4 rounded-xl border border-border bg-card">
-          <div className="text-sm text-muted-foreground">En cours</div>
-          <div className="text-2xl font-bold mt-1 text-blue-600">{activeCount}</div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="p-4 rounded-xl border border-border bg-card">
-          <div className="text-sm text-muted-foreground">Convertis CDI</div>
-          <div className="text-2xl font-bold mt-1 text-green-600">{cdiCount}</div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="p-4 rounded-xl border border-border bg-card">
-          <div className="text-sm text-muted-foreground">Taux Conversion CDI</div>
-          <div className="text-2xl font-bold mt-1">
-            {recruitments.length > 0 ? Math.round((cdiCount / recruitments.length) * 100) : 0}%
-          </div>
-        </motion.div>
+        <GradientStatCard value={recruitments.length} label="Total Recrutements" glowColor="blue" index={0} />
+        <GradientStatCard value={activeCount} label="En cours" glowColor="cyan" index={1} />
+        <GradientStatCard value={cdiCount} label="Convertis CDI" glowColor="emerald" index={2} />
+        <GradientStatCard
+          value={`${recruitments.length > 0 ? Math.round((cdiCount / recruitments.length) * 100) : 0}%`}
+          label="Taux Conversion CDI"
+          glowColor="violet"
+          index={3}
+        />
       </div>
 
       {/* Creation Form */}
@@ -342,11 +325,7 @@ export default function HRRecruitmentsPage() {
               <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} />
             </div>
             <div className="flex gap-2 pt-2">
-              <Button type="submit" disabled={formLoading} className="bg-blue-600 hover:bg-blue-700 text-white">
-                {formLoading ? "Création..." : (
-                  <><HugeiconsIcon icon={CheckmarkSquare01Icon} className="w-4 h-4 mr-2" />Créer le recrutement</>
-                )}
-              </Button>
+              <AddButton type="submit" label={formLoading ? "Création..." : "Créer le recrutement"} disabled={formLoading} />
               <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>Annuler</Button>
             </div>
           </form>
@@ -374,83 +353,106 @@ export default function HRRecruitmentsPage() {
       </div>
 
       {/* Table */}
-      {loading ? (
-        <div className="flex justify-center py-12"><Spinner /></div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">Aucun recrutement trouvé</div>
-      ) : (
-        <div className="border border-border rounded-lg overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 border-b border-border">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">Étudiant</th>
-                <th className="text-left px-4 py-3 font-medium">Type</th>
-                <th className="text-left px-4 py-3 font-medium">Spécialisation</th>
-                <th className="text-left px-4 py-3 font-medium">Période</th>
-                <th className="text-left px-4 py-3 font-medium">Projet/Équipe</th>
-                <th className="text-left px-4 py-3 font-medium">Score</th>
-                <th className="text-left px-4 py-3 font-medium">CDI</th>
-                <th className="text-left px-4 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((r) => (
-                <tr key={r.id} className="border-b border-border last:border-0 hover:bg-muted/30">
-                  <td className="px-4 py-3">
-                    <div className="font-medium">{r.studentFirstName} {r.studentLastName}</div>
-                    <div className="text-xs text-muted-foreground">{r.studentEmail || "—"}</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge className={`text-xs ${typeColors[r.recruitmentType || ""] || ""}`}>
-                      {recruitmentTypeLabels[r.recruitmentType || ""] || r.recruitmentType || "—"}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="text-muted-foreground">{r.specialization || "—"}</div>
-                    {r.degreeLevel && <div className="text-xs text-muted-foreground">{r.degreeLevel}</div>}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">
-                    <div>{new Date(r.startDate).toLocaleDateString("fr-FR")}</div>
-                    {r.endDate && <div>→ {new Date(r.endDate).toLocaleDateString("fr-FR")}</div>}
-                    {r.contractDurationMonths && <div>{r.contractDurationMonths} mois</div>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="text-muted-foreground text-xs">{r.assignedProject || "—"}</div>
-                    {r.assignedTeam && <div className="text-xs text-muted-foreground">Équipe: {r.assignedTeam}</div>}
-                  </td>
-                  <td className="px-4 py-3">
-                    {r.performanceScore != null ? (
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium">{r.performanceScore}/10</span>
-                        {r.satisfactionScore != null && (
-                          <span className="text-xs text-muted-foreground">({r.satisfactionScore}/10)</span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge className={r.convertedToCdi ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" : "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"}>
-                      {r.convertedToCdi ? "Oui" : "Non"}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(r.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <HugeiconsIcon icon={Delete01Icon} className="w-4 h-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <CapgeminiTable<Recruitment>
+        title="Recrutements & Stages"
+        subtitle="Cliquer sur un recrutement pour voir les détails"
+        data={filtered}
+        columns={[
+          {
+            key: "student", label: "Étudiant", weight: 2,
+            render: r => (
+              <div>
+                <p className="font-semibold text-sm text-foreground">{r.studentFirstName} {r.studentLastName}</p>
+                {r.studentEmail && <p className="text-xs text-muted-foreground mt-0.5">{r.studentEmail}</p>}
+              </div>
+            ),
+          },
+          {
+            key: "type", label: "Type", weight: 1.5,
+            render: r => {
+              const t = r.recruitmentType || ""
+              const v = t === "cdi" ? "success" : t === "cdd" ? "info" : t === "stage" ? "warning" : "neutral"
+              return <StatusBadge status={v} label={recruitmentTypeLabels[t] || t || "—"} />
+            },
+          },
+          {
+            key: "spec", label: "Spécialisation", weight: 1.5,
+            render: r => (
+              <div>
+                <p className="text-sm text-muted-foreground">{r.specialization || "—"}</p>
+                {r.degreeLevel && <p className="text-xs text-muted-foreground">{r.degreeLevel}</p>}
+              </div>
+            ),
+          },
+          {
+            key: "period", label: "Période", weight: 1.5,
+            render: r => (
+              <div className="text-xs text-muted-foreground font-mono">
+                <p>{new Date(r.startDate).toLocaleDateString("fr-FR")}</p>
+                {r.endDate && <p>→ {new Date(r.endDate).toLocaleDateString("fr-FR")}</p>}
+                {r.contractDurationMonths && <p className="text-primary">{r.contractDurationMonths} mois</p>}
+              </div>
+            ),
+          },
+          {
+            key: "project", label: "Projet / Équipe", weight: 1.5,
+            render: r => (
+              <div>
+                <p className="text-sm text-muted-foreground">{r.assignedProject || "—"}</p>
+                {r.assignedTeam && <p className="text-xs text-muted-foreground">Équipe: {r.assignedTeam}</p>}
+              </div>
+            ),
+          },
+          {
+            key: "score", label: "Score", weight: 1,
+            render: r => r.performanceScore != null ? (
+              <div>
+                <span className="font-semibold text-sm">{r.performanceScore}/10</span>
+                {r.satisfactionScore != null && <span className="text-xs text-muted-foreground ml-1">({r.satisfactionScore}/10)</span>}
+              </div>
+            ) : <span className="text-muted-foreground text-sm">—</span>,
+          },
+          {
+            key: "cdi", label: "CDI", weight: 0.8,
+            render: r => <StatusBadge status={r.convertedToCdi ? "success" : "neutral"} label={r.convertedToCdi ? "Oui" : "Non"} />,
+          },
+          {
+            key: "actions", label: "", weight: 0.5,
+            render: r => (
+              <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); handleDelete(r.id) }} className="text-red-500 hover:text-red-600 p-1">
+                <HugeiconsIcon icon={Delete01Icon} className="w-4 h-4" />
+              </Button>
+            ),
+          },
+        ] satisfies CapgeminiTableColumn<Recruitment>[]}
+        loading={loading}
+        emptyMessage="Aucun recrutement trouvé"
+        keyExtractor={r => r.id}
+        getRowGradient={r => {
+          const t = r.recruitmentType || ""
+          return t === "cdi" ? "from-emerald-500/8 to-transparent" : t === "cdd" ? "from-blue-500/8 to-transparent" : "from-amber-500/8 to-transparent"
+        }}
+        renderDetail={(r, onClose) => (
+          <DetailPanel onClose={onClose} title={`${r.studentFirstName} ${r.studentLastName}`}>
+            <div className="grid grid-cols-2 gap-3">
+              <DetailCard label="Email" value={r.studentEmail || "—"} />
+              <DetailCard label="Type" value={recruitmentTypeLabels[r.recruitmentType || ""] || r.recruitmentType || "—"} />
+              <DetailCard label="Spécialisation" value={r.specialization || "—"} />
+              <DetailCard label="Niveau" value={r.degreeLevel || "—"} />
+              <DetailCard label="Début" value={new Date(r.startDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} />
+              <DetailCard label="Fin" value={r.endDate ? new Date(r.endDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "—"} />
+              <DetailCard label="Durée contrat" value={r.contractDurationMonths ? `${r.contractDurationMonths} mois` : "—"} />
+              <DetailCard label="Projet" value={r.assignedProject || "—"} />
+              <DetailCard label="Équipe" value={r.assignedTeam || "—"} />
+              <DetailCard label="Manager" value={r.managerName || "—"} />
+              <DetailCard label="Score performance" value={r.performanceScore != null ? `${r.performanceScore}/10` : "—"} />
+              <DetailCard label="Score satisfaction" value={r.satisfactionScore != null ? `${r.satisfactionScore}/10` : "—"} />
+              <DetailCard label="Converti CDI" value={<StatusBadge status={r.convertedToCdi ? "success" : "neutral"} label={r.convertedToCdi ? "Oui" : "Non"} />} />
+            </div>
+          </DetailPanel>
+        )}
+      />
     </div>
   )
 }
+

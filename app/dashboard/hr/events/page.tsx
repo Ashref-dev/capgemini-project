@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/frontend/hooks/use-auth"
-import { Badge } from "@/frontend/components/ui/badge"
 import { Input } from "@/frontend/components/ui/input"
 import { Button } from "@/frontend/components/ui/button"
 import { Spinner } from "@/frontend/components/ui/spinner"
@@ -11,12 +10,11 @@ import { Label } from "@/frontend/components/ui/label"
 import { Textarea } from "@/frontend/components/ui/textarea"
 import { motion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  Calendar03Icon,
-  Add01Icon,
-  Delete01Icon,
-  CheckmarkSquare01Icon,
-} from "@hugeicons/core-free-icons"
+import { Calendar03Icon, Delete01Icon } from "@hugeicons/core-free-icons"
+import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/frontend/components/ui/capgemini-table"
+import { SparklesText } from "@/frontend/components/ui/sparkles-text"
+import { GradientStatCard } from "@/frontend/components/ui/gradient-stat-card"
+import { AddButton } from "@/frontend/components/ui/add-button"
 
 interface Event {
   id: number
@@ -185,36 +183,21 @@ export default function HREventsPage() {
             <HugeiconsIcon icon={Calendar03Icon} className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Organisation des Événements</h1>
+            <SparklesText text="Organisation des Événements" className="text-2xl" />
             <p className="text-sm text-muted-foreground">
               {events.length} événement{events.length > 1 ? "s" : ""} • {upcoming} à venir
             </p>
           </div>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} className="bg-blue-600 hover:bg-blue-700 text-white">
-          <HugeiconsIcon icon={Add01Icon} className="w-4 h-4 mr-2" />
-          Nouvel événement
-        </Button>
+        <AddButton label="Nouvel événement" onClick={() => setShowForm(!showForm)} />
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-xl border border-border bg-card">
-          <div className="text-sm text-muted-foreground">Total Événements</div>
-          <div className="text-2xl font-bold mt-1">{events.length}</div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="p-4 rounded-xl border border-border bg-card">
-          <div className="text-sm text-muted-foreground">À venir</div>
-          <div className="text-2xl font-bold mt-1 text-blue-600">{upcoming}</div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="p-4 rounded-xl border border-border bg-card">
-          <div className="text-sm text-muted-foreground">Budget Total</div>
-          <div className="text-2xl font-bold mt-1">{totalBudget.toLocaleString()} TND</div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="p-4 rounded-xl border border-border bg-card">
-          <div className="text-sm text-muted-foreground">Total Participants</div>
-          <div className="text-2xl font-bold mt-1">{totalParticipants}</div>
-        </motion.div>
+        <GradientStatCard value={events.length} label="Total Événements" glowColor="blue" index={0} />
+        <GradientStatCard value={upcoming} label="À venir" glowColor="cyan" index={1} />
+        <GradientStatCard value={`${totalBudget.toLocaleString()} TND`} label="Budget Total" glowColor="amber" index={2} />
+        <GradientStatCard value={totalParticipants} label="Total Participants" glowColor="violet" index={3} />
       </div>
 
       {/* Creation Form */}
@@ -290,11 +273,7 @@ export default function HREventsPage() {
               <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} />
             </div>
             <div className="flex gap-2 pt-2">
-              <Button type="submit" disabled={formLoading} className="bg-blue-600 hover:bg-blue-700 text-white">
-                {formLoading ? "Création..." : (
-                  <><HugeiconsIcon icon={CheckmarkSquare01Icon} className="w-4 h-4 mr-2" />Créer l&apos;événement</>
-                )}
-              </Button>
+              <AddButton type="submit" label={formLoading ? "Création..." : "Créer l'événement"} disabled={formLoading} />
               <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>Annuler</Button>
             </div>
           </form>
@@ -318,62 +297,91 @@ export default function HREventsPage() {
       </div>
 
       {/* Table */}
-      {loading ? (
-        <div className="flex justify-center py-12"><Spinner /></div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">Aucun événement trouvé</div>
-      ) : (
-        <div className="border border-border rounded-lg overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 border-b border-border">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">Événement</th>
-                <th className="text-left px-4 py-3 font-medium">Partenaire</th>
-                <th className="text-left px-4 py-3 font-medium">Type</th>
-                <th className="text-left px-4 py-3 font-medium">Date</th>
-                <th className="text-left px-4 py-3 font-medium">Lieu</th>
-                <th className="text-left px-4 py-3 font-medium">Participants</th>
-                <th className="text-left px-4 py-3 font-medium">Budget</th>
-                <th className="text-left px-4 py-3 font-medium">Statut</th>
-                <th className="text-left px-4 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((evt) => (
-                <tr key={evt.id} className="border-b border-border last:border-0 hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium">{evt.eventName}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{evt.partner?.name || "—"}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{evt.eventType || "—"}</td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs">{new Date(evt.eventDate).toLocaleDateString("fr-FR")}</td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs">{evt.eventLocation || "—"}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {evt.numParticipants || "—"}
-                    {evt.numCapgeminiAttendees ? ` (${evt.numCapgeminiAttendees} Cap.)` : ""}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {evt.eventBudget ? `${evt.eventBudget.toLocaleString()} TND` : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge className={`text-xs ${statusColors[evt.eventStatus || ""] || ""}`}>
-                      {evt.eventStatus?.replace("_", " ") || "—"}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(evt.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <HugeiconsIcon icon={Delete01Icon} className="w-4 h-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <CapgeminiTable<Event>
+        title="Événements partenaires"
+        subtitle="Cliquer sur un événement pour voir les détails"
+        data={filtered}
+        columns={[
+          {
+            key: "name", label: "Événement", weight: 2,
+            render: evt => (
+              <div>
+                <p className="font-semibold text-sm text-foreground">{evt.eventName}</p>
+                {evt.eventType && <p className="text-xs text-muted-foreground mt-0.5">{evt.eventType}</p>}
+              </div>
+            ),
+          },
+          {
+            key: "partner", label: "Partenaire", weight: 1.5,
+            render: evt => <span className="text-sm text-muted-foreground">{evt.partner?.name || "—"}</span>,
+          },
+          {
+            key: "date", label: "Date", weight: 1.5,
+            render: evt => (
+              <span className="text-sm font-mono text-foreground">
+                {new Date(evt.eventDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+              </span>
+            ),
+          },
+          {
+            key: "location", label: "Lieu", weight: 1.5,
+            render: evt => <span className="text-sm text-muted-foreground">{evt.eventLocation || "—"}</span>,
+          },
+          {
+            key: "participants", label: "Participants", weight: 1,
+            render: evt => (
+              <span className="text-sm text-muted-foreground">
+                {evt.numParticipants || "—"}
+                {evt.numCapgeminiAttendees ? <span className="text-xs ml-1 text-primary">({evt.numCapgeminiAttendees} Cap.)</span> : null}
+              </span>
+            ),
+          },
+          {
+            key: "budget", label: "Budget", weight: 1.5,
+            render: evt => <span className="text-sm text-muted-foreground">{evt.eventBudget ? `${evt.eventBudget.toLocaleString()} TND` : "—"}</span>,
+          },
+          {
+            key: "status", label: "Statut", weight: 1,
+            render: evt => {
+              const s = evt.eventStatus || ""
+              const v = s === "termine" ? "success" : s === "en_cours" ? "warning" : s === "annule" ? "error" : "info"
+              return <StatusBadge status={v} label={s.replace("_", " ") || "—"} />
+            },
+          },
+          {
+            key: "actions", label: "", weight: 0.5,
+            render: evt => (
+              <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); handleDelete(evt.id) }} className="text-red-500 hover:text-red-600 p-1">
+                <HugeiconsIcon icon={Delete01Icon} className="w-4 h-4" />
+              </Button>
+            ),
+          },
+        ] satisfies CapgeminiTableColumn<Event>[]}
+        loading={loading}
+        emptyMessage="Aucun événement trouvé"
+        keyExtractor={evt => evt.id}
+        getRowGradient={evt => {
+          const s = evt.eventStatus || ""
+          return s === "termine" ? "from-emerald-500/8 to-transparent" : s === "en_cours" ? "from-amber-500/8 to-transparent" : s === "annule" ? "from-red-500/8 to-transparent" : "from-blue-500/8 to-transparent"
+        }}
+        renderDetail={(evt, onClose) => (
+          <DetailPanel onClose={onClose} title={evt.eventName}>
+            <div className="grid grid-cols-2 gap-3">
+              <DetailCard label="Partenaire" value={evt.partner?.name || "—"} />
+              <DetailCard label="Type" value={evt.eventType || "—"} />
+              <DetailCard label="Date" value={new Date(evt.eventDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} />
+              <DetailCard label="Lieu" value={evt.eventLocation || "—"} />
+              <DetailCard label="Participants" value={evt.numParticipants?.toString() || "—"} />
+              <DetailCard label="Participants Capgemini" value={evt.numCapgeminiAttendees?.toString() || "—"} />
+              <DetailCard label="Budget" value={evt.eventBudget ? `${evt.eventBudget.toLocaleString()} TND` : "—"} />
+              <DetailCard label="Score satisfaction" value={evt.satisfactionScore != null ? `${evt.satisfactionScore}/10` : "—"} />
+              <DetailCard label="Statut" value={<StatusBadge status={evt.eventStatus === "termine" ? "success" : evt.eventStatus === "en_cours" ? "warning" : evt.eventStatus === "annule" ? "error" : "info"} label={evt.eventStatus?.replace("_", " ") || "—"} />} />
+            </div>
+            {evt.notes && <DetailCard label="Notes" value={<p className="text-sm text-foreground leading-relaxed">{evt.notes}</p>} />}
+          </DetailPanel>
+        )}
+      />
     </div>
   )
 }
+

@@ -1,4 +1,7 @@
-"use client"
+const fs = require('fs');
+const path = require('path');
+
+const content = `"use client"
 
 import { useEffect, useState, useCallback } from "react"
 import { useParams } from "next/navigation"
@@ -17,7 +20,6 @@ import { Input } from "@/frontend/components/ui/input"
 import { Label } from "@/frontend/components/ui/label"
 import { Spinner } from "@/frontend/components/ui/spinner"
 import { toast } from "@/frontend/components/ui/toast"
-import { AddButton } from "@/frontend/components/ui/add-button"
 import { FileCard, extToFormat } from "@/frontend/components/ui/file-card"
 import { useAuth } from "@/frontend/hooks/use-auth"
 import Link from "next/link"
@@ -72,7 +74,7 @@ export default function PartnerDocumentsPage() {
 
   const fetchDocuments = useCallback(async () => {
     try {
-      const res = await fetch(`/api/documents?partnerId=${partnerId}`)
+      const res = await fetch(\`/api/documents?partnerId=\${partnerId}\`)
       const data = await res.json()
       if (res.ok) setDocuments(data.documents || [])
     } catch {
@@ -84,7 +86,7 @@ export default function PartnerDocumentsPage() {
 
   const fetchPartnerName = useCallback(async () => {
     try {
-      const res = await fetch(`/api/partners?search=&category=&status=&level=`)
+      const res = await fetch(\`/api/partners?search=&category=&status=&level=\`)
       const data = await res.json()
       if (res.ok) {
         const partner = data.partners?.find((p: { id: number }) => p.id === Number(partnerId))
@@ -126,7 +128,7 @@ export default function PartnerDocumentsPage() {
   const handleDelete = async (doc: Document) => {
     if (!confirm("Supprimer " + doc.originalName + " ?")) return
     try {
-      const res = await fetch(`/api/documents?id=${doc.id}`, { method: "DELETE" })
+      const res = await fetch(\`/api/documents?id=\${doc.id}\`, { method: "DELETE" })
       if (res.ok) {
         toast.success("Document supprime")
         fetchDocuments()
@@ -140,7 +142,7 @@ export default function PartnerDocumentsPage() {
   }
 
   const handleDownload = (doc: Document) => {
-    window.open(`/api/documents/download?id=${doc.id}`, "_blank")
+    window.open(\`/api/documents/download?id=\${doc.id}\`, "_blank")
   }
 
   const isAdmin = user?.role === "admin" || user?.role === "manager"
@@ -176,11 +178,13 @@ export default function PartnerDocumentsPage() {
             </p>
           </div>
         </div>
-        <AddButton
+        <Button
           onClick={() => setShowUpload(!showUpload)}
-          label="Ajouter un document"
-          className="shrink-0"
-        />
+          className="bg-blue-600 hover:bg-blue-700 text-white shrink-0"
+        >
+          <HugeiconsIcon icon={Upload04Icon} className="w-4 h-4 mr-2" />
+          Ajouter un document
+        </Button>
       </motion.div>
 
       {/* Upload form */}
@@ -254,7 +258,7 @@ export default function PartnerDocumentsPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
-          <p>Aucun resultat pour « {search} »</p>
+          <p>Aucun resultat pour \u00ab\u00a0{search}\u00a0\u00bb</p>
         </div>
       ) : (
         <motion.div
@@ -329,3 +333,8 @@ export default function PartnerDocumentsPage() {
     </div>
   )
 }
+`;
+
+const target = path.join(__dirname, '..', 'app', 'dashboard', 'partners', '[id]', 'documents', 'page.tsx');
+fs.writeFileSync(target, content, 'utf8');
+console.log('Written:', target);

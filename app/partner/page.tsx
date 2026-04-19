@@ -12,6 +12,7 @@ import {
 } from "@hugeicons/core-free-icons"
 import Link from "next/link"
 import { Spinner } from "@/frontend/components/ui/spinner"
+import { BallpitHero } from "@/frontend/components/ui/ballpit-hero"
 
 interface PartnerData {
   partner: {
@@ -90,20 +91,12 @@ export default function PartnerDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h1 className="text-2xl font-bold text-foreground">
-          Bienvenue, {partner.name}
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Catégorie : {categoryLabels[partner.categories || ""] || partner.categories} •
-          Statut : {statusLabels[partner.partnershipStatus || ""] || partner.partnershipStatus}
-          {partner.partnershipLevel && ` • Niveau : ${partner.partnershipLevel}`}
-        </p>
-      </motion.div>
+      <BallpitHero
+        greeting={new Date().getHours() < 12 ? "Bonjour" : new Date().getHours() < 18 ? "Bon après-midi" : "Bonsoir"}
+        name={partner.name}
+        subtitle={`${categoryLabels[partner.categories || ""] || partner.categories} • ${statusLabels[partner.partnershipStatus || ""] || partner.partnershipStatus}${partner.partnershipLevel ? ` • Niveau : ${partner.partnershipLevel}` : ""}`}
+        badge={categoryLabels[partner.categories || ""] || partner.categories || undefined}
+      />
 
       {/* Quick stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
