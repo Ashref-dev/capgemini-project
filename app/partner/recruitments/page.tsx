@@ -4,51 +4,39 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { MortarboardIcon, PlusSignIcon } from "@hugeicons/core-free-icons"
-import { Button } from "@/frontend/components/ui/button"
+import {
+  MortarboardIcon, UserGroupIcon, CheckmarkCircle01Icon,
+  ChartIncreaseIcon, UserStarIcon, Calendar03Icon,
+} from "@hugeicons/core-free-icons"
 import { Spinner } from "@/frontend/components/ui/spinner"
+import { GradientStatCard } from "@/frontend/components/ui/gradient-stat-card"
+import { AddButton } from "@/frontend/components/ui/add-button"
+import { SparklesText } from "@/frontend/components/ui/sparkles-text"
+import { cn } from "@/frontend/lib/utils"
 
 interface Recruitment {
-  id: number
-  studentFirstName: string | null
-  studentLastName: string | null
-  studentEmail: string | null
-  recruitmentType: string | null
-  startDate: string
-  endDate: string | null
-  degreeLevel: string | null
-  specialization: string | null
-  assignedProject: string | null
-  assignedTeam: string | null
-  managerName: string | null
-  performanceScore: number | null
-  satisfactionScore: number | null
-  convertedToCdi: boolean
-  notes: string | null
+  id: number; studentFirstName: string | null; studentLastName: string | null
+  studentEmail: string | null; recruitmentType: string | null; startDate: string
+  endDate: string | null; degreeLevel: string | null; specialization: string | null
+  assignedProject: string | null; assignedTeam: string | null; managerName: string | null
+  performanceScore: number | null; satisfactionScore: number | null
+  convertedToCdi: boolean; notes: string | null
 }
-
 interface Stats {
-  total: number
-  converted: number
-  conversionRate: number
-  avgPerformance: number | null
-  avgSatisfaction: number | null
+  total: number; converted: number; conversionRate: number
+  avgPerformance: number | null; avgSatisfaction: number | null
 }
 
 const typeLabels: Record<string, string> = {
-  stage: "Stage",
-  alternance: "Alternance",
-  vie: "VIE",
-  cdi_jeune_diplome: "CDI Jeune Diplômé",
-  contrat_pro: "Contrat Pro",
+  stage: "Stage", alternance: "Alternance", vie: "VIE",
+  cdi_jeune_diplome: "CDI Jeune Diplômé", contrat_pro: "Contrat Pro",
 }
-
 const typeColors: Record<string, string> = {
-  stage: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-  alternance: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-  vie: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
-  cdi_jeune_diplome: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
-  contrat_pro: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300",
+  stage:            "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  alternance:       "bg-violet-500/10 text-violet-600 border-violet-500/20",
+  vie:              "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  cdi_jeune_diplome:"bg-amber-500/10 text-amber-600 border-amber-500/20",
+  contrat_pro:      "bg-rose-500/10 text-rose-600 border-rose-500/20",
 }
 
 export default function RecruitmentListPage() {
@@ -60,172 +48,120 @@ export default function RecruitmentListPage() {
   useEffect(() => {
     fetch("/api/partner/recruitments")
       .then((r) => r.json())
-      .then((d) => {
-        if (d.recruitments) {
-          setRecruitments(d.recruitments)
-          setStats(d.stats)
-          setGlobalStats(d.globalStats)
-        }
-      })
+      .then((d) => { if (d.recruitments) { setRecruitments(d.recruitments); setStats(d.stats); setGlobalStats(d.globalStats) } })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner />
-      </div>
-    )
-  }
+  if (loading) return <div className="flex items-center justify-center h-64"><Spinner /></div>
 
   return (
     <div className="space-y-6 max-w-6xl">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      {/* Header */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between"
       >
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Recrutements</h1>
-          <p className="text-muted-foreground mt-1">
-            Gérez les recrutements étudiants de votre établissement
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
+            <HugeiconsIcon icon={MortarboardIcon} className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <SparklesText text="Recrutements" className="text-2xl" />
+            <p className="text-sm text-muted-foreground mt-0.5">Gérez les recrutements étudiants de votre établissement</p>
+          </div>
         </div>
         <Link href="/partner/recruitments/new">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium">
-            <HugeiconsIcon icon={PlusSignIcon} className="w-4 h-4 mr-2" />
-            Nouveau recrutement
-          </Button>
+          <AddButton label="Nouveau recrutement" />
         </Link>
       </motion.div>
 
       {/* Stats cards */}
       {stats && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           className="grid grid-cols-2 md:grid-cols-5 gap-4"
         >
-          <div className="bg-card border border-border rounded-xl p-4">
-            <p className="text-sm text-muted-foreground">Total</p>
-            <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-            {globalStats && (
-              <p className="text-xs text-muted-foreground mt-1">Global : {globalStats.total}</p>
-            )}
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4">
-            <p className="text-sm text-muted-foreground">Convertis CDI</p>
-            <p className="text-2xl font-bold text-green-600">{stats.converted}</p>
-            {globalStats && (
-              <p className="text-xs text-muted-foreground mt-1">Global : {globalStats.converted}</p>
-            )}
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4">
-            <p className="text-sm text-muted-foreground">Taux conversion</p>
-            <p className="text-2xl font-bold text-primary">{stats.conversionRate}%</p>
-            {globalStats && (
-              <p className="text-xs text-muted-foreground mt-1">Global : {globalStats.conversionRate}%</p>
-            )}
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4">
-            <p className="text-sm text-muted-foreground">Perf. moyenne</p>
-            <p className="text-2xl font-bold text-foreground">{stats.avgPerformance ?? "—"}</p>
-            {globalStats && (
-              <p className="text-xs text-muted-foreground mt-1">Global : {globalStats.avgPerformance ?? "—"}</p>
-            )}
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4">
-            <p className="text-sm text-muted-foreground">Satisfaction moy.</p>
-            <p className="text-2xl font-bold text-foreground">{stats.avgSatisfaction ?? "—"}</p>
-            {globalStats && (
-              <p className="text-xs text-muted-foreground mt-1">Global : {globalStats.avgSatisfaction ?? "—"}</p>
-            )}
-          </div>
+          {[
+            { icon: UserGroupIcon,          value: String(stats.total),             label: "Total",           sub: globalStats ? `Global : ${globalStats.total}` : undefined,               glowColor: "blue"    as const },
+            { icon: CheckmarkCircle01Icon,  value: String(stats.converted),         label: "Convertis CDI",   sub: globalStats ? `Global : ${globalStats.converted}` : undefined,          glowColor: "emerald" as const },
+            { icon: ChartIncreaseIcon,      value: `${stats.conversionRate}%`,      label: "Taux conversion", sub: globalStats ? `Global : ${globalStats.conversionRate}%` : undefined,    glowColor: "amber"   as const },
+            { icon: UserStarIcon,           value: String(stats.avgPerformance ?? "—"), label: "Perf. moy.",  sub: globalStats ? `Global : ${globalStats.avgPerformance ?? "—"}` : undefined, glowColor: "violet" as const },
+            { icon: ChartIncreaseIcon,      value: String(stats.avgSatisfaction ?? "—"), label: "Satisf. moy.", sub: globalStats ? `Global : ${globalStats.avgSatisfaction ?? "—"}` : undefined, glowColor: "cyan" as const },
+          ].map((c, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 + i * 0.06 }}>
+              <GradientStatCard icon={c.icon} value={c.value} label={c.label} sub={c.sub} glowColor={c.glowColor} index={i} />
+            </motion.div>
+          ))}
         </motion.div>
       )}
 
       {/* Recruitment list */}
       {recruitments.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="bg-card border border-border rounded-xl p-8 text-center"
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="rounded-xl border border-border bg-card p-10 text-center"
         >
-          <HugeiconsIcon icon={MortarboardIcon} className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-          <p className="text-muted-foreground">Aucun recrutement pour le moment.</p>
+          <HugeiconsIcon icon={MortarboardIcon} className="w-12 h-12 mx-auto opacity-20 mb-3 text-muted-foreground" />
+          <p className="text-muted-foreground font-medium">Aucun recrutement pour le moment.</p>
           <Link href="/partner/recruitments/new">
-            <Button variant="outline" className="mt-4">
-              Ajouter un recrutement
-            </Button>
+            <AddButton label="Ajouter un recrutement" className="mt-4 mx-auto" />
           </Link>
         </motion.div>
       ) : (
         <div className="space-y-3">
           {recruitments.map((r, i) => (
-            <motion.div
-              key={r.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 * i }}
-              className="bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-colors"
+            <motion.div key={r.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}
+              className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/20 transition-all"
             >
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-foreground">
-                      {r.studentFirstName} {r.studentLastName}
-                    </h3>
-                    {r.recruitmentType && (
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          typeColors[r.recruitmentType] || "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                        }`}
-                      >
-                        {typeLabels[r.recruitmentType] || r.recruitmentType}
+              <div className={cn("h-1", typeColors[r.recruitmentType || ""]?.includes("blue") ? "bg-blue-500" : typeColors[r.recruitmentType || ""]?.includes("violet") ? "bg-violet-500" : typeColors[r.recruitmentType || ""]?.includes("emerald") ? "bg-emerald-500" : typeColors[r.recruitmentType || ""]?.includes("amber") ? "bg-amber-500" : "bg-rose-500")} />
+              <div className="p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1.5 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold text-foreground">
+                        {r.studentFirstName} {r.studentLastName}
+                      </h3>
+                      {r.recruitmentType && (
+                        <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-semibold border", typeColors[r.recruitmentType] || "bg-muted text-muted-foreground border-border")}>
+                          {typeLabels[r.recruitmentType] || r.recruitmentType}
+                        </span>
+                      )}
+                      {r.convertedToCdi && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                          CDI ✓
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                      {r.degreeLevel && <span>Niveau : {r.degreeLevel}</span>}
+                      {r.specialization && <span>Spécialisation : {r.specialization}</span>}
+                      <span className="flex items-center gap-1">
+                        <HugeiconsIcon icon={Calendar03Icon} className="w-3 h-3" />
+                        Du {new Date(r.startDate).toLocaleDateString("fr-FR")}
+                        {r.endDate && ` au ${new Date(r.endDate).toLocaleDateString("fr-FR")}`}
                       </span>
+                    </div>
+                    {(r.assignedProject || r.assignedTeam || r.managerName) && (
+                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                        {r.assignedProject && <span>Projet : {r.assignedProject}</span>}
+                        {r.assignedTeam && <span>Équipe : {r.assignedTeam}</span>}
+                        {r.managerName && <span>Manager : {r.managerName}</span>}
+                      </div>
                     )}
-                    {r.convertedToCdi && (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
-                        CDI ✓
-                      </span>
+                    {r.notes && <p className="text-xs text-muted-foreground italic">{r.notes}</p>}
+                  </div>
+                  <div className="text-right shrink-0 ml-4 space-y-1">
+                    {r.performanceScore !== null && (
+                      <div className="text-xs bg-muted/50 rounded-lg px-2.5 py-1">
+                        <span className="text-muted-foreground">Perf. </span>
+                        <span className="font-bold text-foreground">{r.performanceScore}/100</span>
+                      </div>
+                    )}
+                    {r.satisfactionScore !== null && (
+                      <div className="text-xs bg-muted/50 rounded-lg px-2.5 py-1">
+                        <span className="text-muted-foreground">Satisf. </span>
+                        <span className="font-bold text-foreground">{r.satisfactionScore}/100</span>
+                      </div>
                     )}
                   </div>
-                  <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                    {r.degreeLevel && <span>Niveau : {r.degreeLevel}</span>}
-                    {r.specialization && <span>Spécialisation : {r.specialization}</span>}
-                    <span>
-                      Du {new Date(r.startDate).toLocaleDateString("fr-FR")}
-                      {r.endDate && ` au ${new Date(r.endDate).toLocaleDateString("fr-FR")}`}
-                    </span>
-                  </div>
-                  {(r.assignedProject || r.assignedTeam) && (
-                    <div className="flex gap-3 text-sm text-muted-foreground">
-                      {r.assignedProject && <span>Projet : {r.assignedProject}</span>}
-                      {r.assignedTeam && <span>Équipe : {r.assignedTeam}</span>}
-                    </div>
-                  )}
-                  {r.managerName && (
-                    <p className="text-sm text-muted-foreground">Manager : {r.managerName}</p>
-                  )}
-                  {r.notes && (
-                    <p className="text-sm text-muted-foreground italic mt-1">{r.notes}</p>
-                  )}
-                </div>
-                <div className="text-right space-y-1 shrink-0 ml-4">
-                  {r.performanceScore !== null && (
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">Perf. </span>
-                      <span className="font-semibold text-foreground">{r.performanceScore}/100</span>
-                    </div>
-                  )}
-                  {r.satisfactionScore !== null && (
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">Satisfaction </span>
-                      <span className="font-semibold text-foreground">{r.satisfactionScore}/100</span>
-                    </div>
-                  )}
                 </div>
               </div>
             </motion.div>

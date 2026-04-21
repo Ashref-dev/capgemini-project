@@ -15,6 +15,7 @@ import { Label } from "@/frontend/components/ui/label"
 import { Spinner } from "@/frontend/components/ui/spinner"
 import { toast } from "@/frontend/components/ui/toast"
 import { AddButton } from "@/frontend/components/ui/add-button"
+import { SparklesText } from "@/frontend/components/ui/sparkles-text"
 import { FileCard, extToFormat } from "@/frontend/components/ui/file-card"
 
 interface Document {
@@ -121,10 +122,7 @@ export default function PartnerMyDocumentsPage() {
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-foreground">
-            <HugeiconsIcon icon={FileAttachmentIcon} className="w-6 h-6 text-primary" />
-            Mes Documents
-          </h1>
+          <SparklesText text="Mes Documents" className="text-2xl" />
           <p className="text-sm text-muted-foreground mt-1">
             {documents.length} document{documents.length !== 1 ? "s" : ""} associe{documents.length !== 1 ? "s" : ""} a votre partenariat
           </p>
@@ -170,7 +168,8 @@ export default function PartnerMyDocumentsPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button type="submit" disabled={uploading} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button type="submit" disabled={uploading} className="bg-[#0070AD] hover:bg-[#005a8a] text-white font-medium shadow-sm">
+                    <HugeiconsIcon icon={Upload04Icon} className="w-4 h-4 mr-2" />
                     {uploading ? "Upload en cours..." : "Uploader"}
                   </Button>
                   <Button type="button" variant="ghost" onClick={() => { setShowUpload(false); setSelectedFile(null); setDescription("") }}>
