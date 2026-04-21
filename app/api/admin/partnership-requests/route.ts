@@ -8,6 +8,7 @@ import {
   partnerStatusHistory,
   capgeminiEmployees,
 } from "@/backend/db/schema"
+import { analyzePartnershipRequest, type PartnershipRequestScoringInput } from "@/backend/ai/partnership-request-scoring"
 import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
 import { eq, desc, sql } from "drizzle-orm"
 import { sendEmail } from "@/backend/services/email"
@@ -51,7 +52,34 @@ export async function GET(request: NextRequest) {
       })
       .from(partnershipRequests)
 
-    return NextResponse.json({ requests, counts })
+    const requestsWithAnalysis = requests.map((partnershipRequest) => {
+      const scoringInput: PartnershipRequestScoringInput = {
+        companyName: partnershipRequest.companyName,
+        legalName: partnershipRequest.legalName,
+        contactEmail: partnershipRequest.contactEmail,
+        contactPhone: partnershipRequest.contactPhone,
+        contactRole: partnershipRequest.contactRole,
+        website: partnershipRequest.website,
+        description: partnershipRequest.description,
+        country: partnershipRequest.country,
+        address: partnershipRequest.address,
+        numEmployees: partnershipRequest.numEmployees,
+        annualRevenue: partnershipRequest.annualRevenue,
+        category: partnershipRequest.category,
+        partnerSubcategory: partnershipRequest.partnerSubcategory,
+        partnershipLevel: partnershipRequest.partnershipLevel,
+        motivations: partnershipRequest.motivations,
+        universityData: (partnershipRequest.universityData as Record<string, unknown> | null) || null,
+        technologyData: (partnershipRequest.technologyData as Record<string, unknown> | null) || null,
+      }
+
+      return {
+        ...partnershipRequest,
+        aiAnalysis: analyzePartnershipRequest(scoringInput),
+      }
+    })
+
+    return NextResponse.json({ requests: requestsWithAnalysis, counts })
   } catch (error) {
     console.error("Error fetching partnership requests:", error)
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })

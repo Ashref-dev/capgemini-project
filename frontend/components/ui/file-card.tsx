@@ -31,7 +31,7 @@ export type FormatFileProps =
 
 /** Maps a file extension string to a FormatFileProps value */
 export function extToFormat(ext: string): FormatFileProps {
-  const e = ext.toLowerCase().replace(".", "") as FormatFileProps;
+  const e = ext.toLowerCase().replace(".", "");
   const known: FormatFileProps[] = [
     "doc","pdf","md","mdx","csv","xls","xlsx","txt","ppt","pptx",
     "zip","rar","tar","gz","code","html","js","jsx","tsx","css",
@@ -42,7 +42,7 @@ export function extToFormat(ext: string): FormatFileProps {
   if (e === "gif" || e === "webp" || e === "svg") return "img";
   if (e === "mp4" || e === "mov" || e === "avi" || e === "mkv") return "video";
   if (e === "rtf") return "txt";
-  return known.includes(e) ? e : "code";
+  return known.includes(e as FormatFileProps) ? (e as FormatFileProps) : "code";
 }
 
 type FileCardProps = {

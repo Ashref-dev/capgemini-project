@@ -25,6 +25,22 @@ import {
   ArrowUp01Icon,
 } from "@hugeicons/core-free-icons"
 
+interface PartnershipRequestAIAnalysis {
+  compatibilityScore: number
+  confidence: number
+  recommendation: "APPROVE" | "REVIEW" | "REJECT"
+  summary: string
+  reasons: string[]
+  riskFlags: string[]
+  breakdown: {
+    dataCompleteness: number
+    strategicFit: number
+    reliability: number
+    scalePotential: number
+    categoryBoost: number
+  }
+}
+
 interface PartnershipRequest {
   id: number
   companyName: string
@@ -54,6 +70,7 @@ interface PartnershipRequest {
   createdPartnerId: number | null
   createdAt: string
   updatedAt: string
+  aiAnalysis?: PartnershipRequestAIAnalysis
 }
 
 interface Counts {
@@ -87,6 +104,24 @@ const statusLabels: Record<string, string> = {
   en_attente: "En attente",
   acceptee: "Acceptée",
   refusee: "Refusée",
+}
+
+const aiRecommendationStyles: Record<PartnershipRequestAIAnalysis["recommendation"], string> = {
+  APPROVE: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  REVIEW: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  REJECT: "bg-red-500/10 text-red-600 dark:text-red-400",
+}
+
+const aiRecommendationBars: Record<PartnershipRequestAIAnalysis["recommendation"], string> = {
+  APPROVE: "bg-emerald-500",
+  REVIEW: "bg-amber-500",
+  REJECT: "bg-red-500",
+}
+
+const aiRecommendationLabels: Record<PartnershipRequestAIAnalysis["recommendation"], string> = {
+  APPROVE: "AI: Prioritaire",
+  REVIEW: "AI: À revoir",
+  REJECT: "AI: Faible alignement",
 }
 
 export default function PartnershipRequestsPage() {
@@ -210,6 +245,7 @@ export default function PartnershipRequestsPage() {
         <div className="space-y-3">
           {requests.map((req, i) => {
             const isExpanded = expandedId === req.id
+            const analysis = req.aiAnalysis
             return (
               <RequestCard key={req.id} index={i}>
                   {/* Header */}
@@ -230,6 +266,16 @@ export default function PartnershipRequestsPage() {
                           <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", statusStyles[req.status])}>
                             {statusLabels[req.status] || req.status}
                           </span>
+                          {analysis && (
+                            <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", aiRecommendationStyles[analysis.recommendation])}>
+                              {aiRecommendationLabels[analysis.recommendation]}
+                            </span>
+                          )}
+                          {analysis && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-[#0070AD]/10 text-[#0070AD] dark:text-blue-300">
+                              Score AI {analysis.compatibilityScore}/100
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-muted-foreground">
                           {req.contactFirstName} {req.contactLastName} — {req.contactEmail}
@@ -249,6 +295,71 @@ export default function PartnershipRequestsPage() {
                       className="border-t border-border"
                     >
                       <div className="p-5 space-y-4">
+                        {analysis && (
+                          <div className="rounded-lg border border-[#0070AD]/10 bg-[#0070AD]/5 p-4">
+                            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Analyse automatique</p>
+                                <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                                  <span className="text-2xl font-bold text-foreground">{analysis.compatibilityScore}/100</span>
+                                  <span className={cn("text-[11px] px-2.5 py-1 rounded-full font-semibold", aiRecommendationStyles[analysis.recommendation])}>
+                                    {aiRecommendationLabels[analysis.recommendation]}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">Confiance {analysis.confidence}%</span>
+                                </div>
+                                <p className="mt-3 text-sm text-foreground">{analysis.summary}</p>
+                              </div>
+                              <div className="rounded-lg bg-white/70 dark:bg-white/5 px-3 py-2 text-xs text-muted-foreground">
+                                Aide à la décision uniquement
+                              </div>
+                            </div>
+
+                            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/80 dark:bg-white/10">
+                              <div
+                                className={cn("h-full rounded-full", aiRecommendationBars[analysis.recommendation])}
+                                style={{ width: `${analysis.compatibilityScore}%` }}
+                              />
+                            </div>
+
+                            {analysis.reasons.length > 0 && (
+                              <div className="mt-3">
+                                <span className="text-xs font-medium text-muted-foreground">Points forts</span>
+                                <ul className="mt-1 space-y-1">
+                                  {analysis.reasons.map((reason) => (
+                                    <li key={reason} className="text-sm text-foreground">• {reason}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {analysis.riskFlags.length > 0 && (
+                              <div className="mt-3 rounded-lg bg-amber-500/10 p-3">
+                                <span className="text-xs font-medium text-amber-700 dark:text-amber-300">Points de vigilance</span>
+                                <ul className="mt-1 space-y-1">
+                                  {analysis.riskFlags.map((flag) => (
+                                    <li key={flag} className="text-sm text-foreground">• {flag}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            <div className="mt-3 grid grid-cols-2 md:grid-cols-5 gap-2">
+                              {[
+                                { label: "Complétude", value: analysis.breakdown.dataCompleteness },
+                                { label: "Fit", value: analysis.breakdown.strategicFit },
+                                { label: "Fiabilité", value: analysis.breakdown.reliability },
+                                { label: "Potentiel", value: analysis.breakdown.scalePotential },
+                                { label: "Catégorie", value: analysis.breakdown.categoryBoost },
+                              ].map((item) => (
+                                <div key={item.label} className="rounded-lg bg-white/70 dark:bg-white/5 px-3 py-2">
+                                  <div className="text-[11px] text-muted-foreground">{item.label}</div>
+                                  <div className="text-sm font-semibold text-foreground">{item.value}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         {/* Company details */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                           <Detail label="Raison sociale" value={req.legalName} />

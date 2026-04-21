@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres"
 import { Pool } from "pg"
 import * as schema from "./schema"
+import { resolvePgSsl } from "./ssl"
 
 /**
  * Create database connection pool
@@ -9,8 +10,7 @@ import * as schema from "./schema"
  */
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  // SSL uniquement en production
-  ssl: process.env.NODE_ENV === "production",
+  ssl: resolvePgSsl(process.env.DATABASE_URL, "DATABASE_SSL"),
 })
 
 /**

@@ -204,7 +204,7 @@ class Spheres extends InstancedMesh {
     lightIntensity: number; ambientIntensity: number
   }) {
     const pmrem = new PMREMGenerator(renderer)
-    const env = pmrem.fromScene(new RoomEnvironment(renderer)).texture
+    const env = pmrem.fromScene(new RoomEnvironment()).texture
     pmrem.dispose()
     const mat = new MeshPhysicalMaterial({ envMap: env, metalness: 0.6, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.15 })
     super(new SphereGeometry(1, 20, 20), mat, params.count)

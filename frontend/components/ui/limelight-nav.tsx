@@ -7,7 +7,7 @@ import { cn } from "@/frontend/lib/utils"
 
 export type LimelightNavItem = {
   id: string | number
-  icon: React.ReactElement
+  icon: React.ReactElement<{ className?: string }>
   label?: string
   onClick?: () => void
 }
