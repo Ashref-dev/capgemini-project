@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { motion } from "framer-motion"
+import { useParams } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   FileAttachmentIcon,
@@ -10,12 +10,15 @@ import {
   Download04Icon,
   Delete02Icon,
   ArrowLeft01Icon,
+  Search01Icon,
 } from "@hugeicons/core-free-icons"
 import { Button } from "@/frontend/components/ui/button"
 import { Input } from "@/frontend/components/ui/input"
 import { Label } from "@/frontend/components/ui/label"
 import { Spinner } from "@/frontend/components/ui/spinner"
 import { toast } from "@/frontend/components/ui/toast"
+import { AddButton } from "@/frontend/components/ui/add-button"
+import { FileCard, extToFormat } from "@/frontend/components/ui/file-card"
 import { useAuth } from "@/frontend/hooks/use-auth"
 import Link from "next/link"
 
@@ -35,25 +38,26 @@ interface Document {
 }
 
 function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} o`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`
+  if (bytes < 1024) return bytes + " o"
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " Ko"
+  return (bytes / (1024 * 1024)).toFixed(1) + " Mo"
 }
 
-function getFileIcon(name: string): string {
-  const ext = name.split(".").pop()?.toLowerCase() || ""
-  if (["pdf"].includes(ext)) return "📄"
-  if (["doc", "docx"].includes(ext)) return "📝"
-  if (["xls", "xlsx", "csv"].includes(ext)) return "📊"
-  if (["ppt", "pptx"].includes(ext)) return "📑"
-  if (["png", "jpg", "jpeg", "gif"].includes(ext)) return "🖼️"
-  if (["zip", "rar"].includes(ext)) return "📦"
-  return "📎"
+function getExt(name: string): string {
+  return name.split(".").pop()?.toLowerCase() || "code"
+}
+
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06 } },
+}
+const item = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" as const } },
 }
 
 export default function PartnerDocumentsPage() {
   const params = useParams()
-  const router = useRouter()
   const { user } = useAuth()
   const partnerId = params.id as string
 
@@ -62,6 +66,7 @@ export default function PartnerDocumentsPage() {
   const [uploading, setUploading] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
   const [partnerName, setPartnerName] = useState("")
+  const [search, setSearch] = useState("")
   const [description, setDescription] = useState("")
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
@@ -69,9 +74,7 @@ export default function PartnerDocumentsPage() {
     try {
       const res = await fetch(`/api/documents?partnerId=${partnerId}`)
       const data = await res.json()
-      if (res.ok) {
-        setDocuments(data.documents || [])
-      }
+      if (res.ok) setDocuments(data.documents || [])
     } catch {
       toast.error("Erreur", { description: "Impossible de charger les documents" })
     } finally {
@@ -97,28 +100,18 @@ export default function PartnerDocumentsPage() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedFile) {
-      toast.error("Veuillez sélectionner un fichier")
-      return
-    }
-
+    if (!selectedFile) { toast.error("Veuillez selectionner un fichier"); return }
     setUploading(true)
     const formData = new FormData()
     formData.append("file", selectedFile)
     formData.append("partnerId", partnerId)
     if (description.trim()) formData.append("description", description.trim())
-
     try {
-      const res = await fetch("/api/documents", {
-        method: "POST",
-        body: formData,
-      })
+      const res = await fetch("/api/documents", { method: "POST", body: formData })
       const data = await res.json()
       if (res.ok) {
-        toast.success("Document ajouté", { description: `${selectedFile.name} a été uploadé avec succès.` })
-        setSelectedFile(null)
-        setDescription("")
-        setShowUpload(false)
+        toast.success("Document ajoute", { description: selectedFile.name + " uploade avec succes." })
+        setSelectedFile(null); setDescription(""); setShowUpload(false)
         fetchDocuments()
       } else {
         toast.error("Erreur", { description: data.error })
@@ -131,11 +124,11 @@ export default function PartnerDocumentsPage() {
   }
 
   const handleDelete = async (doc: Document) => {
-    if (!confirm(`Supprimer "${doc.originalName}" ?`)) return
+    if (!confirm("Supprimer " + doc.originalName + " ?")) return
     try {
       const res = await fetch(`/api/documents?id=${doc.id}`, { method: "DELETE" })
       if (res.ok) {
-        toast.success("Document supprimé")
+        toast.success("Document supprime")
         fetchDocuments()
       } else {
         const data = await res.json()
@@ -152,160 +145,186 @@ export default function PartnerDocumentsPage() {
 
   const isAdmin = user?.role === "admin" || user?.role === "manager"
 
+  const filtered = documents.filter((d) =>
+    d.originalName.toLowerCase().includes(search.toLowerCase()) ||
+    (d.description || "").toLowerCase().includes(search.toLowerCase())
+  )
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
         <div className="flex items-center gap-3">
           <Link href="/dashboard/partners">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="shrink-0">
               <HugeiconsIcon icon={ArrowLeft01Icon} className="w-4 h-4 mr-1" />
               Retour
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
+            <h1 className="text-2xl font-bold flex items-center gap-2 text-foreground">
               <HugeiconsIcon icon={FileAttachmentIcon} className="w-6 h-6 text-primary" />
-              Documents {partnerName && `— ${partnerName}`}
+              Documents{partnerName ? " — " + partnerName : ""}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {documents.length} document{documents.length > 1 ? "s" : ""}
+              {documents.length} document{documents.length !== 1 ? "s" : ""}
             </p>
           </div>
         </div>
-        <Button
+        <AddButton
           onClick={() => setShowUpload(!showUpload)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <HugeiconsIcon icon={Upload04Icon} className="w-4 h-4 mr-2" />
-          Ajouter un document
-        </Button>
-      </div>
+          label="Ajouter un document"
+          className="shrink-0"
+        />
+      </motion.div>
 
-      {/* Upload Form */}
-      {showUpload && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="border border-border rounded-xl p-6 bg-card"
-        >
-          <h3 className="font-semibold mb-4">Uploader un document</h3>
-          <form onSubmit={handleUpload} className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-foreground">Fichier *</Label>
-              <Input
-                type="file"
-                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.txt,.rtf,.png,.jpg,.jpeg,.gif,.zip,.rar"
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                Formats acceptés : PDF, Word, Excel, CSV, PowerPoint, Images, Archives (max 50 Mo)
-              </p>
+      {/* Upload form */}
+      <AnimatePresence>
+        {showUpload && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden"
+          >
+            <div className="border border-border rounded-xl p-6 bg-card shadow-sm">
+              <h3 className="font-semibold mb-4 text-foreground">Uploader un document</h3>
+              <form onSubmit={handleUpload} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-foreground">Fichier *</Label>
+                    <Input
+                      type="file"
+                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.txt,.rtf,.png,.jpg,.jpeg,.gif,.zip,.rar"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">PDF, Word, Excel, CSV, PowerPoint, Images, Archives — max 50 Mo</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-foreground">Description</Label>
+                    <Input
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Description du document (optionnel)"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={uploading} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    {uploading ? "Upload en cours..." : "Uploader"}
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={() => { setShowUpload(false); setSelectedFile(null); setDescription("") }}>
+                    Annuler
+                  </Button>
+                </div>
+              </form>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-foreground">Description</Label>
-              <Input
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Description du document (optionnel)"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button type="submit" disabled={uploading} className="bg-blue-600 hover:bg-blue-700 text-white">
-                {uploading ? "Upload en cours..." : "Uploader"}
-              </Button>
-              <Button type="button" variant="ghost" onClick={() => { setShowUpload(false); setSelectedFile(null); setDescription("") }}>
-                Annuler
-              </Button>
-            </div>
-          </form>
-        </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Search */}
+      {documents.length > 0 && (
+        <div className="relative max-w-sm">
+          <HugeiconsIcon icon={Search01Icon} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher un document..."
+            className="pl-9"
+          />
+        </div>
       )}
 
-      {/* Documents List */}
+      {/* Grid */}
       {loading ? (
-        <div className="flex justify-center py-12"><Spinner /></div>
+        <div className="flex justify-center py-20"><Spinner /></div>
       ) : documents.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <HugeiconsIcon icon={FileAttachmentIcon} className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>Aucun document trouvé pour ce partenaire</p>
+        <div className="text-center py-20 text-muted-foreground">
+          <HugeiconsIcon icon={FileAttachmentIcon} className="w-14 h-14 mx-auto mb-4 opacity-20" />
+          <p className="font-medium">Aucun document</p>
+          <p className="text-xs mt-1">Aucun document associe a ce partenaire pour le moment.</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16 text-muted-foreground">
+          <p>Aucun resultat pour « {search} »</p>
         </div>
       ) : (
-        <div className="border border-border rounded-lg overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 border-b border-border">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">Document</th>
-                <th className="text-left px-4 py-3 font-medium">Description</th>
-                <th className="text-left px-4 py-3 font-medium">Taille</th>
-                <th className="text-left px-4 py-3 font-medium">Uploadé par</th>
-                <th className="text-left px-4 py-3 font-medium">Date</th>
-                <th className="text-left px-4 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {documents.map((doc) => (
-                <motion.tr
-                  key={doc.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="border-b border-border last:border-0 hover:bg-muted/30"
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{getFileIcon(doc.originalName)}</span>
-                      <div>
-                        <div className="font-medium">{doc.originalName}</div>
-                        <div className="text-xs text-muted-foreground">{doc.fileType}</div>
-                      </div>
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+        >
+          {filtered.map((doc) => {
+            const format = extToFormat(getExt(doc.originalName))
+            return (
+              <motion.div key={doc.id} variants={item}>
+                <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="shrink-0 mt-1">
+                      <FileCard formatFile={format} />
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">
-                    {doc.description || "—"}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatFileSize(doc.fileSize)}</td>
-                  <td className="px-4 py-3">
-                    <div className="text-sm">{doc.uploadedBy}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {doc.uploadedByType === "employee" ? "Employé" : "Partenaire"}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs">
-                    {new Date(doc.createdAt).toLocaleDateString("fr-FR", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-blue-600 hover:text-blue-700"
-                        onClick={() => handleDownload(doc)}
-                      >
-                        <HugeiconsIcon icon={Download04Icon} className="w-4 h-4 mr-1" />
-                        Télécharger
-                      </Button>
-                      {isAdmin && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:text-red-700"
-                          onClick={() => handleDelete(doc)}
-                        >
-                          <HugeiconsIcon icon={Delete02Icon} className="w-4 h-4" />
-                        </Button>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-foreground truncate" title={doc.originalName}>
+                        {doc.originalName}
+                      </p>
+                      {doc.description && (
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{doc.description}</p>
                       )}
                     </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground space-y-1 border-t border-border pt-3">
+                    <div className="flex justify-between">
+                      <span>Taille</span>
+                      <span className="font-medium text-foreground">{formatFileSize(doc.fileSize)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Uploade par</span>
+                      <span className="font-medium text-foreground truncate max-w-[120px]">
+                        {doc.uploadedByType === "employee" ? "Employe" : "Partenaire"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Date</span>
+                      <span className="font-medium text-foreground">
+                        {new Date(doc.createdAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-blue-600 border-blue-200 dark:border-blue-900 hover:bg-blue-50 dark:hover:bg-blue-950"
+                      onClick={() => handleDownload(doc)}
+                    >
+                      <HugeiconsIcon icon={Download04Icon} className="w-4 h-4 mr-2" />
+                      Telecharger
+                    </Button>
+                    {isAdmin && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 border-red-200 dark:border-red-900 hover:bg-red-50 dark:hover:bg-red-950"
+                        onClick={() => handleDelete(doc)}
+                      >
+                        <HugeiconsIcon icon={Delete02Icon} className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )
+          })}
+        </motion.div>
       )}
     </div>
   )

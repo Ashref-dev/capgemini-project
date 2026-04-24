@@ -29,6 +29,13 @@
       "when": 1776078247338,
       "tag": "0003_tense_king_cobra",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776263989600,
+      "tag": "0004_spooky_starbolt",
+      "breakpoints": true
     }
   ]
 }

@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/frontend/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/frontend/components/ui/avatar";
 
 export function UserMenu() {
   const { user, isAuthenticated, signOut, loading } = useAuth();
@@ -35,15 +36,18 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 rounded-full border border-border/60 bg-background p-0 overflow-hidden shadow-sm transition-colors hover:bg-muted"
-          aria-label="Ouvrir le menu utilisateur"
-        >
-          <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-primary/5 text-sm font-semibold text-foreground">
-            <span>{user.name?.charAt(0) || user.email?.charAt(0) || "U"}</span>
-          </div>
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
+          <Avatar className="h-8 w-8">
+            <AvatarImage
+              src={`https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user.name || user.email || "U")}&backgroundColor=0070AD&textColor=ffffff&fontWeight=700`}
+              alt={user.name || "Avatar"}
+            />
+            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
+              {(user.name?.charAt(0) || user.email?.charAt(0) || "U").toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          {/* Indicateur en ligne */}
+          <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-background" />
         </Button>
       </DropdownMenuTrigger>
 

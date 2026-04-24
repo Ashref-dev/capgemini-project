@@ -10,6 +10,7 @@ import { Label } from "@/frontend/components/ui/label"
 import { Textarea } from "@/frontend/components/ui/textarea"
 import { toast } from "@/frontend/components/ui/toast"
 import { Spinner } from "@/frontend/components/ui/spinner"
+import { SparklesText } from "@/frontend/components/ui/sparkles-text"
 
 interface PartnerProfile {
   id: number
@@ -283,7 +284,7 @@ export default function PartnerProfilePage() {
                 <HugeiconsIcon icon={UserIcon} className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-foreground">Mon Profil</h2>
+                <SparklesText text="Mon Profil" className="text-xl" />
                 <p className="text-sm text-muted-foreground">
                   {categoryLabels[partner.categories || ""] || partner.categories} •{" "}
                   {partner.partnershipLevel || "Standard"} •{" "}
@@ -295,7 +296,7 @@ export default function PartnerProfilePage() {
               type="submit"
               form="profile-form"
               disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              className="bg-[#0070AD] hover:bg-[#005a8a] text-white font-medium shadow-sm"
             >
               {saving ? (
                 "Enregistrement..."
@@ -624,8 +625,15 @@ export default function PartnerProfilePage() {
               </div>
             </div>
             <div className="flex justify-end">
-              <Button type="submit" disabled={changingPassword} className="bg-blue-600 hover:bg-blue-700 text-white font-medium">
-                {changingPassword ? "Modification..." : "Changer le mot de passe"}
+              <Button type="submit" disabled={changingPassword} className="bg-[#0070AD] hover:bg-[#005a8a] text-white font-medium shadow-sm">
+                {changingPassword ? (
+                  "Modification..."
+                ) : (
+                  <>
+                    <HugeiconsIcon icon={LockPasswordIcon} className="w-4 h-4 mr-2" />
+                    Changer le mot de passe
+                  </>
+                )}
               </Button>
             </div>
           </form>

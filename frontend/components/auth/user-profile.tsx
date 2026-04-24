@@ -3,8 +3,9 @@
 import { useAuth } from "@/frontend/hooks/use-auth";
 import { Button } from "@/frontend/components/ui/button";
 import { Card } from "@/frontend/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/frontend/components/ui/avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Logout02Icon, User02Icon } from "@hugeicons/core-free-icons";
+import { Logout02Icon } from "@hugeicons/core-free-icons";
 import { useRouter } from "next/navigation";
 
 export function UserProfile() {
@@ -24,8 +25,18 @@ export function UserProfile() {
         <div className="p-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary">
-                <HugeiconsIcon icon={User02Icon} className="w-6 h-6 text-white" />
+              <div className="relative">
+                <Avatar className="h-14 w-14">
+                  <AvatarImage
+                    src={`https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user.name || user.email || "U")}&backgroundColor=0070AD&textColor=ffffff&fontWeight=700&fontSize=40`}
+                    alt={user.name || "Avatar"}
+                  />
+                  <AvatarFallback className="bg-primary text-white font-bold text-lg">
+                    {(user.name?.charAt(0) || user.email?.charAt(0) || "U").toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                {/* Indicateur en ligne */}
+                <span className="absolute bottom-0.5 right-0.5 block h-3.5 w-3.5 rounded-full bg-green-500 ring-2 ring-background" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-foreground">Bienvenue, {user.name} !</h1>

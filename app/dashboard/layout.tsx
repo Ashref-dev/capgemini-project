@@ -7,7 +7,12 @@ import { DashboardSidebar } from "@/frontend/components/dashboard/sidebar"
 import { DashboardTourController } from "@/frontend/components/dashboard/dashboard-tour-controller"
 import { UserMenu } from "@/frontend/components/auth/user-menu"
 import { ThemeToggle } from "@/frontend/components/theme-toggle"
+import { Footer } from "@/frontend/components/footer"
 import { Spinner } from "@/frontend/components/ui/spinner"
+import Link from "next/link"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Notification03Icon } from "@hugeicons/core-free-icons"
+import VaporizeTextCycle from "@/frontend/components/ui/vapour-text"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -22,7 +27,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!loading && !isAuthenticated && isClient) {
       router.push("/auth/sign-in")
     }
-    // Redirect partners to their portal
     if (!loading && isAuthenticated && user?.userType === "partner" && isClient) {
       router.push("/partner")
     }
@@ -48,30 +52,42 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <DashboardTourController />
       <DashboardSidebar userRole={user.role} />
 
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        {/* Top bar */}
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card/80 px-6 shadow-sm backdrop-blur-sm">
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">
-              Connecté en tant que{" "}
-              <span className="font-semibold text-foreground">{user.name}</span>
-              {user.role && (
-                <span className="ml-2 text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full capitalize font-medium">
-                  {user.role}
-                </span>
-              )}
-            </span>
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col overflow-x-hidden">
+        {/* ── Header ── */}
+        <header className="h-16 border-b border-[#0070AD]/10 dark:border-white/10 bg-white/95 dark:bg-[#000e24]/95 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-40">
+          {/* Left: brand + app title */}
+          <div className="flex items-center gap-1" style={{ height: 40, width: 400 }}>
+            <VaporizeTextCycle
+              texts={["IntelliConnect", "Gestion des Partenariats"]}
+              font={{ fontFamily: "Inter, sans-serif", fontSize: "20px", fontWeight: 700 }}
+              alignment="left"
+              spread={3}
+              density={5}
+              animation={{ vaporizeDuration: 2, fadeInDuration: 0.8, waitDuration: 2 }}
+            />
           </div>
-          <div className="flex items-center gap-3">
-            <ThemeToggle variant="ghost" size="icon" />
+
+          {/* Right: actions */}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link
+              href="/dashboard/notifications"
+              className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              aria-label="Notifications"
+            >
+              <HugeiconsIcon icon={Notification03Icon} className="w-4 h-4" />
+            </Link>
             <UserMenu />
           </div>
         </header>
 
-        {/* Page content */}
+        {/* ── Page content ── */}
         <main className="min-w-0 flex-1 p-6">
           {children}
         </main>
+
+        {/* ── Footer ── */}
+        <Footer />
       </div>
     </div>
   )

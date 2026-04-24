@@ -8,6 +8,7 @@ import { useAuth } from "@/frontend/hooks/use-auth"
 import { Button } from "@/frontend/components/ui/button"
 import { Input } from "@/frontend/components/ui/input"
 import { Label } from "@/frontend/components/ui/label"
+import { AddButton } from "@/frontend/components/ui/add-button"
 import { Textarea } from "@/frontend/components/ui/textarea"
 import { toast } from "@/frontend/components/ui/toast"
 
@@ -287,9 +288,7 @@ export default function EmployeeProfilePage() {
               </div>
             </div>
             <div className="flex justify-end">
-              <Button type="submit" disabled={changingPassword} className="bg-blue-600 hover:bg-blue-700 text-white font-medium">
-                {changingPassword ? "Modification..." : "Changer le mot de passe"}
-              </Button>
+              <AddButton type="submit" label={changingPassword ? "Modification..." : "Changer le mot de passe"} disabled={changingPassword} />
             </div>
           </form>
         </div>

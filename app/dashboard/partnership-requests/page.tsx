@@ -1,14 +1,16 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import { useAuth } from "@/frontend/hooks/use-auth"
 import { toast } from "@/frontend/components/ui/toast"
 import { Button } from "@/frontend/components/ui/button"
 import { Card } from "@/frontend/components/ui/card"
 import { Textarea } from "@/frontend/components/ui/textarea"
 import { cn } from "@/frontend/lib/utils"
-import { motion } from "framer-motion"
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
+import { SparklesText } from "@/frontend/components/ui/sparkles-text"
+import { GradientStatCard } from "@/frontend/components/ui/gradient-stat-card"
 import {
   CheckmarkCircle02Icon,
   Cancel01Icon,
@@ -22,6 +24,22 @@ import {
   ArrowDown01Icon,
   ArrowUp01Icon,
 } from "@hugeicons/core-free-icons"
+
+interface PartnershipRequestAIAnalysis {
+  compatibilityScore: number
+  confidence: number
+  recommendation: "APPROVE" | "REVIEW" | "REJECT"
+  summary: string
+  reasons: string[]
+  riskFlags: string[]
+  breakdown: {
+    dataCompleteness: number
+    strategicFit: number
+    reliability: number
+    scalePotential: number
+    categoryBoost: number
+  }
+}
 
 interface PartnershipRequest {
   id: number
@@ -52,6 +70,7 @@ interface PartnershipRequest {
   createdPartnerId: number | null
   createdAt: string
   updatedAt: string
+  aiAnalysis?: PartnershipRequestAIAnalysis
 }
 
 interface Counts {
@@ -85,6 +104,24 @@ const statusLabels: Record<string, string> = {
   en_attente: "En attente",
   acceptee: "Acceptée",
   refusee: "Refusée",
+}
+
+const aiRecommendationStyles: Record<PartnershipRequestAIAnalysis["recommendation"], string> = {
+  APPROVE: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  REVIEW: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  REJECT: "bg-red-500/10 text-red-600 dark:text-red-400",
+}
+
+const aiRecommendationBars: Record<PartnershipRequestAIAnalysis["recommendation"], string> = {
+  APPROVE: "bg-emerald-500",
+  REVIEW: "bg-amber-500",
+  REJECT: "bg-red-500",
+}
+
+const aiRecommendationLabels: Record<PartnershipRequestAIAnalysis["recommendation"], string> = {
+  APPROVE: "AI: Prioritaire",
+  REVIEW: "AI: À revoir",
+  REJECT: "AI: Faible alignement",
 }
 
 export default function PartnershipRequestsPage() {
@@ -154,27 +191,22 @@ export default function PartnershipRequestsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Demandes de partenariat</h1>
-        <p className="text-muted-foreground mt-1">Gérez les demandes de partenariat soumises par les entreprises.</p>
+      <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
+          <HugeiconsIcon icon={UserGroupIcon} className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <SparklesText text="Demandes de partenariat" className="text-2xl" />
+          <p className="text-muted-foreground mt-1">Gérez les demandes de partenariat soumises par les entreprises.</p>
+        </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: "Total", value: counts.total, icon: UserGroupIcon, color: "text-primary" },
-          { label: "En attente", value: counts.pending, icon: Clock01Icon, color: "text-amber-500" },
-          { label: "Acceptées", value: counts.accepted, icon: CheckmarkCircle02Icon, color: "text-emerald-500" },
-          { label: "Refusées", value: counts.rejected, icon: Cancel01Icon, color: "text-red-500" },
-        ].map((stat) => (
-          <Card key={stat.label} className="p-4 flex items-center gap-3">
-            <HugeiconsIcon icon={stat.icon} className={cn("w-5 h-5", stat.color)} />
-            <div>
-              <div className="text-xl font-bold text-foreground">{stat.value}</div>
-              <div className="text-xs text-muted-foreground">{stat.label}</div>
-            </div>
-          </Card>
-        ))}
+        <GradientStatCard icon={UserGroupIcon} value={counts.total} label="Total" glowColor="blue" index={0} />
+        <GradientStatCard icon={Clock01Icon} value={counts.pending} label="En attente" glowColor="amber" index={1} />
+        <GradientStatCard icon={CheckmarkCircle02Icon} value={counts.accepted} label="Acceptées" glowColor="emerald" index={2} />
+        <GradientStatCard icon={Cancel01Icon} value={counts.rejected} label="Refusées" glowColor="red" index={3} />
       </div>
 
       {/* Filters */}
@@ -213,14 +245,9 @@ export default function PartnershipRequestsPage() {
         <div className="space-y-3">
           {requests.map((req, i) => {
             const isExpanded = expandedId === req.id
+            const analysis = req.aiAnalysis
             return (
-              <motion.div
-                key={req.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: i * 0.03 }}
-              >
-                <Card className="overflow-hidden">
+              <RequestCard key={req.id} index={i}>
                   {/* Header */}
                   <div
                     onClick={() => setExpandedId(isExpanded ? null : req.id)}
@@ -239,6 +266,16 @@ export default function PartnershipRequestsPage() {
                           <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", statusStyles[req.status])}>
                             {statusLabels[req.status] || req.status}
                           </span>
+                          {analysis && (
+                            <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", aiRecommendationStyles[analysis.recommendation])}>
+                              {aiRecommendationLabels[analysis.recommendation]}
+                            </span>
+                          )}
+                          {analysis && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-[#0070AD]/10 text-[#0070AD] dark:text-blue-300">
+                              Score AI {analysis.compatibilityScore}/100
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-muted-foreground">
                           {req.contactFirstName} {req.contactLastName} — {req.contactEmail}
@@ -258,6 +295,71 @@ export default function PartnershipRequestsPage() {
                       className="border-t border-border"
                     >
                       <div className="p-5 space-y-4">
+                        {analysis && (
+                          <div className="rounded-lg border border-[#0070AD]/10 bg-[#0070AD]/5 p-4">
+                            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Analyse automatique</p>
+                                <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                                  <span className="text-2xl font-bold text-foreground">{analysis.compatibilityScore}/100</span>
+                                  <span className={cn("text-[11px] px-2.5 py-1 rounded-full font-semibold", aiRecommendationStyles[analysis.recommendation])}>
+                                    {aiRecommendationLabels[analysis.recommendation]}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">Confiance {analysis.confidence}%</span>
+                                </div>
+                                <p className="mt-3 text-sm text-foreground">{analysis.summary}</p>
+                              </div>
+                              <div className="rounded-lg bg-white/70 dark:bg-white/5 px-3 py-2 text-xs text-muted-foreground">
+                                Aide à la décision uniquement
+                              </div>
+                            </div>
+
+                            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/80 dark:bg-white/10">
+                              <div
+                                className={cn("h-full rounded-full", aiRecommendationBars[analysis.recommendation])}
+                                style={{ width: `${analysis.compatibilityScore}%` }}
+                              />
+                            </div>
+
+                            {analysis.reasons.length > 0 && (
+                              <div className="mt-3">
+                                <span className="text-xs font-medium text-muted-foreground">Points forts</span>
+                                <ul className="mt-1 space-y-1">
+                                  {analysis.reasons.map((reason) => (
+                                    <li key={reason} className="text-sm text-foreground">• {reason}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {analysis.riskFlags.length > 0 && (
+                              <div className="mt-3 rounded-lg bg-amber-500/10 p-3">
+                                <span className="text-xs font-medium text-amber-700 dark:text-amber-300">Points de vigilance</span>
+                                <ul className="mt-1 space-y-1">
+                                  {analysis.riskFlags.map((flag) => (
+                                    <li key={flag} className="text-sm text-foreground">• {flag}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            <div className="mt-3 grid grid-cols-2 md:grid-cols-5 gap-2">
+                              {[
+                                { label: "Complétude", value: analysis.breakdown.dataCompleteness },
+                                { label: "Fit", value: analysis.breakdown.strategicFit },
+                                { label: "Fiabilité", value: analysis.breakdown.reliability },
+                                { label: "Potentiel", value: analysis.breakdown.scalePotential },
+                                { label: "Catégorie", value: analysis.breakdown.categoryBoost },
+                              ].map((item) => (
+                                <div key={item.label} className="rounded-lg bg-white/70 dark:bg-white/5 px-3 py-2">
+                                  <div className="text-[11px] text-muted-foreground">{item.label}</div>
+                                  <div className="text-sm font-semibold text-foreground">{item.value}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         {/* Company details */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                           <Detail label="Raison sociale" value={req.legalName} />
@@ -409,13 +511,53 @@ export default function PartnershipRequestsPage() {
                       </div>
                     </motion.div>
                   )}
-                </Card>
-              </motion.div>
+              </RequestCard>
             )
           })}
         </div>
       )}
     </div>
+  )
+}
+
+function RequestCard({ children, index }: { children: React.ReactNode; index: number }) {
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+  const springConfig = { damping: 15, stiffness: 150 }
+  const springX = useSpring(mouseX, springConfig)
+  const springY = useSpring(mouseY, springConfig)
+  const rotateX = useTransform(springY, [-0.5, 0.5], ["10.5deg", "-10.5deg"])
+  const rotateY = useTransform(springX, [-0.5, 0.5], ["-10.5deg", "10.5deg"])
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5)
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5)
+  }
+
+  function handleMouseLeave() {
+    mouseX.set(0)
+    mouseY.set(0)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.03 }}
+      style={{ perspective: "1000px" }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <motion.div
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        className="overflow-hidden rounded-2xl border border-[#0070AD]/20 bg-white shadow-sm dark:border-white/10 dark:bg-white/5"
+      >
+        <div style={{ transform: "translateZ(30px)", transformStyle: "preserve-3d" }}>
+          {children}
+        </div>
+      </motion.div>
+    </motion.div>
   )
 }
 

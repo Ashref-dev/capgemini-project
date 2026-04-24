@@ -1,23 +1,17 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useAuth } from "@/frontend/hooks/use-auth"
-import { Badge } from "@/frontend/components/ui/badge"
 import { Input } from "@/frontend/components/ui/input"
 import { Button } from "@/frontend/components/ui/button"
-import { Spinner } from "@/frontend/components/ui/spinner"
 import { toast } from "@/frontend/components/ui/toast"
 import { Label } from "@/frontend/components/ui/label"
 import { motion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  UserGroupIcon,
-  Edit01Icon,
-  CheckmarkSquare01Icon,
-  Cancel01Icon,
-  Money01Icon,
-  UserIcon,
-} from "@hugeicons/core-free-icons"
+import { UserGroupIcon, UserIcon, CheckmarkSquare01Icon, Money01Icon } from "@hugeicons/core-free-icons"
+import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/frontend/components/ui/capgemini-table"
+import { SparklesText } from "@/frontend/components/ui/sparkles-text"
+import { GradientStatCard } from "@/frontend/components/ui/gradient-stat-card"
 
 interface Employee {
   id: number
@@ -58,6 +52,7 @@ export default function HREmployeesPage() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editForm, setEditForm] = useState<Partial<Employee>>({})
   const [saving, setSaving] = useState(false)
+  const closeDetailRef = useRef<(() => void) | null>(null)
 
   const fetchEmployees = useCallback(async () => {
     setLoading(true)
@@ -96,7 +91,7 @@ export default function HREmployeesPage() {
     setEditForm({})
   }
 
-  const saveEdit = async () => {
+  const saveEdit = async (onClose?: () => void) => {
     if (!editingId) return
     setSaving(true)
     try {
@@ -110,6 +105,7 @@ export default function HREmployeesPage() {
         toast.success("Employé mis à jour", { description: "Les modifications ont été enregistrées." })
         setEditingId(null)
         setEditForm({})
+        onClose?.()
         fetchEmployees()
       } else {
         toast.error("Erreur", { description: data.error })
@@ -141,7 +137,7 @@ export default function HREmployeesPage() {
             <HugeiconsIcon icon={UserGroupIcon} className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Gestion des Employés</h1>
+            <SparklesText text="Gestion des Employés" className="text-2xl" />
             <p className="text-sm text-muted-foreground">
               {employees.length} employé{employees.length > 1 ? "s" : ""} • {activeCount} actif{activeCount > 1 ? "s" : ""}
             </p>
@@ -151,43 +147,15 @@ export default function HREmployeesPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-xl border border-border bg-card"
-        >
-          <div className="text-sm text-muted-foreground">Total Employés</div>
-          <div className="text-2xl font-bold mt-1">{employees.length}</div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="p-4 rounded-xl border border-border bg-card"
-        >
-          <div className="text-sm text-muted-foreground">Actifs</div>
-          <div className="text-2xl font-bold mt-1 text-green-600">{activeCount}</div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="p-4 rounded-xl border border-border bg-card"
-        >
-          <div className="text-sm text-muted-foreground">Masse Salariale</div>
-          <div className="text-2xl font-bold mt-1">{totalSalary.toLocaleString()} TND</div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="p-4 rounded-xl border border-border bg-card"
-        >
-          <div className="text-sm text-muted-foreground">Salaire Moyen</div>
-          <div className="text-2xl font-bold mt-1">
-            {employees.length > 0 ? Math.round(totalSalary / employees.filter(e => e.salary).length).toLocaleString() : 0} TND
-          </div>
-        </motion.div>
+        <GradientStatCard value={employees.length} label="Total Employés" glowColor="blue" index={0} />
+        <GradientStatCard value={activeCount} label="Actifs" glowColor="emerald" index={1} />
+        <GradientStatCard value={`${totalSalary.toLocaleString()} TND`} label="Masse Salariale" glowColor="amber" index={2} />
+        <GradientStatCard
+          value={`${employees.length > 0 ? Math.round(totalSalary / employees.filter(e => e.salary).length).toLocaleString() : 0} TND`}
+          label="Salaire Moyen"
+          glowColor="cyan"
+          index={3}
+        />
       </div>
 
       {/* Filters */}
@@ -216,157 +184,138 @@ export default function HREmployeesPage() {
       </div>
 
       {/* Table */}
-      {loading ? (
-        <div className="flex justify-center py-12"><Spinner /></div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">Aucun employé trouvé</div>
-      ) : (
-        <div className="border border-border rounded-lg overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 border-b border-border">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">Employé</th>
-                <th className="text-left px-4 py-3 font-medium">Rôle</th>
-                <th className="text-left px-4 py-3 font-medium">Département</th>
-                <th className="text-left px-4 py-3 font-medium">Téléphone</th>
-                <th className="text-left px-4 py-3 font-medium">Salaire (TND)</th>
-                <th className="text-left px-4 py-3 font-medium">Date embauche</th>
-                <th className="text-left px-4 py-3 font-medium">Statut</th>
-                <th className="text-left px-4 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((emp) => (
-                <tr key={emp.id} className="border-b border-border last:border-0 hover:bg-muted/30">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
-                        <HugeiconsIcon icon={UserIcon} className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <div className="font-medium">{emp.firstName} {emp.lastName}</div>
-                        <div className="text-xs text-muted-foreground">{emp.email}</div>
+      <CapgeminiTable<Employee>
+        title="Employés"
+        subtitle="Cliquer sur une ligne pour voir les détails ou modifier"
+        data={filtered}
+        columns={[
+          {
+            key: "employee", label: "Employé", weight: 2.5,
+            render: emp => (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 shrink-0">
+                  <HugeiconsIcon icon={UserIcon} className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-foreground">{emp.firstName} {emp.lastName}</p>
+                  <p className="text-xs text-muted-foreground">{emp.email}</p>
+                </div>
+              </div>
+            ),
+          },
+          {
+            key: "role", label: "Rôle", weight: 1.5,
+            render: emp => (
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${roleColors[emp.role] || ""}`}>
+                {roleLabels[emp.role] || emp.role}
+              </span>
+            ),
+          },
+          {
+            key: "dept", label: "Département", weight: 1.5,
+            render: emp => <span className="text-sm text-muted-foreground">{emp.department || "—"}</span>,
+          },
+          {
+            key: "salary", label: "Salaire", weight: 1.5,
+            render: emp => (
+              <span className={`text-sm font-medium ${emp.salary ? "text-foreground" : "text-muted-foreground"}`}>
+                {emp.salary ? `${emp.salary.toLocaleString()} TND` : "—"}
+              </span>
+            ),
+          },
+          {
+            key: "hire", label: "Date embauche", weight: 1.5,
+            render: emp => (
+              <span className="text-sm text-muted-foreground">
+                {emp.hireDate ? new Date(emp.hireDate).toLocaleDateString("fr-FR") : "—"}
+              </span>
+            ),
+          },
+          {
+            key: "status", label: "Statut", weight: 1,
+            render: emp => <StatusBadge status={emp.isActive ? "success" : "neutral"} label={emp.isActive ? "Actif" : "Inactif"} />,
+          },
+        ] satisfies CapgeminiTableColumn<Employee>[]}
+        loading={loading}
+        emptyMessage="Aucun employé trouvé"
+        keyExtractor={emp => emp.id}
+        getRowGradient={emp => emp.isActive ? "from-emerald-500/8 to-transparent" : "from-muted/20 to-transparent"}
+        renderDetail={(emp, onClose) => {
+          const isEditing = editingId === emp.id
+          return (
+            <DetailPanel
+              onClose={() => { if (isEditing) cancelEdit(); onClose(); }}
+              title={`${emp.firstName} ${emp.lastName}`}
+            >
+              {isEditing ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5 col-span-2">
+                      <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Rôle</Label>
+                      <select
+                        value={editForm.role ?? emp.role}
+                        onChange={e => setEditForm({ ...editForm, role: e.target.value })}
+                        className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm"
+                      >
+                        {Object.entries(roleLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Département</Label>
+                      <Input value={editForm.department ?? ""} onChange={e => setEditForm({ ...editForm, department: e.target.value })} placeholder="Département" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Téléphone</Label>
+                      <Input value={editForm.phone ?? ""} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} placeholder="Téléphone" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Salaire (TND)</Label>
+                      <div className="relative">
+                        <HugeiconsIcon icon={Money01Icon} className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+                        <Input type="number" className="pl-8" value={editForm.salary ?? ""} onChange={e => setEditForm({ ...editForm, salary: e.target.value ? Number(e.target.value) : null })} placeholder="0" />
                       </div>
                     </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    {editingId === emp.id ? (
-                      <select
-                        value={editForm.role || emp.role}
-                        onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                        className="h-8 rounded-md border border-border bg-background px-2 text-xs"
-                      >
-                        {Object.entries(roleLabels).map(([k, v]) => (
-                          <option key={k} value={k}>{v}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <Badge className={`text-xs ${roleColors[emp.role] || ""}`}>
-                        {roleLabels[emp.role] || emp.role}
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {editingId === emp.id ? (
-                      <Input
-                        value={editForm.department || ""}
-                        onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
-                        className="h-8 text-xs w-40"
-                        placeholder="Département"
-                      />
-                    ) : (
-                      <span className="text-muted-foreground">{emp.department || "—"}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {editingId === emp.id ? (
-                      <Input
-                        value={editForm.phone || ""}
-                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                        className="h-8 text-xs w-36"
-                        placeholder="Téléphone"
-                      />
-                    ) : (
-                      <span className="text-muted-foreground text-xs">{emp.phone || "—"}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {editingId === emp.id ? (
-                      <div className="flex items-center gap-1">
-                        <HugeiconsIcon icon={Money01Icon} className="w-3 h-3 text-muted-foreground" />
-                        <Input
-                          type="number"
-                          value={editForm.salary ?? ""}
-                          onChange={(e) => setEditForm({ ...editForm, salary: e.target.value ? Number(e.target.value) : null })}
-                          className="h-8 text-xs w-24"
-                          placeholder="Salaire"
-                        />
-                      </div>
-                    ) : (
-                      <span className={`font-medium ${emp.salary ? "text-foreground" : "text-muted-foreground"}`}>
-                        {emp.salary ? `${emp.salary.toLocaleString()} TND` : "—"}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs">
-                    {emp.hireDate ? new Date(emp.hireDate).toLocaleDateString("fr-FR") : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    {editingId === emp.id ? (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Statut</Label>
                       <select
                         value={editForm.isActive ? "true" : "false"}
-                        onChange={(e) => setEditForm({ ...editForm, isActive: e.target.value === "true" })}
-                        className="h-8 rounded-md border border-border bg-background px-2 text-xs"
+                        onChange={e => setEditForm({ ...editForm, isActive: e.target.value === "true" })}
+                        className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm"
                       >
                         <option value="true">Actif</option>
                         <option value="false">Inactif</option>
                       </select>
-                    ) : (
-                      <Badge className={emp.isActive ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" : "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"}>
-                        {emp.isActive ? "Actif" : "Inactif"}
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {editingId === emp.id ? (
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={saveEdit}
-                          disabled={saving}
-                          className="text-green-600 hover:text-green-700"
-                        >
-                          <HugeiconsIcon icon={CheckmarkSquare01Icon} className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={cancelEdit}
-                          disabled={saving}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <HugeiconsIcon icon={Cancel01Icon} className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => startEdit(emp)}
-                        className="text-blue-600 hover:text-blue-700"
-                      >
-                        <HugeiconsIcon icon={Edit01Icon} className="w-4 h-4 mr-1" />
-                        Modifier
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button onClick={() => saveEdit(onClose)} disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white">
+                      <HugeiconsIcon icon={CheckmarkSquare01Icon} className="w-4 h-4 mr-2" />
+                      {saving ? "Enregistrement..." : "Sauvegarder"}
+                    </Button>
+                    <Button variant="ghost" onClick={cancelEdit}>Annuler</Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <DetailCard label="Email" value={emp.email} />
+                    <DetailCard label="Téléphone" value={emp.phone || "—"} />
+                    <DetailCard label="Rôle" value={roleLabels[emp.role] || emp.role} />
+                    <DetailCard label="Département" value={emp.department || "—"} />
+                    <DetailCard label="Salaire" value={emp.salary ? `${emp.salary.toLocaleString()} TND` : "—"} />
+                    <DetailCard label="Date embauche" value={emp.hireDate ? new Date(emp.hireDate).toLocaleDateString("fr-FR") : "—"} />
+                    <DetailCard label="Statut" value={<StatusBadge status={emp.isActive ? "success" : "neutral"} label={emp.isActive ? "Actif" : "Inactif"} />} />
+                  </div>
+                  <Button onClick={() => startEdit(emp)} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    Modifier cet employé
+                  </Button>
+                </div>
+              )}
+            </DetailPanel>
+          )
+        }}
+      />
     </div>
   )
 }
+
