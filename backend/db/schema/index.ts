@@ -24,6 +24,12 @@ export { partnershipRequests, type PartnershipRequest, type NewPartnershipReques
 export { partnerDocuments, type PartnerDocument, type NewPartnerDocument } from "./partner-documents"
 export { partnerMeetings, type PartnerMeeting, type NewPartnerMeeting } from "./partner-meetings"
 export { partnerNotifications, type PartnerNotification, type NewPartnerNotification } from "./partner-notifications"
+export * from "./projects"
+export * from "./milestones"
+export * from "./project-tasks"
+export * from "./project-allocations"
+export * from "./project-documents"
+export * from "./document-embeddings"
 
 // Relations
 export { partnersRelations } from "./partners"
