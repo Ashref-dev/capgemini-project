@@ -15,6 +15,7 @@ import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailC
 import { SparklesText } from "@/frontend/components/ui/sparkles-text"
 import { GradientStatCard } from "@/frontend/components/ui/gradient-stat-card"
 import { AddButton } from "@/frontend/components/ui/add-button"
+import { PartnerSelect } from "@/frontend/components/ui/partner-select"
 
 interface Event {
   id: number
@@ -32,11 +33,6 @@ interface Event {
   partner?: { id: number; name: string }
 }
 
-interface Partner {
-  id: number
-  name: string
-}
-
 const statusColors: Record<string, string> = {
   planifie: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
   en_cours: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
@@ -47,7 +43,6 @@ const statusColors: Record<string, string> = {
 export default function HREventsPage() {
   const { user } = useAuth()
   const [events, setEvents] = useState<Event[]>([])
-  const [partners, setPartners] = useState<Partner[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
@@ -84,20 +79,9 @@ export default function HREventsPage() {
     }
   }, [])
 
-  const fetchPartners = useCallback(async () => {
-    try {
-      const res = await fetch("/api/partners")
-      const data = await res.json()
-      if (res.ok) {
-        setPartners(data.partners?.map((p: Partner) => ({ id: p.id, name: p.name })) || [])
-      }
-    } catch { /* ignore */ }
-  }, [])
-
   useEffect(() => {
     fetchEvents()
-    fetchPartners()
-  }, [fetchEvents, fetchPartners])
+  }, [fetchEvents])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -214,17 +198,11 @@ export default function HREventsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">Partenaire *</Label>
-                <select
+                <PartnerSelect
                   value={form.partnerId}
-                  onChange={(e) => setForm({ ...form, partnerId: e.target.value })}
-                  className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm"
+                  onChange={(id) => setForm({ ...form, partnerId: id })}
                   required
-                >
-                  <option value="">Sélectionner...</option>
-                  {partners.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">Nom de l&apos;événement *</Label>

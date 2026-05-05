@@ -29,18 +29,41 @@ function ToastToaster() {
       richColors={false}
       closeButton
       duration={4000}
+      offset={24}
+      mobileOffset={16}
+      style={
+        {
+          "--width": "min(420px, calc(100vw - 32px))",
+        } as React.CSSProperties
+      }
       toastOptions={{
         unstyled: true,
         classNames: {
           toast: cn(
-            "group pointer-events-auto relative flex w-full items-center justify-between gap-3 overflow-hidden rounded-lg border p-4 shadow-lg",
+            "group pointer-events-auto relative flex w-full items-start gap-3 rounded-xl border p-4 pr-10 shadow-xl backdrop-blur-md",
             "border-border bg-card text-card-foreground",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-bottom-full",
             "data-[state=open]:slide-in-from-bottom-full data-[state=open]:sm:slide-in-from-bottom-0"
           ),
-          title: "text-sm font-semibold",
-          description: "text-sm opacity-90 mt-0.5",
+          icon: "shrink-0 mt-0.5",
+          content: "flex-1 min-w-0 flex flex-col gap-1",
+          title: cn(
+            "text-sm font-semibold leading-snug break-words",
+            "text-foreground",
+            "group-data-[type=success]:text-green-900 dark:group-data-[type=success]:text-green-100",
+            "group-data-[type=error]:text-red-900 dark:group-data-[type=error]:text-red-100",
+            "group-data-[type=warning]:text-amber-900 dark:group-data-[type=warning]:text-amber-100",
+            "group-data-[type=info]:text-blue-900 dark:group-data-[type=info]:text-blue-100"
+          ),
+          description: cn(
+            "text-sm font-medium leading-snug break-words",
+            "text-muted-foreground",
+            "group-data-[type=success]:text-green-800 dark:group-data-[type=success]:text-green-100",
+            "group-data-[type=error]:text-red-800 dark:group-data-[type=error]:text-red-100",
+            "group-data-[type=warning]:text-amber-800 dark:group-data-[type=warning]:text-amber-100",
+            "group-data-[type=info]:text-blue-800 dark:group-data-[type=info]:text-blue-100"
+          ),
           actionButton: cn(
             "inline-flex h-8 shrink-0 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors",
             "border-border bg-primary text-primary-foreground hover:bg-primary/90",
@@ -52,20 +75,26 @@ function ToastToaster() {
             "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           ),
           closeButton: cn(
-            "absolute right-2 top-2 rounded-md p-1 text-muted-foreground opacity-70",
-            "transition-opacity hover:text-foreground hover:opacity-100",
-            "focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring"
+            "!absolute !right-2 !top-2 !left-auto !translate-x-0 !translate-y-0 !size-6 !rounded-md !border-0 !bg-transparent",
+            "!text-muted-foreground/70 hover:!text-foreground hover:!bg-foreground/5 transition-colors",
+            "focus:outline-none focus:ring-2 focus:ring-ring"
           ),
-          success:
-            "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-200",
-          error:
-            "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-200",
+          success: cn(
+            "border-green-500/40 bg-green-50 text-green-900",
+            "dark:border-green-400/30 dark:bg-green-950/90 dark:text-green-100"
+          ),
+          error: cn(
+            "border-red-500/40 bg-red-50 text-red-900",
+            "dark:border-red-400/30 dark:bg-red-950/90 dark:text-red-100"
+          ),
           warning: cn(
-            "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-200",
-            "dark:border-amber-500/20 dark:bg-amber-500/15"
+            "border-amber-500/40 bg-amber-50 text-amber-900",
+            "dark:border-amber-400/30 dark:bg-amber-950/90 dark:text-amber-100"
           ),
-          info:
-            "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-200",
+          info: cn(
+            "border-blue-500/40 bg-blue-50 text-blue-900",
+            "dark:border-blue-400/30 dark:bg-blue-950/90 dark:text-blue-100"
+          ),
           default: "",
         },
       }}

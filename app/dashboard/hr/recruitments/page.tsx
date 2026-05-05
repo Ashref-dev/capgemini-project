@@ -15,6 +15,7 @@ import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailC
 import { SparklesText } from "@/frontend/components/ui/sparkles-text"
 import { GradientStatCard } from "@/frontend/components/ui/gradient-stat-card"
 import { AddButton } from "@/frontend/components/ui/add-button"
+import { PartnerSelect } from "@/frontend/components/ui/partner-select"
 
 interface Recruitment {
   id: number
@@ -66,8 +67,6 @@ export default function HRRecruitmentsPage() {
   const [typeFilter, setTypeFilter] = useState("")
   const [showForm, setShowForm] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
-  const [universities, setUniversities] = useState<{ id: number; name: string }[]>([])
-
   const [form, setForm] = useState({
     universityPartnerId: "",
     studentFirstName: "",
@@ -104,20 +103,9 @@ export default function HRRecruitmentsPage() {
     }
   }, [])
 
-  const fetchUniversities = useCallback(async () => {
-    try {
-      const res = await fetch("/api/partners?category=university")
-      const data = await res.json()
-      if (res.ok) {
-        setUniversities(data.partners?.map((p: { id: number; name: string }) => ({ id: p.id, name: p.name })) || [])
-      }
-    } catch { /* ignore */ }
-  }, [])
-
   useEffect(() => {
     fetchRecruitments()
-    fetchUniversities()
-  }, [fetchRecruitments, fetchUniversities])
+  }, [fetchRecruitments])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -243,17 +231,13 @@ export default function HRRecruitmentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">Université partenaire *</Label>
-                <select
+                <PartnerSelect
                   value={form.universityPartnerId}
-                  onChange={(e) => setForm({ ...form, universityPartnerId: e.target.value })}
-                  className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm"
+                  onChange={(id) => setForm({ ...form, universityPartnerId: id })}
+                  category="university"
+                  placeholder="Sélectionner une université..."
                   required
-                >
-                  <option value="">Sélectionner...</option>
-                  {universities.map((u) => (
-                    <option key={u.id} value={u.id}>{u.name}</option>
-                  ))}
-                </select>
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">Prénom étudiant</Label>

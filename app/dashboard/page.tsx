@@ -14,8 +14,8 @@ import {
   UserIcon,
   MortarboardIcon,
 } from "@hugeicons/core-free-icons"
-import { BallpitHero } from "@/frontend/components/ui/ballpit-hero"
 import { NavCircularGallery, NavGalleryItem } from "@/frontend/components/ui/nav-circular-gallery"
+import { DailyBriefing } from "@/frontend/components/dashboard/daily-briefing"
 
 interface SectionDef {
   title: string
@@ -142,13 +142,25 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* ── Welcome banner ── */}
-      <BallpitHero
-        greeting={greeting}
-        name={user.name || "Bienvenue"}
-        subtitle="Tableau de bord de gestion des partenariats — Capgemini Tunisie"
-        badge={user.role || "Employé"}
-      />
+      <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-background via-background to-primary/5 p-8 shadow-sm">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,112,173,0.12),transparent_42%),radial-gradient(circle_at_bottom_left,rgba(18,171,219,0.08),transparent_36%)]" />
+        <div className="relative flex flex-col gap-4">
+          <p className="text-base font-bold uppercase tracking-[0.15em] text-primary">{greeting}</p>
+          <h1
+            className="max-w-3xl text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl lg:text-6xl bg-clip-text bg-[linear-gradient(135deg,#0070AD_0%,#12ABDB_100%)]"
+          >
+            {user.name || "Khaled Maatoug"}
+          </h1>
+          <p className="max-w-md text-sm text-muted-foreground">
+            Tableau de bord de gestion des partenariats — Capgemini Tunisie
+          </p>
+          <span className="inline-flex w-fit items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-bold capitalize text-primary">
+            {user.role || "Admin"}
+          </span>
+        </div>
+      </div>
+
+      <DailyBriefing />
 
       {/* ── Circular navigation gallery ── */}
       <div>

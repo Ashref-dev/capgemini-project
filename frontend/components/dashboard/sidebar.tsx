@@ -19,6 +19,8 @@ import {
   Calendar03Icon,
   Discount01Icon,
   ClockIcon,
+  Briefcase01Icon,
+  ConnectIcon,
   UserAdd01Icon,
   UserIcon,
   MortarboardIcon,
@@ -45,12 +47,14 @@ const navGroups: NavGroup[] = [
       { label: "Partenaires", href: "/dashboard/partners", icon: UserGroupIcon },
       { label: "Contacts", href: "/dashboard/contacts", icon: ContactBookIcon },
       { label: "Offres", href: "/dashboard/offers", icon: Discount01Icon },
+      { label: "Projets", href: "/dashboard/projects", icon: Briefcase01Icon },
       {
         label: "Demandes",
         href: "/dashboard/partnership-requests",
         icon: UserAdd01Icon,
         roles: ["admin", "manager"],
       },
+      { label: "Pipeline", href: "/dashboard/pipeline", icon: ConnectIcon },
     ],
   },
   {
@@ -216,6 +220,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
 
       {/* Toggle collapse */}
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         className="flex items-center border-t border-border hover:bg-muted transition-colors min-h-[48px] w-full"
         aria-label={open ? "Réduire le menu" : "Agrandir le menu"}

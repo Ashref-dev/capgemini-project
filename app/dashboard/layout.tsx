@@ -7,7 +7,6 @@ import { DashboardSidebar } from "@/frontend/components/dashboard/sidebar"
 import { DashboardTourController } from "@/frontend/components/dashboard/dashboard-tour-controller"
 import { UserMenu } from "@/frontend/components/auth/user-menu"
 import { ThemeToggle } from "@/frontend/components/theme-toggle"
-import { Footer } from "@/frontend/components/footer"
 import { Spinner } from "@/frontend/components/ui/spinner"
 import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -85,9 +84,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="min-w-0 flex-1 p-6">
           {children}
         </main>
-
-        {/* ── Footer ── */}
-        <Footer />
       </div>
     </div>
   )

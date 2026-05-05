@@ -2,29 +2,25 @@
 
 import * as React from "react"
 import type { UIMessage } from "ai"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { AiChat02Icon } from "@hugeicons/core-free-icons"
 import { Streamdown } from "streamdown"
 import "streamdown/styles.css"
 
+import { AnalysisPlan } from "./analysis-plan"
 import { BarChart } from "./bar-chart"
+import { ClarificationPrompt } from "./clarification-prompt"
 import { CodeResult } from "./code-result"
 import { InteractiveTable } from "./interactive-table"
 import { LineChart } from "./line-chart"
+import { MethodologyHeader } from "./methodology-header"
 import { PieChart } from "./pie-chart"
 import { ReportPreview } from "./report-preview"
-import { Spinner } from "@/frontend/components/ui/spinner"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/frontend/components/ui/card"
+import { ToolCallCard } from "./tool-call-card"
 import { cn } from "@/frontend/lib/utils"
 
 interface ChatMessageProps {
   message: UIMessage
+  isStreaming?: boolean
+  onSuggestionClick?: (text: string) => void
 }
 
 interface LegacyToolInvocation {
@@ -236,7 +232,11 @@ function getPartKey(part: unknown, messageId: string, fallback: string) {
   return `${messageId}-${fallback}-${hashString(serializedPart)}`
 }
 
-function renderToolResult(toolName: string, payload: unknown) {
+function renderToolResult(
+  toolName: string,
+  payload: unknown,
+  onSuggestionClick?: (text: string) => void
+) {
   switch (toolName) {
     case "createBarChart":
       return isBarChartPayload(payload) ? <BarChart {...payload} /> : null
@@ -252,20 +252,55 @@ function renderToolResult(toolName: string, payload: unknown) {
     case "runCode":
     case "createCodeResult":
       return isCodeResultPayload(payload) ? <CodeResult {...payload} /> : null
+    case "declareMethodology":
+      return isMethodologyPayload(payload) ? <MethodologyHeader {...payload} /> : null
+    case "createPlan":
+      return isPlanPayload(payload) ? <AnalysisPlan {...payload} /> : null
+    case "askClarification":
+      return isClarificationPayload(payload) ? (
+        <ClarificationPrompt {...payload} onSelect={onSuggestionClick} />
+      ) : null
     default:
       return null
   }
 }
 
+function isMethodologyPayload(value: unknown): value is React.ComponentProps<typeof MethodologyHeader> {
+  return (
+    isRecord(value) &&
+    Array.isArray(value.methodologies) &&
+    value.methodologies.every((m) => typeof m === "string")
+  )
+}
+
+function isPlanPayload(value: unknown): value is React.ComponentProps<typeof AnalysisPlan> {
+  return (
+    isRecord(value) &&
+    typeof value.objective === "string" &&
+    Array.isArray(value.steps) &&
+    value.steps.every(
+      (s) =>
+        isRecord(s) &&
+        typeof s.id === "string" &&
+        typeof s.title === "string" &&
+        typeof s.status === "string"
+    )
+  )
+}
+
+function isClarificationPayload(value: unknown): value is React.ComponentProps<typeof ClarificationPrompt> {
+  return isRecord(value) && typeof value.question === "string"
+}
+
 const markdownComponents = {
   p: ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className={cn("leading-7 [&:not(:first-child)]:mt-3", className)} {...props} />
+    <p className={cn("leading-6 [&:not(:first-child)]:mt-2", className)} {...props} />
   ),
   ul: ({ className, ...props }: React.HTMLAttributes<HTMLUListElement>) => (
-    <ul className={cn("ml-5 list-disc space-y-2", className)} {...props} />
+    <ul className={cn("ml-4 list-disc space-y-1", className)} {...props} />
   ),
   ol: ({ className, ...props }: React.HTMLAttributes<HTMLOListElement>) => (
-    <ol className={cn("ml-5 list-decimal space-y-2", className)} {...props} />
+    <ol className={cn("ml-4 list-decimal space-y-1", className)} {...props} />
   ),
   a: ({ className, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a
@@ -276,27 +311,36 @@ const markdownComponents = {
     />
   ),
   code: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
-    <code className={cn("rounded bg-muted px-1.5 py-0.5 font-mono text-[0.9em]", className)} {...props} />
+    <code className={cn("rounded bg-muted px-1 py-0.5 font-mono text-[0.85em]", className)} {...props} />
   ),
   pre: ({ className, ...props }: React.HTMLAttributes<HTMLPreElement>) => (
-    <pre className={cn("overflow-x-auto rounded-xl bg-muted p-4", className)} {...props} />
+    <pre className={cn("overflow-x-auto rounded-lg bg-muted p-3 text-xs", className)} {...props} />
   ),
   blockquote: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
-    <blockquote className={cn("border-l-2 border-primary/40 pl-4 italic text-muted-foreground", className)} {...props} />
+    <blockquote className={cn("border-l-2 border-primary/40 pl-3 italic text-muted-foreground", className)} {...props} />
+  ),
+  h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h1 className={cn("mt-3 text-base font-semibold", className)} {...props} />
+  ),
+  h2: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h2 className={cn("mt-3 text-sm font-semibold", className)} {...props} />
+  ),
+  h3: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h3 className={cn("mt-2.5 text-sm font-semibold", className)} {...props} />
   ),
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, isStreaming, onSuggestionClick }: ChatMessageProps) {
   const isUser = message.role === "user"
 
   return (
-    <div className={cn("w-full", isUser ? "max-w-2xl" : "max-w-5xl")}>
+    <div className={cn("w-full", isUser ? "max-w-xl" : "max-w-4xl")}>
       <div
         className={cn(
-          "space-y-3",
+          "space-y-2",
           isUser
-            ? "rounded-2xl bg-blue-600 px-4 py-3 text-sm text-white shadow-sm"
-            : "space-y-4"
+            ? "rounded-xl bg-blue-600 px-3 py-2 text-sm text-white shadow-sm"
+            : "space-y-2"
         )}
       >
         {message.parts.map((part) => {
@@ -304,15 +348,20 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
           if (part.type === "text") {
             return isUser ? (
-              <p key={partKey} className="whitespace-pre-wrap leading-6">
+              <p key={partKey} className="whitespace-pre-wrap leading-5">
                 {part.text}
               </p>
             ) : (
               <div
                 key={partKey}
-                className="rounded-2xl border border-border bg-card px-4 py-3 text-sm text-foreground shadow-sm"
+                className="rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground shadow-sm"
               >
-                <Streamdown components={markdownComponents}>{part.text}</Streamdown>
+                <Streamdown
+                  components={markdownComponents}
+                  animated={Boolean(isStreaming)}
+                >
+                  {part.text}
+                </Streamdown>
               </div>
             )
           }
@@ -323,57 +372,28 @@ export function ChatMessage({ message }: ChatMessageProps) {
             return null
           }
 
-          if (toolInfo.status === "pending") {
-            return (
-              <Card key={partKey} className="border-border/70 bg-card/95">
-                <CardContent className="flex items-center gap-3 py-4">
-                  <Spinner size="sm" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Running tool</p>
-                    <p className="text-xs text-muted-foreground">{toolInfo.toolName}</p>
-                  </div>
-                </CardContent>
-              </Card>
+          if (toolInfo.status === "success") {
+            const renderedTool = renderToolResult(
+              toolInfo.toolName,
+              toolInfo.output ?? toolInfo.input,
+              onSuggestionClick
             )
-          }
 
-          if (toolInfo.status === "error") {
-            return (
-              <Card key={partKey} className="border-destructive/30 bg-destructive/5">
-                <CardHeader>
-                  <CardTitle className="text-sm">Tool failed: {toolInfo.toolName}</CardTitle>
-                  <CardDescription>{toolInfo.errorText ?? "Tool execution failed."}</CardDescription>
-                </CardHeader>
-              </Card>
-            )
-          }
-
-          const renderedTool = renderToolResult(
-            toolInfo.toolName,
-            toolInfo.output ?? toolInfo.input
-          )
-
-          if (renderedTool) {
-            return React.cloneElement(renderedTool, { key: partKey })
+            if (renderedTool) {
+              return React.cloneElement(renderedTool, { key: partKey })
+            }
           }
 
           return (
-            <details
+            <ToolCallCard
               key={partKey}
-              className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
-            >
-              <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted/40">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600/10 text-blue-600">
-                  <HugeiconsIcon icon={AiChat02Icon} className="h-4 w-4" />
-                </div>
-                <span>Tool: {toolInfo.toolName}</span>
-              </summary>
-              <div className="border-t border-border bg-muted/20 px-4 py-3">
-                <pre className="overflow-x-auto rounded-xl bg-background p-4 text-xs text-foreground">
-                  <code>{stringifyJson(toolInfo.output ?? toolInfo.input)}</code>
-                </pre>
-              </div>
-            </details>
+              toolName={toolInfo.toolName}
+              status={toolInfo.status}
+              input={toolInfo.input}
+              output={toolInfo.output}
+              errorText={toolInfo.errorText}
+              defaultOpen={toolInfo.status === "error"}
+            />
           )
         })}
       </div>

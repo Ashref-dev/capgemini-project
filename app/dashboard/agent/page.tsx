@@ -4,40 +4,23 @@ import * as React from "react"
 import { DefaultChatTransport, type UIMessage } from "ai"
 import { useChat } from "@ai-sdk/react"
 import {
-  Add01Icon,
   AiChat02Icon,
-  ClockIcon,
-  Delete02Icon,
   Menu01Icon,
-  MessageEdit01Icon,
   SentIcon,
+  Add01Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { AnimatePresence, motion } from "framer-motion"
 
 import { ChatMessage } from "@/frontend/components/agent/chat-message"
+import { AgentSidebar, AgentMobileSidebar, type ThreadListItem } from "@/frontend/components/agent/agent-sidebar"
+import { AgentEmptyState } from "@/frontend/components/agent/agent-empty-state"
+import { AgentThinking } from "@/frontend/components/agent/agent-thinking"
 import { Button } from "@/frontend/components/ui/button"
-import { Input } from "@/frontend/components/ui/input"
 import { Spinner } from "@/frontend/components/ui/spinner"
 import { toast } from "@/frontend/components/ui/toast"
 import { useAuth } from "@/frontend/hooks/use-auth"
 import { cn } from "@/frontend/lib/utils"
-
-const suggestions = [
-  "Show me a breakdown of partners by category",
-  "Who are the top 10 partners by revenue?",
-  "Predict which partners are at risk of churning",
-  "Score partner BIAT for compatibility",
-  "Recommend partners for recruiting Cloud engineers",
-]
-
-type ThreadListItem = {
-  id: number
-  title: string | null
-  createdAt: string | Date
-  updatedAt: string | Date
-  messageCount: number
-}
 
 type ThreadMessageRecord = {
   id: number
@@ -59,28 +42,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isUIMessagePart(value: unknown): value is UIMessage["parts"][number] {
-  if (!isRecord(value) || typeof value.type !== "string") {
-    return false
-  }
-
-  if (value.type === "text") {
-    return typeof value.text === "string"
-  }
-
+  if (!isRecord(value) || typeof value.type !== "string") return false
+  if (value.type === "text") return typeof value.text === "string"
   return true
 }
 
 function getMessageParts(message: ThreadMessageRecord): UIMessage["parts"] {
-  const storedParts = Array.isArray(message.parts)
-    ? message.parts.filter(isUIMessagePart)
-    : []
-
+  const storedParts = Array.isArray(message.parts) ? message.parts.filter(isUIMessagePart) : []
   const hasTextPart = storedParts.some((part) => part.type === "text")
-
-  if (hasTextPart || !message.content) {
-    return storedParts
-  }
-
+  if (hasTextPart || !message.content) return storedParts
   return [{ type: "text", text: message.content }, ...storedParts]
 }
 
@@ -92,67 +62,22 @@ function toUIMessage(message: ThreadMessageRecord): UIMessage {
   }
 }
 
-function getThreadLabel(title: string | null) {
-  const normalizedTitle = title?.trim()
-  return normalizedTitle && normalizedTitle.length > 0 ? normalizedTitle : "Nouvelle conversation"
+function deriveTitle(text: string): string {
+  const trimmed = text.trim().replace(/\s+/g, " ")
+  if (trimmed.length === 0) return "Nouvelle conversation"
+  return trimmed.length > 60 ? `${trimmed.slice(0, 57)}…` : trimmed
 }
 
-function getRelativeDateLabel(value: string | Date) {
-  const date = value instanceof Date ? value : new Date(value)
-
-  if (Number.isNaN(date.getTime())) {
-    return "Date inconnue"
-  }
-
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMinutes = Math.floor(diffMs / (1000 * 60))
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const startOfTarget = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  const dayDiff = Math.round((startOfToday.getTime() - startOfTarget.getTime()) / (1000 * 60 * 60 * 24))
-
-  if (diffMinutes < 1) {
-    return "À l'instant"
-  }
-
-  if (diffMinutes < 60) {
-    return `Il y a ${diffMinutes} min`
-  }
-
-  if (diffHours < 24 && dayDiff === 0) {
-    return `Il y a ${diffHours} h`
-  }
-
-  if (dayDiff === 1) {
-    return "Hier"
-  }
-
-  return new Intl.DateTimeFormat("fr-FR", {
-    month: "long",
-    day: "numeric",
-  }).format(date)
-}
-
-async function readJsonResponse<T>(response: Response): Promise<T> {
-  const payload = (await response.json().catch(() => null)) as
-    | T
-    | { error?: string }
-    | null
-
+async function readJson<T>(response: Response): Promise<T> {
+  const payload = (await response.json().catch(() => null)) as T | { error?: string } | null
   if (!response.ok) {
-    const errorMessage =
+    const msg =
       payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
         ? payload.error
         : "Une erreur est survenue."
-
-    throw new Error(errorMessage)
+    throw new Error(msg)
   }
-
-  if (payload === null) {
-    throw new Error("Réponse serveur invalide")
-  }
-
+  if (payload === null) throw new Error("Réponse serveur invalide")
   return payload as T
 }
 
@@ -161,151 +86,93 @@ export default function AgentPage() {
   const [input, setInput] = React.useState("")
   const [threads, setThreads] = React.useState<ThreadListItem[]>([])
   const [activeThreadId, setActiveThreadId] = React.useState<number | null>(null)
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false)
+  const [isCollapsed, setIsCollapsed] = React.useState(false)
   const [isThreadsLoading, setIsThreadsLoading] = React.useState(true)
   const [isThreadLoading, setIsThreadLoading] = React.useState(false)
-  const [isCreatingThread, setIsCreatingThread] = React.useState(false)
   const [deletingThreadId, setDeletingThreadId] = React.useState<number | null>(null)
+  const [autoCreating, setAutoCreating] = React.useState(false)
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const loadedThreadRef = React.useRef<number | null>(null)
-  const setMessagesRef = React.useRef<(messages: UIMessage[] | ((messages: UIMessage[]) => UIMessage[])) => void>(() => {
-    // This is replaced immediately after useChat initializes.
-  })
+  const setMessagesRef = React.useRef<(messages: UIMessage[] | ((messages: UIMessage[]) => UIMessage[])) => void>(() => {})
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
 
   const { messages, sendMessage, setMessages, status } = useChat({
     id: activeThreadId ? String(activeThreadId) : "new-chat",
     transport: new DefaultChatTransport({ api: "/api/chat" }),
-    onError: (error) => {
-      toast.error("Agent Error", { description: error.message })
-    },
+    onError: (error) => toast.error("Erreur agent", { description: error.message }),
   })
 
   React.useEffect(() => {
     setMessagesRef.current = setMessages
   }, [setMessages])
 
-  const isLoading = status === "submitted" || status === "streaming"
+  const isStreaming = status === "submitted" || status === "streaming"
+  const isBusy = isStreaming || autoCreating
 
   React.useEffect(() => {
-    if (messages.length === 0 && status === "ready") {
-      return
-    }
-
-    if (scrollRef.current) {
+    if (scrollRef.current && (messages.length > 0 || isStreaming)) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
-  }, [messages, status])
+  }, [messages, isStreaming])
 
   const fetchThreads = React.useCallback(async () => {
     try {
-      const response = await fetch("/api/chat/threads", {
-        method: "GET",
-        credentials: "include",
-      })
-
-      const data = await readJsonResponse<{ threads: ThreadListItem[] }>(response)
+      const res = await fetch("/api/chat/threads", { credentials: "include" })
+      const data = await readJson<{ threads: ThreadListItem[] }>(res)
       setThreads(data.threads)
       return data.threads
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Impossible de charger les conversations."
-      toast.error("Chargement impossible", { description: message })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Impossible de charger les conversations."
+      toast.error("Chargement impossible", { description: msg })
       return []
     }
   }, [])
 
-  const loadThread = React.useCallback(
-    async (threadId: number) => {
-      setIsThreadLoading(true)
-
-      try {
-        const response = await fetch(`/api/chat/threads/${threadId}`, {
-          method: "GET",
-          credentials: "include",
-        })
-
-        const data = await readJsonResponse<{
-          thread: ThreadRecord
-          messages: ThreadMessageRecord[]
-        }>(response)
-
-        setActiveThreadId(data.thread.id)
-        setMessagesRef.current(data.messages.map(toUIMessage))
-        loadedThreadRef.current = data.thread.id
-        setIsSidebarOpen(false)
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Impossible de charger la conversation."
-        toast.error("Chargement impossible", { description: message })
-      } finally {
-        setIsThreadLoading(false)
-      }
-    },
-    []
-  )
-
-  const createNewThread = React.useCallback(async () => {
-    if (isCreatingThread) {
-      return
-    }
-
-    setIsCreatingThread(true)
-
+  const loadThread = React.useCallback(async (threadId: number) => {
+    setIsThreadLoading(true)
     try {
-      const response = await fetch("/api/chat/threads", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ title: "Nouvelle conversation" }),
-      })
-
-      const data = await readJsonResponse<{ thread: ThreadRecord }>(response)
-
+      const res = await fetch(`/api/chat/threads/${threadId}`, { credentials: "include" })
+      const data = await readJson<{ thread: ThreadRecord; messages: ThreadMessageRecord[] }>(res)
       setActiveThreadId(data.thread.id)
-      setMessagesRef.current([])
+      setMessagesRef.current(data.messages.map(toUIMessage))
       loadedThreadRef.current = data.thread.id
-      setInput("")
-      setIsSidebarOpen(false)
-
-      await fetchThreads()
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Impossible de créer une conversation."
-      toast.error("Création impossible", { description: message })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Impossible de charger la conversation."
+      toast.error("Chargement impossible", { description: msg })
     } finally {
-      setIsCreatingThread(false)
+      setIsThreadLoading(false)
     }
-  }, [fetchThreads, isCreatingThread])
+  }, [])
+
+  const startNewThread = React.useCallback(() => {
+    setActiveThreadId(null)
+    setMessagesRef.current([])
+    loadedThreadRef.current = null
+    setInput("")
+    setTimeout(() => textareaRef.current?.focus(), 50)
+  }, [])
 
   React.useEffect(() => {
-    let isMounted = true
-
+    let mounted = true
     void (async () => {
       setIsThreadsLoading(true)
-      const nextThreads = await fetchThreads()
-
-      if (!isMounted) {
-        return
-      }
-
-      if (nextThreads.length > 0) {
-        const firstThreadId = nextThreads[0]?.id ?? null
-
-        if (firstThreadId !== null && loadedThreadRef.current !== firstThreadId) {
-          await loadThread(firstThreadId)
+      const next = await fetchThreads()
+      if (!mounted) return
+      if (next.length > 0) {
+        const firstId = next[0]?.id ?? null
+        if (firstId !== null && loadedThreadRef.current !== firstId) {
+          await loadThread(firstId)
         }
       } else {
         setActiveThreadId(null)
         setMessagesRef.current([])
         loadedThreadRef.current = null
       }
-
-      if (isMounted) {
-        setIsThreadsLoading(false)
-      }
+      if (mounted) setIsThreadsLoading(false)
     })()
-
     return () => {
-      isMounted = false
+      mounted = false
     }
   }, [fetchThreads, loadThread])
 
@@ -317,351 +184,270 @@ export default function AgentPage() {
 
   const submitPrompt = React.useCallback(
     async (prompt: string) => {
-      const nextPrompt = prompt.trim()
+      const text = prompt.trim()
+      if (!text || isBusy) return
 
-      if (!nextPrompt || isLoading) {
-        return
-      }
+      let threadId = activeThreadId
 
-      if (!activeThreadId) {
-        toast.warning("Conversation requise", {
-          description: "Créez ou chargez une conversation avant d'envoyer un message.",
-        })
-        return
+      if (!threadId) {
+        setAutoCreating(true)
+        try {
+          const res = await fetch("/api/chat/threads", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: deriveTitle(text) }),
+          })
+          const data = await readJson<{ thread: ThreadRecord }>(res)
+          threadId = data.thread.id
+          setActiveThreadId(threadId)
+          loadedThreadRef.current = threadId
+          await fetchThreads()
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Impossible de démarrer la conversation."
+          toast.error("Erreur", { description: msg })
+          setAutoCreating(false)
+          return
+        }
+        setAutoCreating(false)
       }
 
       setInput("")
-      await sendMessage({ text: nextPrompt })
+      await sendMessage({ text })
     },
-    [activeThreadId, isLoading, sendMessage]
+    [activeThreadId, fetchThreads, isBusy, sendMessage],
   )
 
   const handleSubmit = React.useCallback(
-    async (event: { preventDefault: () => void }) => {
-      event.preventDefault()
+    async (e: React.FormEvent) => {
+      e.preventDefault()
       await submitPrompt(input)
     },
-    [input, submitPrompt]
+    [input, submitPrompt],
   )
 
-  const handleSuggestionClick = React.useCallback(
-    async (suggestion: string) => {
-      await submitPrompt(suggestion)
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault()
+        void submitPrompt(input)
+      }
     },
-    [submitPrompt]
+    [input, submitPrompt],
   )
 
   const handleDeleteThread = React.useCallback(
     async (threadId: number) => {
-      const thread = threads.find((item) => item.id === threadId)
-      if (!thread) {
-        return
-      }
-
-      const confirmed = window.confirm(
-        `Supprimer la conversation \"${getThreadLabel(thread.title)}\" ? Cette action est irréversible.`
-      )
-
-      if (!confirmed) {
-        return
-      }
-
       setDeletingThreadId(threadId)
-
       try {
-        const response = await fetch("/api/chat/threads", {
+        const res = await fetch("/api/chat/threads", {
           method: "DELETE",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ threadId }),
         })
-
-        await readJsonResponse<{ success: boolean }>(response)
-        const nextThreads = await fetchThreads()
-
+        await readJson<{ success: boolean }>(res)
+        const next = await fetchThreads()
         if (activeThreadId === threadId) {
-          const nextThreadId = nextThreads[0]?.id ?? null
-
-          if (nextThreadId) {
-            await loadThread(nextThreadId)
+          const fallback = next[0]?.id ?? null
+          if (fallback) {
+            await loadThread(fallback)
           } else {
             setActiveThreadId(null)
             setMessagesRef.current([])
             loadedThreadRef.current = null
           }
         }
-
-        toast.success("Conversation supprimée", {
-          description: "Le fil de discussion a été retiré de votre historique.",
-        })
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Impossible de supprimer la conversation."
-        toast.error("Suppression impossible", { description: message })
+        toast.success("Conversation supprimée")
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Suppression impossible."
+        toast.error("Erreur", { description: msg })
       } finally {
         setDeletingThreadId(null)
       }
     },
-    [activeThreadId, fetchThreads, loadThread, threads]
+    [activeThreadId, fetchThreads, loadThread],
   )
 
-  const sidebarContent = (
-    <>
-      <div className="border-b border-border bg-gradient-to-r from-primary/5 to-transparent p-4">
-        <Button
-          type="button"
-          onClick={() => void createNewThread()}
-          disabled={isCreatingThread}
-          className="w-full justify-start gap-2 bg-blue-600 text-white hover:bg-blue-700"
-        >
-          {isCreatingThread ? <Spinner size="sm" /> : <HugeiconsIcon icon={Add01Icon} className="h-4 w-4" />}
-          Nouvelle conversation
-        </Button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-3">
-        <div className="space-y-2">
-          {isThreadsLoading ? (
-            <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-4 text-sm text-muted-foreground">
-              <Spinner size="sm" />
-              Chargement des conversations...
-            </div>
-          ) : null}
-
-          {!isThreadsLoading && threads.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border bg-card/70 px-4 py-6 text-center">
-              <HugeiconsIcon icon={MessageEdit01Icon} className="mx-auto mb-3 h-8 w-8 text-muted-foreground/40" />
-              <p className="text-sm font-medium text-foreground">Aucune conversation enregistrée</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Démarrez un nouveau chat pour créer votre premier historique.
-              </p>
-            </div>
-          ) : null}
-
-          {threads.map((thread) => {
-            const isActive = thread.id === activeThreadId
-            const isDeleting = deletingThreadId === thread.id
-
-            return (
-              <div
-                key={thread.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => void loadThread(thread.id)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault()
-                    void loadThread(thread.id)
-                  }
-                }}
-                className={cn(
-                  "group flex w-full cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                  isActive
-                    ? "border-primary/30 bg-primary/10"
-                    : "border-border bg-card/60 hover:bg-muted/60"
-                )}
-                aria-pressed={isActive}
-              >
-                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600/10 text-blue-600">
-                  <HugeiconsIcon icon={MessageEdit01Icon} className="h-4 w-4" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="line-clamp-2 text-sm font-medium text-foreground">
-                      {getThreadLabel(thread.title)}
-                    </p>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 shrink-0 cursor-pointer text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        void handleDeleteThread(thread.id)
-                      }}
-                      disabled={isDeleting}
-                      aria-label="Supprimer la conversation"
-                    >
-                      {isDeleting ? <Spinner size="sm" /> : <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4" />}
-                    </Button>
-                  </div>
-
-                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      <HugeiconsIcon icon={ClockIcon} className="h-3.5 w-3.5" />
-                      {getRelativeDateLabel(thread.updatedAt)}
-                    </span>
-                    <span>{thread.messageCount} message{thread.messageCount > 1 ? "s" : ""}</span>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </>
+  const onSuggestionClick = React.useCallback(
+    (text: string) => {
+      void submitPrompt(text)
+    },
+    [submitPrompt],
   )
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+      <div className="flex h-[calc(100vh-5.5rem)] items-center justify-center">
         <Spinner />
       </div>
     )
   }
+  if (!user) return null
 
-  if (!user) {
-    return null
-  }
+  const userName = user.name ?? null
+  const showEmptyState = !isThreadLoading && messages.length === 0
 
   return (
-    <div className="flex h-[calc(100vh-5.5rem)] overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
-      <motion.aside
-        initial={{ x: -16, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-        className="hidden w-72 flex-col border-r border-border bg-card/50 lg:flex"
-      >
-        {sidebarContent}
-      </motion.aside>
+    <div className="flex h-[calc(100vh-5.5rem)] overflow-hidden rounded-xl border border-border/60 bg-background shadow-sm">
+      <AgentSidebar
+        threads={threads}
+        activeThreadId={activeThreadId}
+        isLoading={isThreadsLoading}
+        isCollapsed={isCollapsed}
+        onToggleCollapse={() => setIsCollapsed((v) => !v)}
+        onSelectThread={(id) => void loadThread(id)}
+        onNewThread={startNewThread}
+        onDeleteThread={handleDeleteThread}
+        deletingThreadId={deletingThreadId}
+      />
 
-      <AnimatePresence>
-        {isSidebarOpen ? (
-          <>
-            <motion.button
-              type="button"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm lg:hidden"
-              onClick={() => setIsSidebarOpen(false)}
-              aria-label="Fermer l'historique des conversations"
-            />
-            <motion.aside
-              initial={{ x: -320 }}
-              animate={{ x: 0 }}
-              exit={{ x: -320 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-card shadow-xl lg:hidden"
-            >
-              {sidebarContent}
-            </motion.aside>
-          </>
-        ) : null}
-      </AnimatePresence>
+      <AgentMobileSidebar
+        open={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+        threads={threads}
+        activeThreadId={activeThreadId}
+        isLoading={isThreadsLoading}
+        onSelectThread={(id) => void loadThread(id)}
+        onNewThread={startNewThread}
+        onDeleteThread={handleDeleteThread}
+        deletingThreadId={deletingThreadId}
+      />
 
       <div className="flex min-w-0 flex-1 flex-col bg-background">
-        <div className="border-b border-border bg-card/70 px-4 py-4 backdrop-blur-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="cursor-pointer lg:hidden"
-                onClick={() => setIsSidebarOpen(true)}
-                aria-label="Ouvrir l'historique des conversations"
-              >
-                <HugeiconsIcon icon={Menu01Icon} className="h-5 w-5" />
-              </Button>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600/10">
-                <HugeiconsIcon icon={AiChat02Icon} className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-foreground">AI Partnership Analyst</h1>
-                <p className="text-xs text-muted-foreground">Powered by IntelliConnect AI</p>
-              </div>
-            </div>
-
+        <header className="flex items-center justify-between gap-2 border-b border-border/60 bg-card/60 px-3 py-2 backdrop-blur-sm">
+          <div className="flex min-w-0 items-center gap-2">
             <Button
               type="button"
-              variant="outline"
-              className="hidden cursor-pointer items-center gap-2 sm:inline-flex lg:hidden"
-              onClick={() => setIsSidebarOpen(true)}
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 lg:hidden"
+              onClick={() => setIsMobileSidebarOpen(true)}
+              aria-label="Ouvrir l'historique"
             >
-              <HugeiconsIcon icon={MessageEdit01Icon} className="h-4 w-4" />
-              Historique
+              <HugeiconsIcon icon={Menu01Icon} className="h-4 w-4" />
             </Button>
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-blue-500/10 ring-1 ring-primary/20">
+              <HugeiconsIcon icon={AiChat02Icon} className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="truncate text-xs font-semibold text-foreground sm:text-sm">
+                IntelliConnect AI
+              </h1>
+              <p className="truncate text-[10px] text-muted-foreground">
+                {activeThreadId
+                  ? `#${activeThreadId} · ${messages.length} message${messages.length > 1 ? "s" : ""}`
+                  : "Prêt à analyser vos données"}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={startNewThread}
+            className="h-7 gap-1.5 px-2 text-xs"
+            aria-label="Nouvelle conversation"
+          >
+            <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Nouvelle</span>
+          </Button>
+        </header>
+
+        <div ref={scrollRef} className="flex-1 overflow-y-auto">
           {isThreadLoading ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
               <Spinner />
-              <p className="text-sm text-muted-foreground">Chargement de la conversation...</p>
+              <p className="text-sm text-muted-foreground">Chargement…</p>
             </div>
-          ) : null}
-
-          {!isThreadLoading && messages.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center text-center">
-              <HugeiconsIcon icon={AiChat02Icon} className="mb-4 h-16 w-16 text-muted-foreground/20" />
-              <h2 className="mb-2 text-lg font-medium text-muted-foreground">IntelliConnect AI Agent</h2>
-              <p className="mb-6 max-w-md text-sm text-muted-foreground/70">
-                Ask me anything about your partnership data. I can analyze partners,
-                predict churn, score applications, and create visualizations.
-              </p>
-              <div className="flex max-w-2xl flex-wrap justify-center gap-2">
-                {suggestions.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => void handleSuggestionClick(suggestion)}
-                    className="cursor-pointer rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    disabled={isLoading || isThreadLoading || !activeThreadId}
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          {!isThreadLoading
-            ? messages.map((message) => (
+          ) : showEmptyState ? (
+            <AgentEmptyState userName={userName} onSelect={onSuggestionClick} disabled={isBusy} />
+          ) : (
+            <div className="mx-auto max-w-4xl space-y-3 px-3 py-4 sm:px-5">
+              {messages.map((message) => (
                 <motion.div
                   key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
                   className={cn(
-                    message.role === "user" ? "flex justify-end" : "flex justify-start"
+                    "flex",
+                    message.role === "user" ? "justify-end" : "justify-start",
                   )}
                 >
-                  <ChatMessage message={message} />
+                  <ChatMessage
+                    message={message}
+                    isStreaming={isStreaming && message.role === "assistant"}
+                    onSuggestionClick={(text) => void submitPrompt(text)}
+                  />
                 </motion.div>
-              ))
-            : null}
+              ))}
 
-          {isLoading ? (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Spinner size="sm" />
-              <span className="text-sm">Analyzing...</span>
+              <AnimatePresence>
+                {(autoCreating || (isStreaming && messages[messages.length - 1]?.role === "user")) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="flex justify-start"
+                  >
+                    <AgentThinking />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          ) : null}
+          )}
         </div>
 
-        <div className="border-t border-border bg-card/70 p-4 backdrop-blur-sm">
-          <form onSubmit={(event) => void handleSubmit(event)} className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              placeholder="Ask about partners, analytics, predictions..."
-              className="flex-1"
-              disabled={isLoading || isThreadLoading || !activeThreadId}
-            />
+        <div className="border-t border-border/60 bg-card/60 px-3 py-2 backdrop-blur-sm sm:px-4">
+          <form onSubmit={(e) => void handleSubmit(e)} className="mx-auto flex max-w-4xl items-end gap-2">
+            <div className="relative flex-1">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  activeThreadId
+                    ? "Continuez… (Entrée pour envoyer · Maj+Entrée pour saut de ligne)"
+                    : "Posez une question…"
+                }
+                rows={1}
+                disabled={isBusy || isThreadLoading}
+                className={cn(
+                  "w-full resize-none rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none transition-all",
+                  "focus:border-ring focus:ring-2 focus:ring-ring/40",
+                  "disabled:cursor-not-allowed disabled:opacity-60",
+                  "max-h-40 min-h-[40px]",
+                )}
+                style={{
+                  height: "auto",
+                  minHeight: 40,
+                }}
+                onInput={(e) => {
+                  const el = e.currentTarget
+                  el.style.height = "auto"
+                  el.style.height = `${Math.min(el.scrollHeight, 160)}px`
+                }}
+              />
+            </div>
             <Button
               type="submit"
-              disabled={isLoading || isThreadLoading || !input.trim() || !activeThreadId}
-              className="bg-blue-600 text-white hover:bg-blue-700"
-              aria-label="Send message"
+              disabled={isBusy || isThreadLoading || !input.trim()}
+              className="h-10 w-10 shrink-0 rounded-xl bg-blue-600 p-0 text-white shadow-sm hover:bg-blue-700 disabled:opacity-40"
+              aria-label="Envoyer"
             >
-              <HugeiconsIcon icon={SentIcon} className="h-4 w-4" />
+              {isStreaming ? (
+                <Spinner size="sm" />
+              ) : (
+                <HugeiconsIcon icon={SentIcon} className="h-4 w-4" />
+              )}
             </Button>
           </form>
+          <p className="mx-auto mt-1.5 max-w-4xl text-center text-[10px] text-muted-foreground/50">
+            Données réelles uniquement · zéro hallucination
+          </p>
         </div>
       </div>
     </div>

@@ -19,6 +19,7 @@ import {
 import { SparklesText } from "@/frontend/components/ui/sparkles-text"
 import { AddButton } from "@/frontend/components/ui/add-button"
 import { CardStack, CardStackItem } from "@/frontend/components/ui/card-stack"
+import { PartnerSelect } from "@/frontend/components/ui/partner-select"
 import { cn } from "@/frontend/lib/utils"
 
 interface Offer {
@@ -108,7 +109,7 @@ export default function OffersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.title || !form.partnerId) {
-      toast.error("Erreur", { description: "Titre et ID partenaire requis" })
+      toast.error("Erreur", { description: "Partenaire et titre requis" })
       return
     }
     setSaving(true)
@@ -197,11 +198,10 @@ export default function OffersPage() {
           <h2 className="font-semibold text-sm">Ajouter une offre</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label>ID Partenaire *</Label>
-              <Input
-                type="number"
+              <Label>Partenaire *</Label>
+              <PartnerSelect
                 value={form.partnerId}
-                onChange={(e) => setForm({ ...form, partnerId: e.target.value })}
+                onChange={(id) => setForm({ ...form, partnerId: id })}
                 required
               />
             </div>
