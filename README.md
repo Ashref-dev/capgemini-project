@@ -76,6 +76,13 @@ Edit .env with your values:
     GMAIL_USER=                        # optional -- email notifications
     GMAIL_APP_PASSWORD=                # optional -- Gmail app password
 
+### AI Engineering env vars (optional, for production-grade observability + RAG)
+
+- `VOYAGE_API_KEY` — Voyage AI embeddings (free tier: 200M tokens). Required for the document RAG search tool.
+- `LANGSMITH_API_KEY` — LangSmith tracing & evals (free dev tier: 5k traces/month).
+- `LANGSMITH_PROJECT` — Project name in LangSmith. Defaults to `capgemini-intelliconnect`.
+- `LANGSMITH_TRACING` — Set to `true` to enable tracing. Set to `false` (or omit) to disable.
+
 Generate a JWT secret:
 
     node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
