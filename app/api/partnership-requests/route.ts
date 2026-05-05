@@ -1,9 +1,31 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/backend/db/config"
 import { partnershipRequests } from "@/backend/db/schema"
+import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
 import { sendEmail } from "@/backend/services/email"
+import { desc } from "drizzle-orm"
 
-// POST /api/partnership-requests — Public (no auth), submit partnership request
+export async function GET(request: NextRequest) {
+  const user = await getSessionUser(request)
+  if (!user || user.userType !== "employee") {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+  }
+  if (!isAdminOrManager(user.role)) {
+    return NextResponse.json({ error: "Accès réservé aux managers et administrateurs" }, { status: 403 })
+  }
+
+  try {
+    const requests = await db
+      .select()
+      .from(partnershipRequests)
+      .orderBy(desc(partnershipRequests.createdAt))
+    return NextResponse.json({ requests })
+  } catch (error) {
+    console.error("Error fetching partnership requests:", error)
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()

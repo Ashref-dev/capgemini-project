@@ -1,9 +1,15 @@
-import { APICallError, convertToModelMessages, streamText, tool, type UIMessage } from "ai"
+import * as aiSdk from "ai"
+import { APICallError, consumeStream, convertToModelMessages, tool, type UIMessage } from "ai"
 import { createOpenRouter } from "@openrouter/ai-sdk-provider"
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm"
+import { Client as LangSmithClient } from "langsmith"
+import { createLangSmithProviderOptions, wrapAISDK } from "langsmith/experimental/vercel"
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
+import { selectMethodologies, buildMethodologyPrompt } from "@/backend/agent/methodologies"
+import { loadSystemPrompt } from "@/backend/agent/prompt"
+import { searchDocuments } from "@/backend/agent/rag"
 import { getSessionUser } from "@/backend/auth/session"
 import { db } from "@/backend/db/config"
 import { dwPool } from "@/backend/db/dw-config"
@@ -25,41 +31,78 @@ import {
   universityPartners,
   vendorProjects,
 } from "@/backend/db/schema"
+import {
+  analyzeProjectHealth,
+  identifyAtRiskProjects,
+  forecastProjectDelay,
+  recommendStaffing,
+  findCriticalPath,
+  crossEntityAnalysis,
+} from "@/backend/services/project-analytics"
 
 const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_KEY! })
-const OPENROUTER_MODEL_ID = "openrouter/elephant-alpha"
+const OPENROUTER_MODEL_ID = process.env.OPENROUTER_MODEL_ID ?? "openrouter/owl-alpha"
+const langsmithEnabled = process.env.LANGSMITH_TRACING === "true" && !!process.env.LANGSMITH_API_KEY
+const lsClient = langsmithEnabled ? new LangSmithClient() : null
+const { streamText: instrumentedStreamText } = langsmithEnabled
+  ? wrapAISDK(aiSdk, { client: lsClient ?? undefined })
+  : { streamText: aiSdk.streamText }
 
-const SYSTEM_PROMPT = `You are the IntelliConnect AI Partnership Analyst for Capgemini Tunisia.
+let warnedLangSmithMissingKey = false
 
-You support a partnership management platform backed by a live PostgreSQL operational database and a BI data warehouse.
+const SYSTEM_PROMPT = `You are IntelliConnect, the senior AI Partnership Analyst for Capgemini Tunisia.
 
-Operational database coverage includes:
-- Partners across university, customer, marketing, and supplier/technology categories
-- Contacts, events, offers, meetings, notifications, KPI snapshots, and status history
-- University recruitment performance and supplier/vendor project delivery history
+DATA SOURCES
+- Operational PostgreSQL: partners (university / customer / marketing / supplier-technology), contacts, events, offers, meetings, notifications, KPI snapshots, status history, recruitments, vendor projects.
+- BI data warehouse: category / status / level distributions, revenue analytics, event & project summaries, recruitment conversion analytics.
 
-Data warehouse coverage includes:
-- Partner category, status, and level distributions
-- Revenue analytics
-- Event performance summaries
-- Project portfolio summaries
-- Recruitment conversion analytics
+# RESPONSE PROTOCOL — follow in this exact order
+1. CLARIFY first if anything material is ambiguous (date range, partner identity, currency, scope, comparison set). Use \`askClarification\` and STOP — do not proceed until the user replies.
+2. DECLARE methodology with \`declareMethodology\` for any analytical task (scoring, churn, benchmark, financial breakdown, multi-step report). Skip only for trivial single-fact lookups.
+3. PLAN with \`createPlan\` for any task with 3+ steps. Update steps as you go by re-emitting \`createPlan\` with new statuses.
+4. RUN tools to fetch evidence. Never assume data — call a tool.
+5. SYNTHESIZE a concise written answer in English, business-grade tone, no filler.
+6. END with a visualization. EVERY analytical or report response MUST end with at least one of: \`createTable\`, \`createBarChart\`, \`createLineChart\`, \`createPieChart\`, or \`generateReport\`. This rule is non-negotiable for analytical / financial / multi-record outputs.
 
-Your job:
-- Answer partnership questions with evidence from the database
-- Use tools before making claims about data
-- Explain scoring, churn risk, and recommendation logic in practical business language
-- Give concise but actionable analysis in English
+# ANTI-HALLUCINATION
+- Every numeric or factual claim must trace back to a tool result in the same conversation. If a tool returned no data, say "insufficient evidence" — do not guess.
+- Format money as "1,234,567 TND" with thousands separators.
+- Use ISO dates (YYYY-MM-DD) for periods.
+- Never fabricate partner names, IDs, scores, or counts.
+- If you can't decide between two interpretations, ask — do not pick.
 
-Mandatory presentation rules:
-1. ALWAYS use at least one visualization tool in every response.
-2. Use createTable whenever you present detailed tabular records.
-3. Use bar, line, or pie charts for comparisons, trends, or distributions.
-4. When scoring a partner, show the 5 scoring dimensions and the final recommendation.
-5. When predicting churn, explain the main risk drivers and suggest concrete retention actions.
-6. When recommending partners, explain why each partner matched the stated need.
-7. Format financial values clearly, for example 1,234,567 TND.
-8. Never invent data that was not returned by a tool.`
+# ANALYTICAL PATTERNS (declare with declareMethodology)
+- Margin Waterfall (Gross → Operating → Net), Best-in-Class with Root Cause, COGS Structure Comparison, Revenue Decomposition, Peer Benchmark, Activity-Decay Churn Model, Strategic-Fit Scoring (5 dimensions), Vendor Performance Index, Recruitment Funnel Conversion.
+
+# TOOL USAGE RULES
+- \`scorePartner\`: always show all 5 dimensions, contributing signals, and recommendation (APPROVE/REVIEW/REJECT).
+- \`predictChurn\`: list main risk drivers + concrete retention actions.
+- \`recommendPartners\`: explain WHY each match fits the stated need.
+- When you call \`searchDocuments\`, ALWAYS cite the returned chunks in your answer using the format [partner_document#42-chunk-3] or [project_document#7-chunk-1]. Never make up document content — only cite what the tool returned.
+- \`createTable\`: use for any list ≥ 3 records.
+- Charts: \`createBarChart\` for cross-category comparisons, \`createLineChart\` for time series, \`createPieChart\` for share/distribution.
+- \`generateReport\`: only when the user explicitly asks for a "report".
+
+# COMMUNICATION
+- Concise. Get to the answer fast.
+- All output in the user's language (French if they write in French, English otherwise).
+
+# RESPONSE FORMATTING — make every reply look polished and scannable
+For ALL replies, structure your prose using GitHub-flavored markdown:
+
+- Open with a one-line **TL;DR** in bold when the answer has any depth.
+- Use \`### Section\` headings to break up multi-part answers.
+- Bullet lists are preferred to walls of text. Cap at 5 items per list.
+- **Bold the key numbers**, names, and verbs (≤ 4 bolds per paragraph).
+- Use \`> blockquotes\` for warnings, recommendations, or "what to do next".
+- Use compact tables (markdown pipes) for ≤ 6 rows of structured comparison; for ≥ 7 rows, call \`createTable\` instead.
+- Inline code (\`like this\`) for IDs, field names, status values, and tool names.
+- Add a final 🎯 **Next steps** or 📌 **À retenir** section (1-3 bullets) on analytical answers.
+- For greetings or casual prompts ("hi", "merci", "ça va"): respond warmly in 1-2 sentences, then surface a 3-bullet "Voici ce que je peux faire" with concrete prompt examples in inline code.
+- NEVER dump raw JSON or full tool output to the user — always synthesize.
+- NEVER use code fences for prose. Code fences only for actual code or SQL.
+
+Use emojis sparingly as section markers (🎯 📌 ⚠️ ✅ 📊) — never inside data values.`
 
 const partnerCategoryEnum = z.enum(["university", "customer", "marketing", "supplier"])
 
@@ -349,6 +392,17 @@ function extractMessageText(message: UIMessage) {
   return (message as unknown as { content?: string }).content || ""
 }
 
+function extractTextFromUIMessage(message: { parts?: Array<{ type: string; text?: string }>; content?: string }): string {
+  if (typeof message.content === "string") return message.content
+  if (Array.isArray(message.parts)) {
+    return message.parts
+      .filter((part) => part.type === "text" && typeof part.text === "string")
+      .map((part) => part.text ?? "")
+      .join("\n")
+  }
+  return ""
+}
+
 function extractToolParts(message: UIMessage): PersistedToolResult[] {
   if (!message.parts) return []
   return message.parts
@@ -390,6 +444,25 @@ function extractResponseText(content: unknown) {
     })
     .filter((part): part is string => part !== null)
     .join("\n")
+}
+
+function extractTextFromParts(parts: unknown) {
+  return extractResponseText(parts) ?? ""
+}
+
+function markPartsAborted(parts: unknown, isAborted: boolean) {
+  if (!isAborted || !Array.isArray(parts)) {
+    return parts
+  }
+
+  return parts.map((part) => (isRecord(part) ? { ...part, aborted: true } : part))
+}
+
+function warnIfLangSmithPartiallyConfigured() {
+  if (process.env.LANGSMITH_TRACING === "true" && !process.env.LANGSMITH_API_KEY && !warnedLangSmithMissingKey) {
+    console.warn("[langsmith] LANGSMITH_API_KEY missing — tracing disabled")
+    warnedLangSmithMissingKey = true
+  }
 }
 
 async function ensureThreadForUser(userId: number, userType: string, messages: UIMessage[]) {
@@ -2085,7 +2158,77 @@ const generateReport = tool({
   },
 })
 
+const declareMethodology = tool({
+  description:
+    "Declare the analytical methodologies you will use BEFORE answering an analytical question. Use for scoring, churn, benchmarks, financial breakdowns, multi-step reports. Skip for trivial single-fact lookups.",
+  inputSchema: z.object({
+    methodologies: z
+      .array(z.string().min(2))
+      .min(1)
+      .max(6)
+      .describe(
+        "Short methodology names, e.g. 'Gross-to-Net Margin Waterfall', 'Strategic-Fit Scoring', 'Activity-Decay Churn Model'."
+      ),
+    rationale: z
+      .string()
+      .min(10)
+      .describe("One-sentence reason why these methodologies fit the user's question."),
+    assumptions: z
+      .array(z.string())
+      .default([])
+      .describe("Optional explicit assumptions (e.g. 'TND, fiscal year 2024', 'consolidated figures')."),
+  }),
+  execute: async ({ methodologies, rationale, assumptions }) => ({
+    methodologies,
+    rationale,
+    assumptions,
+  }),
+})
+
+const createPlan = tool({
+  description:
+    "Publish or update an ordered analysis plan as a checklist. Call once at the start with all steps in 'pending', then re-emit with updated statuses as you make progress. Use for any task with 3+ logical steps.",
+  inputSchema: z.object({
+    objective: z.string().min(5).describe("One-line objective of the analysis."),
+    steps: z
+      .array(
+        z.object({
+          id: z.string().min(1).describe("Stable id, e.g. 'identify-target', 'pull-financials'."),
+          title: z.string().min(3).describe("Human-readable step title."),
+          status: z
+            .enum(["pending", "in_progress", "completed", "blocked"])
+            .describe("Current state of this step."),
+          note: z.string().optional().describe("Optional short note (e.g. why blocked)."),
+        })
+      )
+      .min(2)
+      .max(12),
+  }),
+  execute: async ({ objective, steps }) => ({ objective, steps }),
+})
+
+const askClarification = tool({
+  description:
+    "Ask ONE targeted clarification when essential information is missing or ambiguous (date range, partner identity, currency, scope, comparison universe, period type). After calling this tool, STOP — wait for the user reply before doing any more work.",
+  inputSchema: z.object({
+    question: z.string().min(5).describe("The single clarification question, plain language."),
+    reason: z
+      .string()
+      .min(5)
+      .describe("Why this question must be answered before proceeding."),
+    options: z
+      .array(z.string().min(1))
+      .max(8)
+      .optional()
+      .describe("Optional shortlist of likely answers the UI will render as one-click chips."),
+  }),
+  execute: async ({ question, reason, options }) => ({ question, reason, options: options ?? [] }),
+})
+
 const tools = {
+  declareMethodology,
+  createPlan,
+  askClarification,
   queryPartners,
   queryAnalytics,
   getPartnerDetails,
@@ -2100,9 +2243,125 @@ const tools = {
   summarizePartnerPortfolio,
   getPartnerActivityTimeline,
   getCategoryBenchmarks,
+  analyzeProjectHealth: tool({
+    description:
+      "Analyze the health of a single project. Returns a 0-100 score, R/Y/G band, and human-readable reasons. Use when the user asks about a specific project's status, risk, or health.",
+    inputSchema: z.object({
+      projectId: z.number().int().positive().describe("Project ID to analyze"),
+    }),
+    execute: async ({ projectId }) => {
+      try {
+        return await analyzeProjectHealth(projectId)
+      } catch (error) {
+        return { error: error instanceof Error ? error.message : "Unknown error" }
+      }
+    },
+  }),
+  identifyAtRiskProjects: tool({
+    description:
+      "Identify projects currently at risk (Red or low-Yellow health). Returns top 20 worst-first. Use when the user asks 'which projects are in trouble', 'show me at-risk projects', etc.",
+    inputSchema: z.object({
+      partnerId: z.number().int().positive().optional().describe("Optional: filter to projects of a specific partner"),
+      minRiskScore: z
+        .number()
+        .int()
+        .min(0)
+        .max(100)
+        .optional()
+        .describe("Optional: include yellow projects below this score (default 60)"),
+    }),
+    execute: async (input) => {
+      try {
+        return { projects: await identifyAtRiskProjects(input) }
+      } catch (error) {
+        return { error: error instanceof Error ? error.message : "Unknown error" }
+      }
+    },
+  }),
+  forecastProjectDelay: tool({
+    description:
+      "Forecast a project's likely end date based on past milestone slippage. Returns predicted end date and confidence level. Use when asked to predict delays or project completion.",
+    inputSchema: z.object({
+      projectId: z.number().int().positive(),
+    }),
+    execute: async ({ projectId }) => {
+      try {
+        return await forecastProjectDelay(projectId)
+      } catch (error) {
+        return { error: error instanceof Error ? error.message : "Unknown error" }
+      }
+    },
+  }),
+  recommendStaffing: tool({
+    description:
+      "Recommend Capgemini employees who would fit well on a project, based on tag/skill match, current availability, and workload. Returns top 8.",
+    inputSchema: z.object({
+      projectId: z.number().int().positive(),
+    }),
+    execute: async ({ projectId }) => {
+      try {
+        return { recommendations: await recommendStaffing(projectId) }
+      } catch (error) {
+        return { error: error instanceof Error ? error.message : "Unknown error" }
+      }
+    },
+  }),
+  findCriticalPath: tool({
+    description:
+      "Identify the critical chain of open milestones for a project, ordered chronologically. Returns the path + total span in days.",
+    inputSchema: z.object({
+      projectId: z.number().int().positive(),
+    }),
+    execute: async ({ projectId }) => {
+      try {
+        return await findCriticalPath(projectId)
+      } catch (error) {
+        return { error: error instanceof Error ? error.message : "Unknown error" }
+      }
+    },
+  }),
+  crossEntityAnalysis: tool({
+    description: "Cross-entity analysis combining a partner and/or a project. Returns joint insights. Provide at least one of partnerId or projectId.",
+    inputSchema: z.object({
+      partnerId: z.number().int().positive().optional(),
+      projectId: z.number().int().positive().optional(),
+    }),
+    execute: async (input) => {
+      try {
+        return await crossEntityAnalysis(input)
+      } catch (error) {
+        return { error: error instanceof Error ? error.message : "Unknown error" }
+      }
+    },
+  }),
+  searchDocuments: tool({
+    description:
+      "Vector search over partner + project documents. Returns top-K most similar chunks with citations like 'partner_document#42-chunk-3'. Use when the user asks about document content, contract terms, or anything that might be in a stored document. After using this tool, ALWAYS cite chunks in your answer using the citation format [docKind#docId-chunk-N].",
+    inputSchema: z.object({
+      query: z.string().min(3).describe("The user's question or search query"),
+      topK: z.number().int().min(1).max(10).optional().default(5),
+      sourceKind: z.enum(["partner_document", "project_document"]).optional(),
+      documentId: z.number().int().positive().optional().describe("Optional: restrict to a specific document"),
+    }),
+    execute: async (input) => {
+      try {
+        const matches = await searchDocuments({
+          query: input.query,
+          topK: input.topK ?? 5,
+          sourceKind: input.sourceKind,
+          documentId: input.documentId,
+        })
+        return { matches }
+      } catch (error) {
+        return { error: error instanceof Error ? error.message : "Unknown error" }
+      }
+    },
+  }),
 }
 
 export async function POST(req: NextRequest) {
+  warnIfLangSmithPartiallyConfigured()
+
   const user = await getSessionUser(req)
   if (!user) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
@@ -2134,28 +2393,122 @@ export async function POST(req: NextRequest) {
     }))
 
     const modelMessages = await convertToModelMessages(uiMessages, { tools })
+    const { text: baseSystemPrompt, version: promptVersion } = await loadSystemPrompt(SYSTEM_PROMPT)
+    const latestUserMessage = incomingMessages
+      .slice()
+      .reverse()
+      .find((message) => message.role === "user")
+    const userText = latestUserMessage ? extractTextFromUIMessage(latestUserMessage) : ""
+    const matchedMethodologies = selectMethodologies(userText)
+    const methodologyAddendum = buildMethodologyPrompt(matchedMethodologies)
+    const finalSystemPrompt = baseSystemPrompt + methodologyAddendum
 
-    const result = streamText({
+    if (matchedMethodologies.length > 0) {
+      console.info(
+        "[chat] methodology addendum injected:",
+        matchedMethodologies.map((methodology) => methodology.id).join(", ")
+      )
+    }
+
+    const providerOptions = langsmithEnabled
+      ? {
+          langsmith: createLangSmithProviderOptions<typeof aiSdk.streamText>({
+            name: "intelliconnect-chat",
+            metadata: {
+              thread_id: String(threadId),
+              user_id: String(user.sub),
+              user_type: user.userType,
+              prompt_version: promptVersion,
+            },
+            tags: [`thread:${threadId}`, `user:${user.sub}`],
+          }),
+        }
+      : undefined
+
+    let assistantMessageId: string | null = null
+    let accumulatedText = ""
+
+    const result = instrumentedStreamText({
       model: openrouter.chat(OPENROUTER_MODEL_ID),
-      system: SYSTEM_PROMPT,
+      system: finalSystemPrompt,
       messages: modelMessages,
       tools,
-      stopWhen: ({ steps }) => steps.length >= 10,
+      providerOptions,
+      abortSignal: req.signal,
+      stopWhen: ({ steps }) => steps.length >= 15,
+      onChunk: async ({ chunk }) => {
+        if (chunk.type !== "text-delta") {
+          return
+        }
+
+        accumulatedText += chunk.text ?? ""
+        if (!assistantMessageId) {
+          assistantMessageId = `asst_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+        }
+
+        try {
+          await db
+            .insert(chatMessages)
+            .values({
+              threadId,
+              messageId: assistantMessageId,
+              role: "assistant",
+              content: accumulatedText,
+              parts: [{ type: "text", text: accumulatedText, partial: true }],
+            })
+            .onConflictDoUpdate({
+              target: [chatMessages.threadId, chatMessages.messageId],
+              targetWhere: sql`${chatMessages.messageId} is not null`,
+              set: {
+                content: accumulatedText,
+                parts: [{ type: "text", text: accumulatedText, partial: true }],
+              },
+            })
+        } catch (error) {
+          console.error("[chat] partial persistence failed:", error)
+        }
+      },
       onError: async ({ error }) => {
         console.error("OpenRouter stream error:", formatOpenRouterError(error), error)
       },
-      onFinish: async ({ response }) => {
-        const responseMessages = response.messages.map((message) => ({
-          role: message.role,
-          content: extractResponseText(message.content),
-          parts: Array.isArray(message.content) ? message.content : null,
-        }))
+      onFinish: async (event) => {
+        try {
+          const responseMessages = event.response.messages.map((message) => ({
+            role: message.role,
+            content: extractResponseText(message.content),
+            parts: Array.isArray(message.content) ? message.content : null,
+          }))
+          const assistantResponseMessages = responseMessages.filter((message) => message.role === "assistant")
+          const finalAssistantMessage = assistantResponseMessages[assistantResponseMessages.length - 1]
+          const finalParts = finalAssistantMessage?.parts ?? [{ type: "text", text: accumulatedText }]
+          const finalContent = extractTextFromParts(finalParts) || finalAssistantMessage?.content || accumulatedText
+          const eventRecord: unknown = event
+          const isAborted = isRecord(eventRecord) && typeof eventRecord.isAborted === "boolean" ? eventRecord.isAborted : false
 
-        await persistAssistantResponse(threadId, responseMessages)
+          if (assistantMessageId) {
+            await db
+              .update(chatMessages)
+              .set({
+                content: finalContent,
+                parts: markPartsAborted(finalParts, isAborted),
+              })
+              .where(and(eq(chatMessages.threadId, threadId), eq(chatMessages.messageId, assistantMessageId)))
+
+            const nonAssistantMessages = responseMessages.filter((message) => message.role === "tool")
+            await persistAssistantResponse(threadId, nonAssistantMessages)
+          } else {
+            await persistAssistantResponse(threadId, responseMessages)
+          }
+
+          await db.update(chatThreads).set({ updatedAt: new Date() }).where(eq(chatThreads.id, threadId))
+        } catch (error) {
+          console.error("[chat] onFinish persistence failed:", error)
+        }
       },
     })
 
     return result.toUIMessageStreamResponse({
+      consumeSseStream: consumeStream,
       onError: formatOpenRouterError,
     })
   } catch (error) {

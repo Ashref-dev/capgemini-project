@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/backend/db/config"
-import { partnerContacts, partners } from "@/backend/db/schema"
+import { partnerContacts } from "@/backend/db/schema"
 import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
+import { validatePartnerId } from "@/backend/services/validate-partner"
 import { eq } from "drizzle-orm"
 
 // GET /api/contacts - List contacts with partner name
@@ -47,10 +48,18 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
+    const partnerCheck = await validatePartnerId(body.partnerId)
+    if (!partnerCheck.ok) {
+      return NextResponse.json({ error: partnerCheck.error }, { status: partnerCheck.status })
+    }
+    if (!body.firstName || !body.lastName) {
+      return NextResponse.json({ error: "Prénom et nom requis" }, { status: 400 })
+    }
+
     const newContact = await db
       .insert(partnerContacts)
       .values({
-        partnerId: Number(body.partnerId),
+        partnerId: partnerCheck.id,
         firstName: body.firstName,
         lastName: body.lastName,
         email: body.email,

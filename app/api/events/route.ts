@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/backend/db/config"
 import { partnerEvents } from "@/backend/db/schema"
 import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
+import { validatePartnerId } from "@/backend/services/validate-partner"
 import { eq } from "drizzle-orm"
 
 // GET /api/events
@@ -35,10 +36,18 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
+    const partnerCheck = await validatePartnerId(body.partnerId)
+    if (!partnerCheck.ok) {
+      return NextResponse.json({ error: partnerCheck.error }, { status: partnerCheck.status })
+    }
+    if (!body.eventName || !body.eventDate) {
+      return NextResponse.json({ error: "Nom et date requis" }, { status: 400 })
+    }
+
     const newEvent = await db
       .insert(partnerEvents)
       .values({
-        partnerId: Number(body.partnerId),
+        partnerId: partnerCheck.id,
         eventName: body.eventName,
         eventType: body.eventType || null,
         eventDate: body.eventDate,

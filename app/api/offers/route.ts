@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/backend/db/config"
 import { offers } from "@/backend/db/schema"
 import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
+import { validatePartnerId } from "@/backend/services/validate-partner"
 import { eq } from "drizzle-orm"
 
 // GET /api/offers
@@ -35,10 +36,18 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
+    const partnerCheck = await validatePartnerId(body.partnerId)
+    if (!partnerCheck.ok) {
+      return NextResponse.json({ error: partnerCheck.error }, { status: partnerCheck.status })
+    }
+    if (!body.title) {
+      return NextResponse.json({ error: "Titre requis" }, { status: 400 })
+    }
+
     const newOffer = await db
       .insert(offers)
       .values({
-        partnerId: Number(body.partnerId),
+        partnerId: partnerCheck.id,
         title: body.title,
         description: body.description || null,
         discountType: body.discountType || "percentage",

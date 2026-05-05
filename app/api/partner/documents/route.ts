@@ -6,6 +6,7 @@ import { eq, desc } from "drizzle-orm"
 import { writeFile, mkdir } from "fs/promises"
 import path from "path"
 import crypto from "crypto"
+import { fireAndForgetIngest } from "@/backend/agent/upload-ingest"
 
 const UPLOAD_DIR = path.join(process.cwd(), "uploads", "documents")
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
@@ -99,6 +100,12 @@ export async function POST(request: NextRequest) {
         uploadedById: partnerId,
       })
       .returning()
+
+    if (doc) {
+      const absFilePath = path.join(UPLOAD_DIR, safeName)
+      const expectedDir = path.join(process.cwd(), "uploads")
+      fireAndForgetIngest("partner_document", doc.id, doc.fileType, absFilePath, expectedDir)
+    }
 
     return NextResponse.json({ document: doc }, { status: 201 })
   } catch (error) {

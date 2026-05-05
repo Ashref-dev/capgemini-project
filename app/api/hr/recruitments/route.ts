@@ -2,20 +2,24 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/backend/db/config"
 import { studentRecruitments } from "@/backend/db/schema"
 import { getSessionUser } from "@/backend/auth/session"
+import { validatePartnerId } from "@/backend/services/validate-partner"
 import { eq } from "drizzle-orm"
 
 function isHrOrAdmin(role?: string) {
   return role === "rh" || role === "admin"
 }
 
-// GET /api/hr/recruitments — List all student recruitments
+function canReadRecruitments(role?: string) {
+  return role === "rh" || role === "admin" || role === "manager"
+}
+
 export async function GET(request: NextRequest) {
   const user = await getSessionUser(request)
   if (!user || user.userType !== "employee") {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
   }
-  if (!isHrOrAdmin(user.role)) {
-    return NextResponse.json({ error: "Accès réservé aux RH et administrateurs" }, { status: 403 })
+  if (!canReadRecruitments(user.role)) {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
   }
 
   try {
@@ -43,14 +47,18 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    if (!body.universityPartnerId || !body.startDate) {
-      return NextResponse.json({ error: "Partenaire universitaire et date de début requis" }, { status: 400 })
+    const partnerCheck = await validatePartnerId(body.universityPartnerId, { category: "university" })
+    if (!partnerCheck.ok) {
+      return NextResponse.json({ error: partnerCheck.error }, { status: partnerCheck.status })
+    }
+    if (!body.startDate) {
+      return NextResponse.json({ error: "Date de début requise" }, { status: 400 })
     }
 
     const newRecruitment = await db
       .insert(studentRecruitments)
       .values({
-        universityPartnerId: Number(body.universityPartnerId),
+        universityPartnerId: partnerCheck.id,
         studentFirstName: body.studentFirstName || null,
         studentLastName: body.studentLastName || null,
         studentEmail: body.studentEmail || null,
