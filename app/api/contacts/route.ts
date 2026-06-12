@@ -5,6 +5,23 @@ import { getSessionUser, isAdminOrManager } from "@/lib/server/auth/session"
 import { validatePartnerId } from "@/lib/server/services/validate-partner"
 import { eq } from "drizzle-orm"
 
+function getContactId(request: NextRequest): number | null {
+  const id = Number(new URL(request.url).searchParams.get("id"))
+  return Number.isInteger(id) && id > 0 ? id : null
+}
+
+function normalizeOptionalText(value: unknown): string | null {
+  if (typeof value !== "string") return null
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+function normalizeRequiredText(value: unknown): string | null {
+  if (typeof value !== "string") return null
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
 // GET /api/contacts - List contacts with partner name
 export async function GET(request: NextRequest) {
   const user = await getSessionUser(request)
@@ -47,12 +64,20 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json()
-    const partnerCheck = await validatePartnerId(body.partnerId)
+    const body: unknown = await request.json()
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Données invalides" }, { status: 400 })
+    }
+
+    const payload = body as Record<string, unknown>
+    const partnerCheck = await validatePartnerId(payload.partnerId)
     if (!partnerCheck.ok) {
       return NextResponse.json({ error: partnerCheck.error }, { status: partnerCheck.status })
     }
-    if (!body.firstName || !body.lastName) {
+
+    const firstName = normalizeRequiredText(payload.firstName)
+    const lastName = normalizeRequiredText(payload.lastName)
+    if (!firstName || !lastName) {
       return NextResponse.json({ error: "Prénom et nom requis" }, { status: 400 })
     }
 
@@ -60,12 +85,12 @@ export async function POST(request: NextRequest) {
       .insert(partnerContacts)
       .values({
         partnerId: partnerCheck.id,
-        firstName: body.firstName,
-        lastName: body.lastName,
-        email: body.email,
-        phone: body.phone,
-        role: body.role,
-        isPrimary: body.isPrimary || false,
+        firstName,
+        lastName,
+        email: normalizeOptionalText(payload.email),
+        phone: normalizeOptionalText(payload.phone),
+        role: normalizeOptionalText(payload.role),
+        isPrimary: payload.isPrimary === true,
       })
       .returning()
 
@@ -73,5 +98,96 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating contact:", error)
     return NextResponse.json({ error: "Erreur lors de la création" }, { status: 500 })
+  }
+}
+
+// PUT /api/contacts?id=123 - Update contact (admin/manager)
+export async function PUT(request: NextRequest) {
+  const user = await getSessionUser(request)
+  if (!user) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+  }
+  if (!isAdminOrManager(user.role)) {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
+  }
+
+  const id = getContactId(request)
+  if (!id) {
+    return NextResponse.json({ error: "ID requis" }, { status: 400 })
+  }
+
+  try {
+    const body: unknown = await request.json()
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Données invalides" }, { status: 400 })
+    }
+
+    const payload = body as Record<string, unknown>
+    const partnerCheck = await validatePartnerId(payload.partnerId)
+    if (!partnerCheck.ok) {
+      return NextResponse.json({ error: partnerCheck.error }, { status: partnerCheck.status })
+    }
+
+    const firstName = normalizeRequiredText(payload.firstName)
+    const lastName = normalizeRequiredText(payload.lastName)
+    if (!firstName || !lastName) {
+      return NextResponse.json({ error: "Prénom et nom requis" }, { status: 400 })
+    }
+
+    const updatedContact = await db
+      .update(partnerContacts)
+      .set({
+        partnerId: partnerCheck.id,
+        firstName,
+        lastName,
+        email: normalizeOptionalText(payload.email),
+        phone: normalizeOptionalText(payload.phone),
+        role: normalizeOptionalText(payload.role),
+        isPrimary: payload.isPrimary === true,
+        updatedAt: new Date(),
+      })
+      .where(eq(partnerContacts.id, id))
+      .returning()
+
+    if (updatedContact.length === 0) {
+      return NextResponse.json({ error: "Contact introuvable" }, { status: 404 })
+    }
+
+    return NextResponse.json({ contact: updatedContact[0] })
+  } catch (error) {
+    console.error("Error updating contact:", error)
+    return NextResponse.json({ error: "Erreur lors de la mise à jour" }, { status: 500 })
+  }
+}
+
+// DELETE /api/contacts?id=123 - Delete contact (admin/manager)
+export async function DELETE(request: NextRequest) {
+  const user = await getSessionUser(request)
+  if (!user) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+  }
+  if (!isAdminOrManager(user.role)) {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
+  }
+
+  const id = getContactId(request)
+  if (!id) {
+    return NextResponse.json({ error: "ID requis" }, { status: 400 })
+  }
+
+  try {
+    const deletedContact = await db
+      .delete(partnerContacts)
+      .where(eq(partnerContacts.id, id))
+      .returning({ id: partnerContacts.id })
+
+    if (deletedContact.length === 0) {
+      return NextResponse.json({ error: "Contact introuvable" }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting contact:", error)
+    return NextResponse.json({ error: "Erreur lors de la suppression" }, { status: 500 })
   }
 }

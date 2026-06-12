@@ -7,11 +7,26 @@ import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/toast"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Delete01Icon, Building06Icon } from "@hugeicons/core-free-icons"
-import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/components/ui/capgemini-table"
-import { SparklesText } from "@/components/ui/sparkles-text"
+import {
+  ArrowUpRight01Icon,
+  Building06Icon,
+  Delete01Icon,
+  Edit02Icon,
+  FileAttachmentIcon,
+  MessageMultiple02Icon,
+  PauseCircleIcon,
+  Refresh01Icon,
+} from "@hugeicons/core-free-icons"
+import { CapgeminiTable, CapgeminiTableColumn, StatusBadge } from "@/components/ui/capgemini-table"
 import { AddButton } from "@/components/ui/add-button"
 
 interface Partner {
@@ -49,6 +64,33 @@ const categoryLabels: Record<string, string> = {
   university: "Université",
 }
 
+function statusVariant(status: string | null | undefined) {
+  const normalized = status?.trim()
+  if (normalized === "actif") return "success"
+  if (normalized === "en_negociation") return "warning"
+  if (normalized === "termine") return "error"
+  return "neutral"
+}
+
+function formatStatus(status: string | null | undefined) {
+  return status?.replace("_", " ") || "—"
+}
+
+function PartnerDetailField({
+  label,
+  value,
+}: {
+  label: string
+  value: React.ReactNode
+}) {
+  return (
+    <div className="border-b border-border py-3 last:border-b-0">
+      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+      <dd className="mt-1 text-sm font-medium text-foreground">{value}</dd>
+    </div>
+  )
+}
+
 export default function PartnersPage() {
   const { user } = useAuth()
   const [partners, setPartners] = useState<Partner[]>([])
@@ -57,6 +99,7 @@ export default function PartnersPage() {
   const [category, setCategory] = useState("")
   const [status, setStatus] = useState("")
   const [level, setLevel] = useState("")
+  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null)
 
   const isAdmin = user?.role === "admin" || user?.role === "manager"
 
@@ -154,7 +197,9 @@ export default function PartnersPage() {
             <HugeiconsIcon icon={Building06Icon} className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <SparklesText text="Partenaires" className="text-2xl" />
+            <h1 className="text-2xl font-semibold tracking-normal text-foreground">
+              Partenaires
+            </h1>
             <p className="text-sm text-muted-foreground mt-1">
               {partners.length} partenaire{partners.length > 1 ? "s" : ""}
             </p>
@@ -215,8 +260,7 @@ export default function PartnersPage() {
             key: "status", label: "Statut", weight: 1.2,
             render: p => {
               const s = p.partnershipStatus?.trim() || ""
-              const v = s === "actif" ? "success" : s === "en_negociation" ? "warning" : s === "termine" ? "error" : "neutral"
-              return <StatusBadge status={v} label={s.replace("_", " ") || "—"} />
+              return <StatusBadge status={statusVariant(s)} label={formatStatus(s)} />
             },
           },
           {
@@ -228,27 +272,45 @@ export default function PartnersPage() {
             render: p => <span className="text-xs text-muted-foreground">{p.email || "—"}</span>,
           },
           {
-            key: "actions", label: "", weight: 1.5,
+            key: "actions", label: "Actions", weight: 2.4,
             render: p => (
-              <div className="flex flex-wrap gap-1" onClick={e => e.stopPropagation()}>
+              <div className="flex flex-wrap justify-end gap-1.5" onClick={e => e.stopPropagation()}>
                 <Link href={`/dashboard/partners/${p.id}/communications`}>
-                  <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 text-xs px-2">Comms</Button>
+                  <Button variant="outline" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs">
+                    <HugeiconsIcon icon={MessageMultiple02Icon} className="size-3.5" />
+                    Communications
+                    <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3" />
+                  </Button>
                 </Link>
                 <Link href={`/dashboard/partners/${p.id}/documents`}>
-                  <Button variant="ghost" size="sm" className="text-blue-500 hover:text-blue-600 text-xs px-2">Docs</Button>
+                  <Button variant="outline" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs">
+                    <HugeiconsIcon icon={FileAttachmentIcon} className="size-3.5" />
+                    Documents
+                    <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3" />
+                  </Button>
                 </Link>
                 {isAdmin && (
                   <>
                     <Link href={`/dashboard/partners/${p.id}/edit`}>
-                      <Button variant="ghost" size="sm" className="text-xs px-2">Modifier</Button>
+                      <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs">
+                        <HugeiconsIcon icon={Edit02Icon} className="size-3.5" />
+                        Modifier
+                      </Button>
                     </Link>
                     {p.partnershipStatus?.trim() !== "inactif" ? (
-                      <Button variant="ghost" size="sm" className="text-orange-500 hover:text-orange-600 text-xs px-2" onClick={() => { setStatusModal({ open: true, partner: p, action: "suspend" }); setStatusReason("") }}>Suspendre</Button>
+                      <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs text-orange-600 hover:text-orange-700" onClick={() => { setStatusModal({ open: true, partner: p, action: "suspend" }); setStatusReason("") }}>
+                        <HugeiconsIcon icon={PauseCircleIcon} className="size-3.5" />
+                        Suspendre
+                      </Button>
                     ) : (
-                      <Button variant="ghost" size="sm" className="text-green-500 hover:text-green-600 text-xs px-2" onClick={() => { setStatusModal({ open: true, partner: p, action: "reactivate" }); setStatusReason("") }}>Réactiver</Button>
+                      <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs text-emerald-600 hover:text-emerald-700" onClick={() => { setStatusModal({ open: true, partner: p, action: "reactivate" }); setStatusReason("") }}>
+                        <HugeiconsIcon icon={Refresh01Icon} className="size-3.5" />
+                        Réactiver
+                      </Button>
                     )}
-                    <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 p-1" onClick={() => handleDelete(p.id, p.name)}>
-                      <HugeiconsIcon icon={Delete01Icon} className="w-4 h-4" />
+                    <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs text-red-600 hover:text-red-700" onClick={() => handleDelete(p.id, p.name)}>
+                      <HugeiconsIcon icon={Delete01Icon} className="size-3.5" />
+                      Supprimer
                     </Button>
                   </>
                 )}
@@ -259,28 +321,93 @@ export default function PartnersPage() {
         loading={loading}
         emptyMessage="Aucun partenaire trouvé"
         keyExtractor={p => p.id}
+        onRowClick={setSelectedPartner}
         getRowGradient={p => {
           const s = p.partnershipStatus?.trim() || ""
           return s === "actif" ? "from-emerald-500/8 to-transparent" : s === "en_negociation" ? "from-amber-500/8 to-transparent" : s === "termine" ? "from-red-500/8 to-transparent" : "from-slate-500/8 to-transparent"
         }}
-        renderDetail={(p, onClose) => (
-          <DetailPanel onClose={onClose} title={p.name}>
-            <div className="grid grid-cols-2 gap-3">
-              <DetailCard label="Raison sociale" value={p.legalName || "—"} />
-              <DetailCard label="Catégorie" value={categoryLabels[p.categories || ""] || p.categories || "—"} />
-              <DetailCard label="Sous-catégorie" value={p.partnerSubcategory || "—"} />
-              <DetailCard label="Niveau" value={p.partnershipLevel || "—"} />
-              <DetailCard label="Statut" value={<StatusBadge status={p.partnershipStatus?.trim() === "actif" ? "success" : p.partnershipStatus?.trim() === "en_negociation" ? "warning" : p.partnershipStatus?.trim() === "termine" ? "error" : "neutral"} label={p.partnershipStatus?.replace("_", " ") || "—"} />} />
-              <DetailCard label="Pays" value={p.country || "—"} />
-              <DetailCard label="Email" value={p.email || "—"} />
-              <DetailCard label="Téléphone" value={p.phone || "—"} />
-              <DetailCard label="Depuis" value={p.partnershipStartDate ? new Date(p.partnershipStartDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "—"} />
-              <DetailCard label="Score satisfaction" value={p.satisfactionScore != null ? `${p.satisfactionScore}/10` : "—"} />
-              <DetailCard label="Budget annuel" value={p.annualBudgetTnd != null ? `${p.annualBudgetTnd.toLocaleString()} TND` : "—"} />
-            </div>
-          </DetailPanel>
-        )}
       />
+
+      <Sheet open={!!selectedPartner} onOpenChange={(open) => !open && setSelectedPartner(null)}>
+        <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-2xl">
+          {selectedPartner && (
+            <div className="flex min-h-full flex-col">
+              <SheetHeader className="border-b border-border bg-muted/30 px-6 py-5 text-left">
+                <div className="flex items-start gap-3 pr-8">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <HugeiconsIcon icon={Building06Icon} className="size-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <SheetTitle className="text-xl">{selectedPartner.name}</SheetTitle>
+                    <SheetDescription>
+                      {selectedPartner.legalName || categoryLabels[selectedPartner.categories || ""] || "Détails du partenaire"}
+                    </SheetDescription>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <StatusBadge status={statusVariant(selectedPartner.partnershipStatus)} label={formatStatus(selectedPartner.partnershipStatus)} />
+                      <StatusBadge status="neutral" label={categoryLabels[selectedPartner.categories || ""] || selectedPartner.categories || "Catégorie inconnue"} />
+                    </div>
+                  </div>
+                </div>
+              </SheetHeader>
+
+              <div className="flex-1 space-y-6 px-6 py-5">
+                <section>
+                  <h3 className="text-sm font-semibold text-foreground">Informations générales</h3>
+                  <dl className="mt-3 rounded-xl border border-border px-4">
+                    <PartnerDetailField label="Raison sociale" value={selectedPartner.legalName || "—"} />
+                    <PartnerDetailField label="Sous-catégorie" value={selectedPartner.partnerSubcategory || "—"} />
+                    <PartnerDetailField label="Niveau" value={selectedPartner.partnershipLevel || "—"} />
+                    <PartnerDetailField label="Pays" value={selectedPartner.country || "—"} />
+                  </dl>
+                </section>
+
+                <section>
+                  <h3 className="text-sm font-semibold text-foreground">Contact</h3>
+                  <dl className="mt-3 rounded-xl border border-border px-4">
+                    <PartnerDetailField label="Email" value={selectedPartner.email || "—"} />
+                    <PartnerDetailField label="Téléphone" value={selectedPartner.phone || "—"} />
+                  </dl>
+                </section>
+
+                <section>
+                  <h3 className="text-sm font-semibold text-foreground">Partenariat</h3>
+                  <dl className="mt-3 rounded-xl border border-border px-4">
+                    <PartnerDetailField
+                      label="Depuis"
+                      value={selectedPartner.partnershipStartDate ? new Date(selectedPartner.partnershipStartDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "—"}
+                    />
+                    <PartnerDetailField label="Score satisfaction" value={selectedPartner.satisfactionScore != null ? `${selectedPartner.satisfactionScore}/10` : "—"} />
+                    <PartnerDetailField label="Budget annuel" value={selectedPartner.annualBudgetTnd != null ? `${selectedPartner.annualBudgetTnd.toLocaleString()} TND` : "—"} />
+                  </dl>
+                </section>
+              </div>
+
+              <div className="sticky bottom-0 flex flex-wrap gap-2 border-t border-border bg-card px-6 py-4">
+                <Button asChild variant="outline" className="cursor-pointer">
+                  <Link href={`/dashboard/partners/${selectedPartner.id}/communications`}>
+                    <HugeiconsIcon icon={MessageMultiple02Icon} className="size-4" />
+                    Communications
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="cursor-pointer">
+                  <Link href={`/dashboard/partners/${selectedPartner.id}/documents`}>
+                    <HugeiconsIcon icon={FileAttachmentIcon} className="size-4" />
+                    Documents
+                  </Link>
+                </Button>
+                {isAdmin && (
+                  <Button asChild className="cursor-pointer">
+                    <Link href={`/dashboard/partners/${selectedPartner.id}/edit`}>
+                      <HugeiconsIcon icon={Edit02Icon} className="size-4" />
+                      Modifier
+                    </Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* Suspension/Reactivation Modal */}
       {statusModal.open && statusModal.partner && (

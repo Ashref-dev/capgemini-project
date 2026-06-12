@@ -4,6 +4,15 @@ IntelliConnect is a Capgemini Tunisia partnership management platform built as a
 
 The repository documentation is intentionally centralized here. Agent-specific engineering rules live in [AGENTS.md](/Users/mohamedashrefbenabdallah/Sideprojects/capgemini/AGENTS.md).
 
+## Quick test logins
+
+Use these two accounts to cover the main flows quickly:
+
+| Flow | Email | Password | Notes |
+| --- | --- | --- | --- |
+| Employee admin flow | `khaled.maatoug@capgemini.com` | `Capgemini2024!` | Admin account; can access the employee portal and see the broadest set of features. |
+| Partner flow | `partenariats@esprit.tn` | `Partner2024!` | Partner account for testing the partner portal. |
+
 ## Product Scope
 
 IntelliConnect has three main surfaces:

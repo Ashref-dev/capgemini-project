@@ -1,7 +1,7 @@
 ﻿"use client"
 
 import { type ComponentProps } from "react"
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
+import { motion } from "framer-motion"
 import MarqueeText from "@/components/ui/marquee-text"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
@@ -21,61 +21,22 @@ type FeatureCardProps = {
 }
 
 function FeatureCard({ icon, title, description, index }: FeatureCardProps) {
-  const mouseX = useMotionValue(0)
-  const mouseY = useMotionValue(0)
-
-  const springConfig = { damping: 15, stiffness: 150 }
-  const springX = useSpring(mouseX, springConfig)
-  const springY = useSpring(mouseY, springConfig)
-
-  const rotateX = useTransform(springY, [-0.5, 0.5], ["10.5deg", "-10.5deg"])
-  const rotateY = useTransform(springX, [-0.5, 0.5], ["-10.5deg", "10.5deg"])
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const { width, height, left, top } = rect
-    mouseX.set((e.clientX - left) / width - 0.5)
-    mouseY.set((e.clientY - top) / height - 0.5)
-  }
-
-  const handleMouseLeave = () => {
-    mouseX.set(0)
-    mouseY.set(0)
-  }
-
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.1, duration: 0.4 }}
-      style={{ perspective: "1000px" }}
-      className="h-full"
+      transition={{ delay: index * 0.05, duration: 0.25, ease: "easeOut" }}
+      className="h-full rounded-2xl border border-border bg-card p-6 shadow-sm transition-colors hover:border-primary/35"
     >
-      <motion.div
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: "preserve-3d",
-        }}
-        className="h-full rounded-2xl border border-[#0070AD]/20 bg-white p-8 shadow-sm dark:border-white/10 dark:bg-white/5"
-      >
-        <div
-          style={{
-            transform: "translateZ(30px)",
-            transformStyle: "preserve-3d",
-          }}
-          className="flex h-full flex-col"
-        >
-          <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-[#0070AD]/10 dark:bg-[#12ABDB]/10">
-            <HugeiconsIcon icon={icon} className="h-6 w-6 text-[#0070AD] dark:text-[#12ABDB]" />
-          </div>
-          <h3 className="mb-4 text-xl font-semibold text-[#001A3A] dark:text-white">{title}</h3>
-          <p className="flex-grow text-sm leading-relaxed text-[#001A3A]/60 dark:text-white/70">{description}</p>
+      <div className="flex h-full flex-col">
+        <div className="mb-6 flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <HugeiconsIcon icon={icon} className="size-6" />
         </div>
-      </motion.div>
+        <h3 className="mb-4 text-xl font-semibold text-foreground">{title}</h3>
+        <p className="flex-grow text-sm leading-relaxed text-muted-foreground">{description}</p>
+      </div>
     </motion.div>
   )
 }
@@ -83,39 +44,33 @@ function FeatureCard({ icon, title, description, index }: FeatureCardProps) {
 const values = [
   {
     icon: GlobalIcon,
-    title: "Ecosysteme mondial de partenaires",
-    description: "Rejoignez un reseau de partenaires technologiques de premier plan (Microsoft, SAP, AWS, Google Cloud, Oracle, Salesforce) et beneficiez d'une visibilite internationale.",
-    color: "blue"
+    title: "Écosystème mondial de partenaires",
+    description: "Rejoignez un réseau de partenaires technologiques de premier plan et bénéficiez d'une visibilité internationale.",
   },
   {
     icon: HierarchyIcon,
     title: "Expertise sectorielle profonde",
-    description: "Capgemini opere dans l'industrie, la finance, le retail, le secteur public et les telecoms. Vos solutions atteignent des clients dans des secteurs a fort enjeu digital.",
-    color: "indigo"
+    description: "Capgemini opère dans l'industrie, la finance, le retail, le secteur public et les télécoms. Vos solutions atteignent des clients à fort enjeu digital.",
   },
   {
     icon: ArtificialIntelligence01Icon,
     title: "Transformation digitale & IA",
-    description: "Acceez a des projets a haute valeur ajoutee : cloud, data, intelligence artificielle, ingenierie logicielle et cybersecurite - les piliers de la transformation moderne.",
-    color: "violet"
+    description: "Accédez à des projets à haute valeur ajoutée : cloud, data, intelligence artificielle, ingénierie logicielle et cybersécurité.",
   },
   {
     icon: Location01Icon,
-    title: "Ancrage local, portee globale",
-    description: "Capgemini Tunisie est un hub regional qui combine l'expertise locale avec les standards du groupe mondial, pour des collaborations durables et a fort impact.",
-    color: "cyan"
+    title: "Ancrage local, portée globale",
+    description: "Capgemini Tunisie combine l'expertise locale avec les standards du groupe mondial pour des collaborations durables.",
   },
   {
     icon: ChampionIcon,
-    title: "Ethique & responsabilite",
-    description: "Capgemini est engage dans 11 Objectifs de Developpement Durable de l'ONU. Partenaire de confiance, nous valorisons la diversite, l'inclusion et la durabilite.",
-    color: "blue"
+    title: "Éthique & responsabilité",
+    description: "Partenaire de confiance, Capgemini valorise la diversité, l'inclusion, la durabilité et les engagements responsables.",
   },
   {
     icon: ChartLineData01Icon,
     title: "Croissance conjointe",
-    description: "Un partenariat avec Capgemini Tunisie, c'est un acces a un pipeline d'opportunites reelles, un co-developpement commercial et une relation structuree sur le long terme.",
-    color: "indigo"
+    description: "Accédez à un pipeline d'opportunités réelles, un co-développement commercial et une relation structurée sur le long terme.",
   }
 ]
 
@@ -126,9 +81,9 @@ export function WhyCapgemini() {
       <MarqueeText
         baseVelocity={-0.5}
         scrollDependent
-        clasname="font-bold text-[#001A3A] dark:text-white/90"
+        clasname="font-semibold text-foreground"
       >
-        {"Pourquoi Capgemini ?    Why Capgemini ?   "}
+        {"Pourquoi Capgemini ?    Pourquoi Capgemini ?   "}
       </MarqueeText>
 
       {/* Marquee header - ligne 2 : sous-titre (droite vers gauche) */}
@@ -136,9 +91,9 @@ export function WhyCapgemini() {
         baseVelocity={0.5}
         scrollDependent
         delay={200}
-        clasname="font-bold text-[#0070AD] dark:text-[#12ABDB]/80"
+        clasname="font-semibold text-primary"
       >
-        {"  Collaborez avec un leader mondial pour accelerer votre croissance et celle de vos clients.   "}
+        {"  Collaborez avec un leader mondial pour accélérer votre croissance et celle de vos clients.   "}
       </MarqueeText>
 
       <div className="container mx-auto px-4 mt-12">

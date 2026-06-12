@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/toast"
-import { SparklesText } from "@/components/ui/sparkles-text"
 import { cn } from "@/lib/utils"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
@@ -48,8 +47,8 @@ const CATEGORY_OPTIONS = [
     label: "Fournisseur Technologique",
     description: "Éditeur de logiciels, intégrateur ou fournisseur cloud",
     icon: Globe02Icon,
-    color: "text-[#0070AD] dark:text-[#12ABDB]",
-    bg: "bg-blue-50 dark:bg-[#0070AD]/10 border-blue-200 dark:border-[#0070AD]/30",
+    color: "text-primary",
+    bg: "bg-primary/10 border-primary/25",
   },
   {
     value: "university",
@@ -164,8 +163,7 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     if (!form.name) {
       toast.error("Erreur", { description: "Le nom est requis" })
       return
@@ -229,14 +227,13 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="mx-auto w-full max-w-5xl">
       {/* Title */}
-      <div className="mb-8 text-center">
-        <SparklesText
-          text={isEdit ? "Modifier le partenaire" : "Nouveau partenaire"}
-          className="text-3xl"
-        />
-        <p className="text-muted-foreground mt-2">
+      <div className="mb-8">
+        <h1 className="text-3xl font-semibold tracking-normal text-foreground">
+          {isEdit ? "Modifier le partenaire" : "Nouveau partenaire"}
+        </h1>
+        <p className="mt-2 max-w-2xl text-muted-foreground">
           {isEdit
             ? "Modifiez les informations du partenaire étape par étape"
             : "Remplissez les informations du nouveau partenaire étape par étape"}
@@ -260,10 +257,10 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
               <div className={cn(
                 "w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all duration-300",
                 i < step
-                  ? "bg-[#0070AD] border-[#0070AD] text-white"
+                  ? "bg-primary border-primary text-primary-foreground"
                   : i === step
-                    ? "bg-background border-[#0070AD] text-[#0070AD]"
-                    : "bg-background/50 border-[#0070AD]/20 text-foreground/30"
+                    ? "bg-background border-primary text-primary"
+                    : "bg-background/50 border-border text-muted-foreground"
               )}>
                 {i < step
                   ? <HugeiconsIcon icon={CheckmarkSquare01Icon} className="w-4 h-4" />
@@ -271,14 +268,14 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
               </div>
               <span className={cn(
                 "text-xs font-medium hidden sm:block",
-                i === step ? "text-[#0070AD]" : "text-foreground/40"
+                i === step ? "text-primary" : "text-muted-foreground"
               )}>{s.title}</span>
             </button>
           ))}
         </div>
-        <div className="w-full bg-[#0070AD]/10 h-1.5 rounded-full overflow-hidden">
+        <div className="w-full bg-primary/10 h-1.5 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-[#0070AD] rounded-full"
+            className="h-full bg-primary rounded-full"
             initial={{ width: 0 }}
             animate={{ width: steps.length > 1 ? `${(step / (steps.length - 1)) * 100}%` : "0%" }}
             transition={{ duration: 0.4 }}
@@ -289,12 +286,12 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
         </p>
       </motion.div>
 
-      {/* Card */}
+      {/* Wizard panel */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="rounded-3xl border border-[#0070AD]/10 dark:border-white/10 bg-card shadow-xl shadow-[#0070AD]/5 overflow-hidden"
+        className="overflow-hidden border-y border-border bg-background"
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -303,70 +300,59 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
             initial="hidden"
             animate="visible"
             exit="exit"
+            className="min-h-[520px]"
           >
             {/* ── Étape 0 : Catégorie ──────────────────────── */}
             {step === 0 && (
-              <div className="p-8">
+              <div className="p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl bg-[#0070AD]/10 flex items-center justify-center">
-                    <HugeiconsIcon icon={Briefcase01Icon} className="w-5 h-5 text-[#0070AD]" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                    <HugeiconsIcon icon={Briefcase01Icon} className="w-5 h-5" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold">Type de partenariat</h2>
                     <p className="text-sm text-muted-foreground">Sélectionnez la catégorie du partenaire</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+                <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {CATEGORY_OPTIONS.map((cat) => (
                     <motion.button
                       key={cat.value}
                       type="button"
                       onClick={() => handleCategorySelect(cat.value)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.99 }}
                       className={cn(
-                        "p-5 rounded-2xl border-2 text-left transition-all duration-200",
+                        "flex min-h-28 items-start gap-4 rounded-xl border p-4 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                         form.categories === cat.value
-                          ? `${cat.bg} ring-2 ring-offset-1 ring-[#0070AD]/30`
-                          : "border-[#0070AD]/10 dark:border-white/10 hover:border-[#0070AD]/30 bg-background"
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-background hover:border-primary/35"
                       )}
                     >
-                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3", cat.bg)}>
+                      <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-xl border", form.categories === cat.value ? "border-primary/25 bg-background" : cat.bg)}>
                         <HugeiconsIcon icon={cat.icon} className={cn("w-5 h-5", cat.color)} />
                       </div>
-                      <div className={cn("font-semibold text-sm mb-1", cat.color)}>{cat.label}</div>
-                      <div className="text-xs text-muted-foreground leading-relaxed">{cat.description}</div>
-                      {form.categories === cat.value && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="mt-2 flex items-center gap-1 text-xs font-medium text-[#0070AD]"
-                        >
-                          <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-4 h-4" />
-                          Sélectionné
-                        </motion.div>
-                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="font-semibold text-sm text-foreground">{cat.label}</div>
+                          {form.categories === cat.value && (
+                            <HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-4 shrink-0 text-primary" />
+                          )}
+                        </div>
+                        <div className="mt-1 text-xs text-muted-foreground leading-relaxed">{cat.description}</div>
+                      </div>
                     </motion.button>
                   ))}
                 </div>
-                {form.categories && (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center text-sm text-[#0070AD] mt-5"
-                  >
-                    Passage à l&apos;étape suivante…
-                  </motion.p>
-                )}
               </div>
             )}
 
             {/* ── Étape 1 : Informations générales ────────────── */}
             {step === 1 && (
-              <div className="p-8">
+              <div className="p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-[#0070AD]/10 flex items-center justify-center">
-                    <HugeiconsIcon icon={Building06Icon} className="w-5 h-5 text-[#0070AD]" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                    <HugeiconsIcon icon={Building06Icon} className="w-5 h-5" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold">Informations générales</h2>
@@ -376,23 +362,23 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Nom *</Label>
-                    <Input value={form.name} onChange={(e) => handleChange("name", e.target.value)} placeholder="Nom du partenaire" className="focus:border-[#0070AD]" required />
+                    <Input value={form.name} onChange={(e) => handleChange("name", e.target.value)} placeholder="Nom du partenaire" required />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Nom légal</Label>
-                    <Input value={form.legalName} onChange={(e) => handleChange("legalName", e.target.value)} placeholder="Raison sociale" className="focus:border-[#0070AD]" />
+                    <Input value={form.legalName} onChange={(e) => handleChange("legalName", e.target.value)} placeholder="Raison sociale" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Sous-catégorie</Label>
-                    <Input value={form.partnerSubcategory} onChange={(e) => handleChange("partnerSubcategory", e.target.value)} placeholder="Ex: Cloud, ERP, Formation…" className="focus:border-[#0070AD]" />
+                    <Input value={form.partnerSubcategory} onChange={(e) => handleChange("partnerSubcategory", e.target.value)} placeholder="Ex: Cloud, ERP, Formation…" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Identifiant fiscal</Label>
-                    <Input value={form.taxId} onChange={(e) => handleChange("taxId", e.target.value)} placeholder="N° fiscal ou SIRET" className="focus:border-[#0070AD]" />
+                    <Input value={form.taxId} onChange={(e) => handleChange("taxId", e.target.value)} placeholder="N° fiscal ou SIRET" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Pays</Label>
-                    <Input value={form.country} onChange={(e) => handleChange("country", e.target.value)} placeholder="Ex: Tunisie" className="focus:border-[#0070AD]" />
+                    <Input value={form.country} onChange={(e) => handleChange("country", e.target.value)} placeholder="Ex: Tunisie" />
                   </div>
                 </div>
               </div>
@@ -400,10 +386,10 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
 
             {/* ── Étape 2 : Coordonnées ──────────────────────── */}
             {step === 2 && (
-              <div className="p-8">
+              <div className="p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-[#0070AD]/10 flex items-center justify-center">
-                    <HugeiconsIcon icon={Mail01Icon} className="w-5 h-5 text-[#0070AD]" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <HugeiconsIcon icon={Mail01Icon} className="w-5 h-5 text-primary" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold">Coordonnées</h2>
@@ -413,23 +399,23 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Email</Label>
-                    <Input type="email" value={form.email} onChange={(e) => handleChange("email", e.target.value)} placeholder="contact@entreprise.com" className="focus:border-[#0070AD]" />
+                    <Input type="email" value={form.email} onChange={(e) => handleChange("email", e.target.value)} placeholder="contact@entreprise.com" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Téléphone</Label>
-                    <Input value={form.phone} onChange={(e) => handleChange("phone", e.target.value)} placeholder="+216 …" className="focus:border-[#0070AD]" />
+                    <Input value={form.phone} onChange={(e) => handleChange("phone", e.target.value)} placeholder="+216 …" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Site web</Label>
-                    <Input value={form.website} onChange={(e) => handleChange("website", e.target.value)} placeholder="https://…" className="focus:border-[#0070AD]" />
+                    <Input value={form.website} onChange={(e) => handleChange("website", e.target.value)} placeholder="https://…" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Logo URL</Label>
-                    <Input value={form.logoUrl} onChange={(e) => handleChange("logoUrl", e.target.value)} placeholder="https://logo.png" className="focus:border-[#0070AD]" />
+                    <Input value={form.logoUrl} onChange={(e) => handleChange("logoUrl", e.target.value)} placeholder="https://logo.png" />
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label className="text-sm font-semibold">Adresse</Label>
-                    <Input value={form.address} onChange={(e) => handleChange("address", e.target.value)} placeholder="Adresse complète" className="focus:border-[#0070AD]" />
+                    <Input value={form.address} onChange={(e) => handleChange("address", e.target.value)} placeholder="Adresse complète" />
                   </div>
                 </div>
               </div>
@@ -437,10 +423,10 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
 
             {/* ── Étape 3 : Détails partenariat ─────────────── */}
             {step === 3 && (
-              <div className="p-8">
+              <div className="p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-[#0070AD]/10 flex items-center justify-center">
-                    <HugeiconsIcon icon={Rocket01Icon} className="w-5 h-5 text-[#0070AD]" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <HugeiconsIcon icon={Rocket01Icon} className="w-5 h-5 text-primary" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold">Détails partenariat</h2>
@@ -450,43 +436,43 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Niveau de partenariat</Label>
-                    <select value={form.partnershipLevel} onChange={(e) => handleChange("partnershipLevel", e.target.value)} className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0070AD]/20 focus:border-[#0070AD]">
+                    <select value={form.partnershipLevel} onChange={(e) => handleChange("partnershipLevel", e.target.value)} className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring">
                       {LEVELS.map((l) => (<option key={l.value} value={l.value}>{l.label}</option>))}
                     </select>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Statut</Label>
-                    <select value={form.partnershipStatus} onChange={(e) => handleChange("partnershipStatus", e.target.value)} className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0070AD]/20 focus:border-[#0070AD]">
+                    <select value={form.partnershipStatus} onChange={(e) => handleChange("partnershipStatus", e.target.value)} className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring">
                       {STATUSES.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
                     </select>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Budget annuel (TND)</Label>
-                    <Input type="number" value={form.annualBudgetTnd} onChange={(e) => handleChange("annualBudgetTnd", e.target.value)} placeholder="Ex: 50000" className="focus:border-[#0070AD]" />
+                    <Input type="number" value={form.annualBudgetTnd} onChange={(e) => handleChange("annualBudgetTnd", e.target.value)} placeholder="Ex: 50000" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Revenu annuel généré (TND)</Label>
-                    <Input type="number" value={form.annualRevenueGenerated} onChange={(e) => handleChange("annualRevenueGenerated", e.target.value)} placeholder="Ex: 120000" className="focus:border-[#0070AD]" />
+                    <Input type="number" value={form.annualRevenueGenerated} onChange={(e) => handleChange("annualRevenueGenerated", e.target.value)} placeholder="Ex: 120000" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Nombre d&apos;employés</Label>
-                    <Input type="number" value={form.numEmployees} onChange={(e) => handleChange("numEmployees", e.target.value)} placeholder="Ex: 500" className="focus:border-[#0070AD]" />
+                    <Input type="number" value={form.numEmployees} onChange={(e) => handleChange("numEmployees", e.target.value)} placeholder="Ex: 500" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Score satisfaction (/100)</Label>
-                    <Input type="number" min="0" max="100" value={form.satisfactionScore} onChange={(e) => handleChange("satisfactionScore", e.target.value)} placeholder="Ex: 85" className="focus:border-[#0070AD]" />
+                    <Input type="number" min="0" max="100" value={form.satisfactionScore} onChange={(e) => handleChange("satisfactionScore", e.target.value)} placeholder="Ex: 85" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Date début partenariat</Label>
-                    <Input type="date" value={form.partnershipStartDate} onChange={(e) => handleChange("partnershipStartDate", e.target.value)} className="focus:border-[#0070AD]" />
+                    <Input type="date" value={form.partnershipStartDate} onChange={(e) => handleChange("partnershipStartDate", e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Date fin contrat</Label>
-                    <Input type="date" value={form.contractEndDate} onChange={(e) => handleChange("contractEndDate", e.target.value)} className="focus:border-[#0070AD]" />
+                    <Input type="date" value={form.contractEndDate} onChange={(e) => handleChange("contractEndDate", e.target.value)} />
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label className="text-sm font-semibold">Description</Label>
-                    <Textarea value={form.description} onChange={(e) => handleChange("description", e.target.value)} rows={3} placeholder="Décrivez brièvement ce partenariat…" className="focus:border-[#0070AD]" />
+                    <Textarea value={form.description} onChange={(e) => handleChange("description", e.target.value)} rows={3} placeholder="Décrivez brièvement ce partenariat…" />
                   </div>
                 </div>
               </div>
@@ -494,7 +480,7 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
 
             {/* ── Étape 4 : Université ──────────────────────── */}
             {step === 4 && form.categories === "university" && (
-              <div className="p-8">
+              <div className="p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
                     <HugeiconsIcon icon={GraduateMaleIcon} className="w-5 h-5 text-orange-600 dark:text-orange-400" />
@@ -507,35 +493,35 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Type d&apos;institution</Label>
-                    <Input placeholder="Ex: Université publique, École d'ingénieurs…" value={uniFields.institutionType} onChange={(e) => setUniFields((p) => ({ ...p, institutionType: e.target.value }))} className="focus:border-[#0070AD]" />
+                    <Input placeholder="Ex: Université publique, École d'ingénieurs…" value={uniFields.institutionType} onChange={(e) => setUniFields((p) => ({ ...p, institutionType: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Nombre d&apos;étudiants</Label>
-                    <Input type="number" value={uniFields.numStudents} onChange={(e) => setUniFields((p) => ({ ...p, numStudents: e.target.value }))} placeholder="Ex: 5000" className="focus:border-[#0070AD]" />
+                    <Input type="number" value={uniFields.numStudents} onChange={(e) => setUniFields((p) => ({ ...p, numStudents: e.target.value }))} placeholder="Ex: 5000" />
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label className="text-sm font-semibold">Spécialités (séparées par des virgules)</Label>
-                    <Input placeholder="Ex: Informatique, Cybersécurité, Data Science" value={uniFields.specialties} onChange={(e) => setUniFields((p) => ({ ...p, specialties: e.target.value }))} className="focus:border-[#0070AD]" />
+                    <Input placeholder="Ex: Informatique, Cybersécurité, Data Science" value={uniFields.specialties} onChange={(e) => setUniFields((p) => ({ ...p, specialties: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Stagiaires / an</Label>
-                    <Input type="number" value={uniFields.numInternsPerYear} onChange={(e) => setUniFields((p) => ({ ...p, numInternsPerYear: e.target.value }))} placeholder="Ex: 200" className="focus:border-[#0070AD]" />
+                    <Input type="number" value={uniFields.numInternsPerYear} onChange={(e) => setUniFields((p) => ({ ...p, numInternsPerYear: e.target.value }))} placeholder="Ex: 200" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Alternants / an</Label>
-                    <Input type="number" value={uniFields.numApprenticesPerYear} onChange={(e) => setUniFields((p) => ({ ...p, numApprenticesPerYear: e.target.value }))} placeholder="Ex: 50" className="focus:border-[#0070AD]" />
+                    <Input type="number" value={uniFields.numApprenticesPerYear} onChange={(e) => setUniFields((p) => ({ ...p, numApprenticesPerYear: e.target.value }))} placeholder="Ex: 50" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Embauches / an</Label>
-                    <Input type="number" value={uniFields.numHiresPerYear} onChange={(e) => setUniFields((p) => ({ ...p, numHiresPerYear: e.target.value }))} placeholder="Ex: 30" className="focus:border-[#0070AD]" />
+                    <Input type="number" value={uniFields.numHiresPerYear} onChange={(e) => setUniFields((p) => ({ ...p, numHiresPerYear: e.target.value }))} placeholder="Ex: 30" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Budget sponsoring annuel (TND)</Label>
-                    <Input type="number" value={uniFields.annualSponsorshipBudget} onChange={(e) => setUniFields((p) => ({ ...p, annualSponsorshipBudget: e.target.value }))} placeholder="Ex: 15000" className="focus:border-[#0070AD]" />
+                    <Input type="number" value={uniFields.annualSponsorshipBudget} onChange={(e) => setUniFields((p) => ({ ...p, annualSponsorshipBudget: e.target.value }))} placeholder="Ex: 15000" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Événements / an</Label>
-                    <Input type="number" value={uniFields.numEventsPerYear} onChange={(e) => setUniFields((p) => ({ ...p, numEventsPerYear: e.target.value }))} placeholder="Ex: 5" className="focus:border-[#0070AD]" />
+                    <Input type="number" value={uniFields.numEventsPerYear} onChange={(e) => setUniFields((p) => ({ ...p, numEventsPerYear: e.target.value }))} placeholder="Ex: 5" />
                   </div>
                 </div>
               </div>
@@ -543,10 +529,10 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
 
             {/* ── Étape 4 : Fournisseur technologique ─────────── */}
             {step === 4 && form.categories === "supplier" && (
-              <div className="p-8">
+              <div className="p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-[#0070AD]/10 flex items-center justify-center">
-                    <HugeiconsIcon icon={Globe02Icon} className="w-5 h-5 text-[#0070AD]" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <HugeiconsIcon icon={Globe02Icon} className="w-5 h-5 text-primary" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold">Informations technologiques</h2>
@@ -556,23 +542,23 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Type de fournisseur</Label>
-                    <Input placeholder="Ex: Éditeur logiciel, Cloud provider…" value={techFields.vendorType} onChange={(e) => setTechFields((p) => ({ ...p, vendorType: e.target.value }))} className="focus:border-[#0070AD]" />
+                    <Input placeholder="Ex: Éditeur logiciel, Cloud provider…" value={techFields.vendorType} onChange={(e) => setTechFields((p) => ({ ...p, vendorType: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Modèle de partenariat</Label>
-                    <Input placeholder="Ex: Reseller, Alliance, OEM…" value={techFields.partnershipModel} onChange={(e) => setTechFields((p) => ({ ...p, partnershipModel: e.target.value }))} className="focus:border-[#0070AD]" />
+                    <Input placeholder="Ex: Reseller, Alliance, OEM…" value={techFields.partnershipModel} onChange={(e) => setTechFields((p) => ({ ...p, partnershipModel: e.target.value }))} />
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label className="text-sm font-semibold">Technologies (séparées par des virgules)</Label>
-                    <Input placeholder="Ex: AWS, Azure, SAP, ServiceNow" value={techFields.technologies} onChange={(e) => setTechFields((p) => ({ ...p, technologies: e.target.value }))} className="focus:border-[#0070AD]" />
+                    <Input placeholder="Ex: AWS, Azure, SAP, ServiceNow" value={techFields.technologies} onChange={(e) => setTechFields((p) => ({ ...p, technologies: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Certifications détenues</Label>
-                    <Input placeholder="Ex: Gold Partner, Premier Consulting" value={techFields.certificationsHeld} onChange={(e) => setTechFields((p) => ({ ...p, certificationsHeld: e.target.value }))} className="focus:border-[#0070AD]" />
+                    <Input placeholder="Ex: Gold Partner, Premier Consulting" value={techFields.certificationsHeld} onChange={(e) => setTechFields((p) => ({ ...p, certificationsHeld: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Niveau de certification</Label>
-                    <Input placeholder="Ex: Gold, Silver, Platinum" value={techFields.certificationLevel} onChange={(e) => setTechFields((p) => ({ ...p, certificationLevel: e.target.value }))} className="focus:border-[#0070AD]" />
+                    <Input placeholder="Ex: Gold, Silver, Platinum" value={techFields.certificationLevel} onChange={(e) => setTechFields((p) => ({ ...p, certificationLevel: e.target.value }))} />
                   </div>
                 </div>
               </div>
@@ -581,47 +567,40 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
         </AnimatePresence>
 
         {/* Footer actions */}
-        <div className="px-8 py-5 border-t border-[#0070AD]/10 dark:border-white/10 flex items-center justify-between">
-          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={step === 0 ? () => router.push("/dashboard/partners") : prev}
-              className="text-muted-foreground hover:text-foreground rounded-full"
-            >
-              <HugeiconsIcon icon={ArrowLeft01Icon} className="w-4 h-4 mr-2" />
-              {step === 0 ? "Annuler" : "Précédent"}
-            </Button>
-          </motion.div>
+        <div className="flex items-center justify-between border-t border-border px-6 py-5 sm:px-8">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={step === 0 ? () => router.push("/dashboard/partners") : prev}
+            className="cursor-pointer text-muted-foreground hover:text-foreground"
+          >
+            <HugeiconsIcon icon={ArrowLeft01Icon} className="w-4 h-4" />
+            {step === 0 ? "Annuler" : "Précédent"}
+          </Button>
 
           {isLastStep ? (
-            <motion.button
+            <Button
               type="button"
-              onClick={handleSubmit as unknown as React.MouseEventHandler<HTMLButtonElement>}
+              onClick={handleSubmit}
               disabled={loading}
-              whileHover={loading ? {} : { scale: 1.03 }}
-              whileTap={loading ? {} : { scale: 0.97 }}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#0070AD] hover:bg-[#005a8e] text-white font-semibold text-sm shadow-md shadow-[#0070AD]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="h-10 cursor-pointer px-5"
             >
               <HugeiconsIcon icon={CheckmarkSquare01Icon} className="w-4 h-4" />
               {loading ? "Enregistrement…" : isEdit ? "Enregistrer" : "Créer le partenaire"}
-            </motion.button>
+            </Button>
           ) : (
-            <motion.button
+            <Button
               type="button"
               onClick={next}
               disabled={!isStepValid()}
-              whileHover={!isStepValid() ? {} : { scale: 1.03 }}
-              whileTap={!isStepValid() ? {} : { scale: 0.97 }}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#0070AD] hover:bg-[#005a8e] text-white font-semibold text-sm shadow-md shadow-[#0070AD]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="h-10 cursor-pointer px-5"
             >
               Suivant
               <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4" />
-            </motion.button>
+            </Button>
           )}
         </div>
       </motion.div>
     </div>
   )
 }
-

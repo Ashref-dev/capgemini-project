@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Login02Icon } from "@hugeicons/core-free-icons";
+import { Login02Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { Alert } from "@/components/ui/alert";
 import { toast } from "@/components/ui/toast";
 import { motion } from "framer-motion";
@@ -79,24 +79,32 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Logo */}
-      <div className="flex justify-center mb-2">
-        <CapgeminiLogo size="md" />
-      </div>
-
-      {/* Title */}
-      <div className="text-center space-y-1">
-        <h2 className="text-xl font-semibold text-foreground">Connexion</h2>
-        <p className="text-sm text-muted-foreground">
-          Accédez à votre espace de gestion des partenariats
-        </p>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-3">
+          <CapgeminiLogo size="sm" />
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              Connexion
+            </h1>
+            <p className="max-w-sm text-sm leading-6 text-muted-foreground">
+              Accédez à votre espace sécurisé de gestion des partenariats.
+            </p>
+          </div>
+        </div>
+        <div className="hidden rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground sm:inline-flex">
+          Accès sécurisé
+        </div>
       </div>
 
       {/* User Type Toggle */}
-      <div className="relative flex rounded-lg bg-muted/50 border border-border p-1">
+      <div
+        className="relative grid grid-cols-2 rounded-xl border border-border bg-muted/45 p-1"
+        role="radiogroup"
+        aria-label="Type de compte"
+      >
         <motion.div
-          className="absolute top-1 bottom-1 rounded-md bg-primary shadow-sm"
+          className="absolute bottom-1 top-1 rounded-lg bg-primary shadow-sm shadow-primary/20"
           initial={false}
           animate={{
             left: userType === "employee" ? "4px" : "50%",
@@ -107,23 +115,29 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
         <button
           type="button"
           onClick={() => { setUserType("employee"); setFormError(null); }}
-          className={`relative z-10 flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+          role="radio"
+          aria-checked={userType === "employee"}
+          className={`relative z-10 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${
             userType === "employee"
               ? "text-primary-foreground"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
+          <HugeiconsIcon icon={UserGroupIcon} className="size-4" />
           Employé Capgemini
         </button>
         <button
           type="button"
           onClick={() => { setUserType("partner"); setFormError(null); }}
-          className={`relative z-10 flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+          role="radio"
+          aria-checked={userType === "partner"}
+          className={`relative z-10 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${
             userType === "partner"
               ? "text-primary-foreground"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
+          <HugeiconsIcon icon={Login02Icon} className="size-4" />
           Partenaire
         </button>
       </div>
@@ -136,6 +150,7 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
       )}
 
       {/* Email Field */}
+      <div className="grid gap-4 sm:grid-cols-2">
       <div className="space-y-2">
         <Label htmlFor="email" className="text-sm font-medium">
           Email
@@ -155,7 +170,7 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
             setEmailError(null);
           }}
           disabled={submitting}
-          className={emailError ? "border-destructive focus-visible:ring-destructive" : ""}
+          className={emailError ? "h-11 border-destructive focus-visible:ring-destructive" : "h-11"}
           aria-invalid={!!emailError}
           aria-describedby={emailError ? "email-error" : undefined}
         />
@@ -182,7 +197,7 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
             setPasswordError(null);
           }}
           disabled={submitting}
-          className={passwordError ? "border-destructive focus-visible:ring-destructive" : ""}
+          className={passwordError ? "h-11 border-destructive focus-visible:ring-destructive" : "h-11"}
           aria-invalid={!!passwordError}
           aria-describedby={passwordError ? "password-error" : undefined}
         />
@@ -192,13 +207,15 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
           </p>
         )}
       </div>
+      </div>
 
       {/* Submit Button */}
-      <div className="pt-2">
+      <div className="pt-1">
         <Button
           type="submit"
           disabled={submitting}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+          size="lg"
+          className="h-11 w-full rounded-xl font-semibold"
         >
           {submitting ? (
             "Connexion en cours..."

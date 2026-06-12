@@ -116,6 +116,7 @@ Use consistent spacing on a 4px grid through Tailwind utilities.
 ### Color and Surface Tokens
 
 - All product UI must use the shared theme tokens: `primary`, `primary-foreground`, `secondary`, `accent`, `muted`, `background`, `foreground`, `card`, `border`, `input`, and `ring`.
+- Brand anchors are `primary: #0070AD` in light mode and `primary: #00A3E0` in dark mode. Secondary and accent surfaces are restrained tints derived from those colors.
 - Do not hardcode Tailwind palette colors such as `blue-600`, `blue-700`, or raw brand hex values in app UI. Put brand values in CSS variables once, then consume tokens.
 - Primary actions use `bg-primary text-primary-foreground hover:bg-primary/90`.
 - Secondary actions use `bg-secondary text-secondary-foreground hover:bg-secondary/80`.

@@ -139,13 +139,10 @@ export function CapgeminiTable<T>({
                   <div className="relative bg-muted/40 border border-border/40 rounded-xl overflow-hidden hover:border-border/70 hover:bg-muted/60 transition-colors duration-150 px-5 py-3.5">
                       {/* Status gradient overlay */}
                       {gradient && (
-                        <>
-                          <div
-                            className={cn("absolute inset-0 pointer-events-none bg-gradient-to-r to-transparent opacity-70", gradient)}
-                            style={{ backgroundSize: "35% 100%", backgroundPosition: "left", backgroundRepeat: "no-repeat" }}
-                          />
-                          <div className={cn("absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl", gradient.replace("to-transparent", "").trim().replace(/from-([\w-/]+)\/\d+/, "bg-$1"))} />
-                        </>
+                        <div
+                          className={cn("absolute inset-0 pointer-events-none bg-gradient-to-r to-transparent opacity-70", gradient)}
+                          style={{ backgroundSize: "35% 100%", backgroundPosition: "left", backgroundRepeat: "no-repeat" }}
+                        />
                       )}
                       <div className="relative" style={gridStyle}>
                         {columns.map(col => (

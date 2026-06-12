@@ -77,10 +77,10 @@ export function SignInPageClient() {
       </header>
 
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_20%,hsl(var(--primary)/0.10),transparent_28%),radial-gradient(circle_at_85%_10%,hsl(var(--accent)/0.32),transparent_30%)]" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-muted/45 via-background to-background" />
         <div className="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent" />
 
-        <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl grid-cols-1 items-center gap-8 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,520px)] lg:px-8 lg:py-12">
+        <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl grid-cols-1 items-start gap-8 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,520px)] lg:items-center lg:px-8 lg:py-12">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
