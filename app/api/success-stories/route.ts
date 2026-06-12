@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { partnerEvents, partners, vendorProjects, technologyPartners } from "@/backend/db/schema"
+import { db } from "@/lib/server/db/config"
+import { partnerEvents, partners, vendorProjects, technologyPartners } from "@/lib/server/db/schema"
 import { eq, sql, desc, and, isNotNull } from "drizzle-orm"
 
 // GET /api/success-stories — Public endpoint (no auth required)

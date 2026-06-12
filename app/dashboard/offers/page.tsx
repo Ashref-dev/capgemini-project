@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useAuth } from "@/frontend/hooks/use-auth"
-import { Input } from "@/frontend/components/ui/input"
-import { Label } from "@/frontend/components/ui/label"
-import { Textarea } from "@/frontend/components/ui/textarea"
-import { Spinner } from "@/frontend/components/ui/spinner"
-import { toast } from "@/frontend/components/ui/toast"
+import { useAuth } from "@/hooks/use-auth"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Spinner } from "@/components/ui/spinner"
+import { toast } from "@/components/ui/toast"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   Tag01Icon,
@@ -16,11 +16,11 @@ import {
   PercentSquareIcon,
   MoneyBag01Icon,
 } from "@hugeicons/core-free-icons"
-import { SparklesText } from "@/frontend/components/ui/sparkles-text"
-import { AddButton } from "@/frontend/components/ui/add-button"
-import { CardStack, CardStackItem } from "@/frontend/components/ui/card-stack"
-import { PartnerSelect } from "@/frontend/components/ui/partner-select"
-import { cn } from "@/frontend/lib/utils"
+import { SparklesText } from "@/components/ui/sparkles-text"
+import { AddButton } from "@/components/ui/add-button"
+import { CardStack, CardStackItem } from "@/components/ui/card-stack"
+import { PartnerSelect } from "@/components/ui/partner-select"
+import { cn } from "@/lib/utils"
 
 interface Offer {
   id: number

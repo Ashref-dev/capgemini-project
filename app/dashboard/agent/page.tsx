@@ -12,15 +12,15 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 import { AnimatePresence, motion } from "framer-motion"
 
-import { ChatMessage } from "@/frontend/components/agent/chat-message"
-import { AgentSidebar, AgentMobileSidebar, type ThreadListItem } from "@/frontend/components/agent/agent-sidebar"
-import { AgentEmptyState } from "@/frontend/components/agent/agent-empty-state"
-import { AgentThinking } from "@/frontend/components/agent/agent-thinking"
-import { Button } from "@/frontend/components/ui/button"
-import { Spinner } from "@/frontend/components/ui/spinner"
-import { toast } from "@/frontend/components/ui/toast"
-import { useAuth } from "@/frontend/hooks/use-auth"
-import { cn } from "@/frontend/lib/utils"
+import { ChatMessage } from "@/components/agent/chat-message"
+import { AgentSidebar, AgentMobileSidebar, type ThreadListItem } from "@/components/agent/agent-sidebar"
+import { AgentEmptyState } from "@/components/agent/agent-empty-state"
+import { AgentThinking } from "@/components/agent/agent-thinking"
+import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
+import { toast } from "@/components/ui/toast"
+import { useAuth } from "@/hooks/use-auth"
+import { cn } from "@/lib/utils"
 
 type ThreadMessageRecord = {
   id: number

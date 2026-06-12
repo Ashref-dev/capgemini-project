@@ -9,14 +9,14 @@ import {
   Download04Icon,
   Search01Icon,
 } from "@hugeicons/core-free-icons"
-import { Button } from "@/frontend/components/ui/button"
-import { Input } from "@/frontend/components/ui/input"
-import { Label } from "@/frontend/components/ui/label"
-import { Spinner } from "@/frontend/components/ui/spinner"
-import { toast } from "@/frontend/components/ui/toast"
-import { AddButton } from "@/frontend/components/ui/add-button"
-import { SparklesText } from "@/frontend/components/ui/sparkles-text"
-import { FileCard, extToFormat } from "@/frontend/components/ui/file-card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/ui/spinner"
+import { toast } from "@/components/ui/toast"
+import { AddButton } from "@/components/ui/add-button"
+import { SparklesText } from "@/components/ui/sparkles-text"
+import { FileCard, extToFormat } from "@/components/ui/file-card"
 
 interface Document {
   id: number

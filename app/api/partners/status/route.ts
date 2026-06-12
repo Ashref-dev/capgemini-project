@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { partners, partnerStatusHistory } from "@/backend/db/schema"
-import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
+import { db } from "@/lib/server/db/config"
+import { partners, partnerStatusHistory } from "@/lib/server/db/schema"
+import { getSessionUser, isAdminOrManager } from "@/lib/server/auth/session"
 import { eq } from "drizzle-orm"
-import { sendEmail } from "@/backend/services/email"
+import { sendEmail } from "@/lib/server/services/email"
 
 // POST /api/partners/status — Change partner status (suspend/reactivate)
 export async function POST(request: NextRequest) {

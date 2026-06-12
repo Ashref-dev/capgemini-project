@@ -3,8 +3,8 @@
 import * as React from "react"
 import Link from "next/link"
 
-import { Alert, AlertDescription, AlertTitle } from "@/frontend/components/ui/alert"
-import { Button } from "@/frontend/components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 
 type AgentErrorProps = {
   error: Error & { digest?: string }

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { partnershipRequests } from "@/backend/db/schema"
-import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
-import { sendEmail } from "@/backend/services/email"
+import { db } from "@/lib/server/db/config"
+import { partnershipRequests } from "@/lib/server/db/schema"
+import { getSessionUser, isAdminOrManager } from "@/lib/server/auth/session"
+import { sendEmail } from "@/lib/server/services/email"
 import { desc } from "drizzle-orm"
 
 export async function GET(request: NextRequest) {

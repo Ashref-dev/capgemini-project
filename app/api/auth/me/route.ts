@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { verifyToken } from "@/backend/auth/jwt"
+import { verifyToken } from "@/lib/server/auth/jwt"
 
 export async function GET(request: NextRequest) {
   try {

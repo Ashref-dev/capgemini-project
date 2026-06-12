@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { studentRecruitments, universityPartners } from "@/backend/db/schema"
-import { getSessionUser } from "@/backend/auth/session"
+import { db } from "@/lib/server/db/config"
+import { studentRecruitments, universityPartners } from "@/lib/server/db/schema"
+import { getSessionUser } from "@/lib/server/auth/session"
 import { eq, sql, and, desc } from "drizzle-orm"
 
 // GET /api/partner/recruitments — list recruitments for university partner

@@ -9,11 +9,11 @@ import {
   ClockIcon, MoneyBag02Icon, ChartIncreaseIcon, Medal01Icon,
   Calendar03Icon, UserGroupIcon,
 } from "@hugeicons/core-free-icons"
-import { Spinner } from "@/frontend/components/ui/spinner"
-import { GradientStatCard } from "@/frontend/components/ui/gradient-stat-card"
-import { AddButton } from "@/frontend/components/ui/add-button"
-import { SparklesText } from "@/frontend/components/ui/sparkles-text"
-import { cn } from "@/frontend/lib/utils"
+import { Spinner } from "@/components/ui/spinner"
+import { GradientStatCard } from "@/components/ui/gradient-stat-card"
+import { AddButton } from "@/components/ui/add-button"
+import { SparklesText } from "@/components/ui/sparkles-text"
+import { cn } from "@/lib/utils"
 
 interface Project {
   id: number

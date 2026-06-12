@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { CapgeminiLogo } from "@/frontend/components/icons"
-import { Footer } from "@/frontend/components/footer"
+import { CapgeminiLogo } from "@/components/icons"
+import { Footer } from "@/components/footer"
 
 export default function TermsPage() {
   return (

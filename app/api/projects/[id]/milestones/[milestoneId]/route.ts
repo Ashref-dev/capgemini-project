@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { and, eq, sql } from "drizzle-orm"
 
-import { db } from "@/backend/db/config"
-import { milestones, projects } from "@/backend/db/schema"
-import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
+import { db } from "@/lib/server/db/config"
+import { milestones, projects } from "@/lib/server/db/schema"
+import { getSessionUser, isAdminOrManager } from "@/lib/server/auth/session"
 
 const milestonePatch = z.object({
   name: z.string().min(1).max(200).optional(),

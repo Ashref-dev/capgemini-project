@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { partners, universityPartners, technologyPartners } from "@/backend/db/schema"
-import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
+import { db } from "@/lib/server/db/config"
+import { partners, universityPartners, technologyPartners } from "@/lib/server/db/schema"
+import { getSessionUser, isAdminOrManager } from "@/lib/server/auth/session"
 import { eq } from "drizzle-orm"
 
 // POST /api/partners/manage - Create a partner (admin/manager only)

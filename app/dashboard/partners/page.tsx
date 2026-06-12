@@ -1,18 +1,18 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useAuth } from "@/frontend/hooks/use-auth"
-import { Input } from "@/frontend/components/ui/input"
-import { Button } from "@/frontend/components/ui/button"
-import { toast } from "@/frontend/components/ui/toast"
-import { Label } from "@/frontend/components/ui/label"
-import { Textarea } from "@/frontend/components/ui/textarea"
+import { useAuth } from "@/hooks/use-auth"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/toast"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Delete01Icon, Building06Icon } from "@hugeicons/core-free-icons"
-import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/frontend/components/ui/capgemini-table"
-import { SparklesText } from "@/frontend/components/ui/sparkles-text"
-import { AddButton } from "@/frontend/components/ui/add-button"
+import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/components/ui/capgemini-table"
+import { SparklesText } from "@/components/ui/sparkles-text"
+import { AddButton } from "@/components/ui/add-button"
 
 interface Partner {
   id: number

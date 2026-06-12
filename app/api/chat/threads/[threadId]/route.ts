@@ -1,9 +1,9 @@
 import { and, eq } from "drizzle-orm"
 import { NextRequest, NextResponse } from "next/server"
 
-import { getSessionUser } from "@/backend/auth/session"
-import { db } from "@/backend/db/config"
-import { chatMessages, chatThreads } from "@/backend/db/schema"
+import { getSessionUser } from "@/lib/server/auth/session"
+import { db } from "@/lib/server/db/config"
+import { chatMessages, chatThreads } from "@/lib/server/db/schema"
 
 export async function GET(
   req: NextRequest,

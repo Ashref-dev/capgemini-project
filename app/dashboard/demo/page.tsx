@@ -22,8 +22,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/frontend/components/ui/card"
-import { Button } from "@/frontend/components/ui/button"
+} from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 
 interface DemoStats {
   partners: number

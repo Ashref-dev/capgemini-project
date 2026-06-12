@@ -19,22 +19,22 @@ import {
   Loading03Icon,
 } from "@hugeicons/core-free-icons"
 
-import { useAuth } from "@/frontend/hooks/use-auth"
-import { Button } from "@/frontend/components/ui/button"
-import { toast } from "@/frontend/components/ui/toast"
-import { cn } from "@/frontend/lib/utils"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/frontend/components/ui/tabs"
+import { useAuth } from "@/hooks/use-auth"
+import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/toast"
+import { cn } from "@/lib/utils"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   ProjectStatusBadge,
   ProjectHealthDot,
   ProjectPriorityBadge,
-} from "@/frontend/components/projects/project-status-badge"
-import { ProjectForm, type Project } from "@/frontend/components/projects/project-form"
-import { ProjectGantt, type GanttMilestone } from "@/frontend/components/projects/project-gantt"
-import { MilestonesTab } from "@/frontend/components/projects/milestones-tab"
-import { TasksTab } from "@/frontend/components/projects/tasks-tab"
-import { TeamTab } from "@/frontend/components/projects/team-tab"
-import { DocumentsTab } from "@/frontend/components/projects/documents-tab"
+} from "@/components/projects/project-status-badge"
+import { ProjectForm, type Project } from "@/components/projects/project-form"
+import { ProjectGantt, type GanttMilestone } from "@/components/projects/project-gantt"
+import { MilestonesTab } from "@/components/projects/milestones-tab"
+import { TasksTab } from "@/components/projects/tasks-tab"
+import { TeamTab } from "@/components/projects/team-tab"
+import { DocumentsTab } from "@/components/projects/documents-tab"
 
 interface ProjectDetail {
   project: Project

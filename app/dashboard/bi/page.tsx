@@ -1,21 +1,21 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react"
-import { useAuth } from "@/frontend/hooks/use-auth"
-import { Spinner } from "@/frontend/components/ui/spinner"
-import { toast } from "@/frontend/components/ui/toast"
-import { Button } from "@/frontend/components/ui/button"
-import { Input } from "@/frontend/components/ui/input"
-import { Label } from "@/frontend/components/ui/label"
+import { useAuth } from "@/hooks/use-auth"
+import { Spinner } from "@/components/ui/spinner"
+import { toast } from "@/components/ui/toast"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   AnalyticsUpIcon, DashboardSquare01Icon,
   UserGroupIcon, Calendar03Icon, Folder01Icon, MortarboardIcon,
   MoneyBag02Icon, ChartLineData03Icon, ChartIncreaseIcon,
 } from "@hugeicons/core-free-icons"
-import { SparklesText } from "@/frontend/components/ui/sparkles-text"
+import { SparklesText } from "@/components/ui/sparkles-text"
 import Link from "next/link"
-import { cn } from "@/frontend/lib/utils"
+import { cn } from "@/lib/utils"
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
 
 interface BIData {

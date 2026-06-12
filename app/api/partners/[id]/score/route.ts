@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { getSessionUser } from "@/backend/auth/session"
-import { computePartnerScore } from "@/backend/services/scoring"
+import { getSessionUser } from "@/lib/server/auth/session"
+import { computePartnerScore } from "@/lib/server/services/scoring"
 
 export async function GET(
   request: NextRequest,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { partnerNotifications } from "@/backend/db/schema"
-import { getSessionUser } from "@/backend/auth/session"
+import { db } from "@/lib/server/db/config"
+import { partnerNotifications } from "@/lib/server/db/schema"
+import { getSessionUser } from "@/lib/server/auth/session"
 import { eq, desc, and } from "drizzle-orm"
 
 // GET /api/notifications?partnerId=X — List notifications for a partner
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     let emailSent = false
     if (emailSubject) {
       try {
-        const { sendEmail } = await import("@/backend/services/email")
+        const { sendEmail } = await import("@/lib/server/services/email")
         emailSent = await sendEmail({
           subject: emailSubject,
           html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

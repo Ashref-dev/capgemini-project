@@ -15,13 +15,13 @@ import {
   ArrowLeft01Icon,
   Search01Icon,
 } from "@hugeicons/core-free-icons"
-import { Button } from "@/frontend/components/ui/button"
-import { Input } from "@/frontend/components/ui/input"
-import { Label } from "@/frontend/components/ui/label"
-import { Spinner } from "@/frontend/components/ui/spinner"
-import { toast } from "@/frontend/components/ui/toast"
-import { FileCard, extToFormat } from "@/frontend/components/ui/file-card"
-import { useAuth } from "@/frontend/hooks/use-auth"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/ui/spinner"
+import { toast } from "@/components/ui/toast"
+import { FileCard, extToFormat } from "@/components/ui/file-card"
+import { useAuth } from "@/hooks/use-auth"
 import Link from "next/link"
 
 interface Document {

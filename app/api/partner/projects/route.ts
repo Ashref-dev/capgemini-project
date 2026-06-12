@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { vendorProjects, technologyPartners } from "@/backend/db/schema"
-import { getSessionUser } from "@/backend/auth/session"
+import { db } from "@/lib/server/db/config"
+import { vendorProjects, technologyPartners } from "@/lib/server/db/schema"
+import { getSessionUser } from "@/lib/server/auth/session"
 import { eq, sql, desc } from "drizzle-orm"
 
 // GET /api/partner/projects — list projects for supplier/technology partner

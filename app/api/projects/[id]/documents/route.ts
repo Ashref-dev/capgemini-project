@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { projectDocuments, projects } from "@/backend/db/schema"
-import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
+import { db } from "@/lib/server/db/config"
+import { projectDocuments, projects } from "@/lib/server/db/schema"
+import { getSessionUser, isAdminOrManager } from "@/lib/server/auth/session"
 import { eq, desc, and } from "drizzle-orm"
 import { writeFile, mkdir, unlink } from "node:fs/promises"
 import path from "node:path"
-import { fireAndForgetIngest } from "@/backend/agent/upload-ingest"
+import { fireAndForgetIngest } from "@/lib/server/agent/upload-ingest"
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024
 

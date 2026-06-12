@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { partnerMeetings, partners } from "@/backend/db/schema"
-import { getSessionUser } from "@/backend/auth/session"
+import { db } from "@/lib/server/db/config"
+import { partnerMeetings, partners } from "@/lib/server/db/schema"
+import { getSessionUser } from "@/lib/server/auth/session"
 import { eq, desc } from "drizzle-orm"
 
 // GET /api/meetings?partnerId=X — List meetings for a partner

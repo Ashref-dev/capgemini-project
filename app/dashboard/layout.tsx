@@ -1,17 +1,17 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useAuth } from "@/frontend/hooks/use-auth"
+import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
-import { DashboardSidebar } from "@/frontend/components/dashboard/sidebar"
-import { DashboardTourController } from "@/frontend/components/dashboard/dashboard-tour-controller"
-import { UserMenu } from "@/frontend/components/auth/user-menu"
-import { ThemeToggle } from "@/frontend/components/theme-toggle"
-import { Spinner } from "@/frontend/components/ui/spinner"
+import { DashboardSidebar } from "@/components/dashboard/sidebar"
+import { DashboardTourController } from "@/components/dashboard/dashboard-tour-controller"
+import { UserMenu } from "@/components/auth/user-menu"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { Spinner } from "@/components/ui/spinner"
 import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Notification03Icon } from "@hugeicons/core-free-icons"
-import VaporizeTextCycle from "@/frontend/components/ui/vapour-text"
+import VaporizeTextCycle from "@/components/ui/vapour-text"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()

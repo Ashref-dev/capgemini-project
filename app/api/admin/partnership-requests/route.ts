@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
+import { db } from "@/lib/server/db/config"
 import {
   partnershipRequests,
   partners,
@@ -7,11 +7,11 @@ import {
   technologyPartners,
   partnerStatusHistory,
   capgeminiEmployees,
-} from "@/backend/db/schema"
-import { analyzePartnershipRequest, type PartnershipRequestScoringInput } from "@/backend/ai/partnership-request-scoring"
-import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
+} from "@/lib/server/db/schema"
+import { analyzePartnershipRequest, type PartnershipRequestScoringInput } from "@/lib/server/ai/partnership-request-scoring"
+import { getSessionUser, isAdminOrManager } from "@/lib/server/auth/session"
 import { eq, desc, sql } from "drizzle-orm"
-import { sendEmail } from "@/backend/services/email"
+import { sendEmail } from "@/lib/server/services/email"
 import bcrypt from "bcryptjs"
 
 // GET /api/admin/partnership-requests — List all partnership requests (admin only)

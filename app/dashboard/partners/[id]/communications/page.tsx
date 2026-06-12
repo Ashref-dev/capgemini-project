@@ -16,16 +16,16 @@ import {
   CheckmarkSquare01Icon,
   Add01Icon,
 } from "@hugeicons/core-free-icons"
-import { Button } from "@/frontend/components/ui/button"
-import { Input } from "@/frontend/components/ui/input"
-import { Label } from "@/frontend/components/ui/label"
-import { Textarea } from "@/frontend/components/ui/textarea"
-import { Badge } from "@/frontend/components/ui/badge"
-import { Spinner } from "@/frontend/components/ui/spinner"
-import { toast } from "@/frontend/components/ui/toast"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/frontend/components/ui/tabs"
-import { AddButton } from "@/frontend/components/ui/add-button"
-import { useAuth } from "@/frontend/hooks/use-auth"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { Spinner } from "@/components/ui/spinner"
+import { toast } from "@/components/ui/toast"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AddButton } from "@/components/ui/add-button"
+import { useAuth } from "@/hooks/use-auth"
 import Link from "next/link"
 
 // ─── Types ──────────────────────────────────────────────

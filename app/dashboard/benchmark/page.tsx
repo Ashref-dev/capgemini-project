@@ -24,14 +24,14 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/frontend/components/ui/chart"
+} from "@/components/ui/chart"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/frontend/components/ui/card"
+} from "@/components/ui/card"
 import {
   Table,
   TableBody,
@@ -39,7 +39,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/frontend/components/ui/table"
+} from "@/components/ui/table"
 
 interface BenchmarkRow {
   task: string

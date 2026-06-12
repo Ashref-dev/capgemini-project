@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { studentRecruitments } from "@/backend/db/schema"
-import { getSessionUser } from "@/backend/auth/session"
-import { validatePartnerId } from "@/backend/services/validate-partner"
+import { db } from "@/lib/server/db/config"
+import { studentRecruitments } from "@/lib/server/db/schema"
+import { getSessionUser } from "@/lib/server/auth/session"
+import { validatePartnerId } from "@/lib/server/services/validate-partner"
 import { eq } from "drizzle-orm"
 
 function isHrOrAdmin(role?: string) {

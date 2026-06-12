@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "evals": "bun run backend/agent/evals/run-evals.ts",
+    "evals": "bun run lib/server/agent/evals/run-evals.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"

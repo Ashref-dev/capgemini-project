@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Figtree } from "next/font/google";
-import { ToastToaster } from "@/frontend/components/ui/toast";
-import { ThemeProvider } from "@/frontend/components/theme-provider";
+import { ToastToaster } from "@/components/ui/toast";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const figtree = Figtree({subsets:['latin'],variable:'--font-sans'});

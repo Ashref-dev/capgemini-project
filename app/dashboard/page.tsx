@@ -1,6 +1,6 @@
 "use client"
 
-import { useAuth } from "@/frontend/hooks/use-auth"
+import { useAuth } from "@/hooks/use-auth"
 import { motion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
@@ -14,8 +14,8 @@ import {
   UserIcon,
   MortarboardIcon,
 } from "@hugeicons/core-free-icons"
-import { NavCircularGallery, NavGalleryItem } from "@/frontend/components/ui/nav-circular-gallery"
-import { DailyBriefing } from "@/frontend/components/dashboard/daily-briefing"
+import { NavCircularGallery, NavGalleryItem } from "@/components/ui/nav-circular-gallery"
+import { DailyBriefing } from "@/components/dashboard/daily-briefing"
 
 interface SectionDef {
   title: string

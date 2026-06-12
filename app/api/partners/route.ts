@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { partners } from "@/backend/db/schema"
-import { getSessionUser } from "@/backend/auth/session"
+import { db } from "@/lib/server/db/config"
+import { partners } from "@/lib/server/db/schema"
+import { getSessionUser } from "@/lib/server/auth/session"
 import { and, eq, ilike, or } from "drizzle-orm"
 
 // GET /api/partners - List all partners from operational DB

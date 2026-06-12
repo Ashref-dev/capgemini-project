@@ -4,11 +4,11 @@ import { useEffect, useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Mail01Icon, CheckmarkSquare01Icon, CheckmarkCircle01Icon } from "@hugeicons/core-free-icons"
-import { Button } from "@/frontend/components/ui/button"
-import { Spinner } from "@/frontend/components/ui/spinner"
-import { toast } from "@/frontend/components/ui/toast"
-import { SparklesText } from "@/frontend/components/ui/sparkles-text"
-import { cn } from "@/frontend/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
+import { toast } from "@/components/ui/toast"
+import { SparklesText } from "@/components/ui/sparkles-text"
+import { cn } from "@/lib/utils"
 
 interface Notification {
   id: number; partnerId: number; type: string; title: string; message: string

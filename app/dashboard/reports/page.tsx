@@ -17,11 +17,11 @@ import {
 } from "@hugeicons/core-free-icons"
 import { motion } from "framer-motion"
 
-import { Button } from "@/frontend/components/ui/button"
-import { Tabs, TabsList, TabsTrigger } from "@/frontend/components/ui/tabs"
-import { Textarea } from "@/frontend/components/ui/textarea"
-import { toast } from "@/frontend/components/ui/toast"
-import { cn } from "@/frontend/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "@/components/ui/toast"
+import { cn } from "@/lib/utils"
 
 const REPORT_STORAGE_KEY = "intelliconnect-report-markdown"
 

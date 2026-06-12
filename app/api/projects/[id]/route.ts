@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { count, eq } from "drizzle-orm"
 import { z } from "zod"
 
-import { db } from "@/backend/db/config"
+import { db } from "@/lib/server/db/config"
 import {
   capgeminiEmployees,
   milestones,
@@ -11,10 +11,10 @@ import {
   projectDocuments,
   projectTasks,
   projects,
-} from "@/backend/db/schema"
-import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
-import { validatePartnerId } from "@/backend/services/validate-partner"
-import { validateProject } from "@/backend/services/validate-project"
+} from "@/lib/server/db/schema"
+import { getSessionUser, isAdminOrManager } from "@/lib/server/auth/session"
+import { validatePartnerId } from "@/lib/server/services/validate-partner"
+import { validateProject } from "@/lib/server/services/validate-project"
 
 const projectStatusSchema = z.enum([
   "planned",

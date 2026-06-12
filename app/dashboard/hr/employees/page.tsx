@@ -1,17 +1,17 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { useAuth } from "@/frontend/hooks/use-auth"
-import { Input } from "@/frontend/components/ui/input"
-import { Button } from "@/frontend/components/ui/button"
-import { toast } from "@/frontend/components/ui/toast"
-import { Label } from "@/frontend/components/ui/label"
+import { useAuth } from "@/hooks/use-auth"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/toast"
+import { Label } from "@/components/ui/label"
 import { motion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { UserGroupIcon, UserIcon, CheckmarkSquare01Icon, Money01Icon } from "@hugeicons/core-free-icons"
-import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/frontend/components/ui/capgemini-table"
-import { SparklesText } from "@/frontend/components/ui/sparkles-text"
-import { GradientStatCard } from "@/frontend/components/ui/gradient-stat-card"
+import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/components/ui/capgemini-table"
+import { SparklesText } from "@/components/ui/sparkles-text"
+import { GradientStatCard } from "@/components/ui/gradient-stat-card"
 
 interface Employee {
   id: number

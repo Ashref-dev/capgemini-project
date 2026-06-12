@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { and, eq } from "drizzle-orm"
 
-import { db } from "@/backend/db/config"
-import { projectAllocations, projects, capgeminiEmployees } from "@/backend/db/schema"
-import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
+import { db } from "@/lib/server/db/config"
+import { projectAllocations, projects, capgeminiEmployees } from "@/lib/server/db/schema"
+import { getSessionUser, isAdminOrManager } from "@/lib/server/auth/session"
 
 const allocationPatch = z.object({
   employeeId: z.number().int().positive().optional(),

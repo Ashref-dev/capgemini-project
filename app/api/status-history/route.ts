@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { getSessionUser } from "@/backend/auth/session"
+import { db } from "@/lib/server/db/config"
+import { getSessionUser } from "@/lib/server/auth/session"
 
 // GET /api/status-history
 export async function GET(request: NextRequest) {

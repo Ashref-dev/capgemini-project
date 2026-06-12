@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { offers } from "@/backend/db/schema"
-import { getSessionUser, isAdminOrManager } from "@/backend/auth/session"
-import { validatePartnerId } from "@/backend/services/validate-partner"
+import { db } from "@/lib/server/db/config"
+import { offers } from "@/lib/server/db/schema"
+import { getSessionUser, isAdminOrManager } from "@/lib/server/auth/session"
+import { validatePartnerId } from "@/lib/server/services/validate-partner"
 import { eq } from "drizzle-orm"
 
 // GET /api/offers

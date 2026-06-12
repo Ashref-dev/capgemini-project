@@ -7,12 +7,12 @@ import { createLangSmithProviderOptions, wrapAISDK } from "langsmith/experimenta
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
-import { selectMethodologies, buildMethodologyPrompt } from "@/backend/agent/methodologies"
-import { loadSystemPrompt } from "@/backend/agent/prompt"
-import { searchDocuments } from "@/backend/agent/rag"
-import { getSessionUser } from "@/backend/auth/session"
-import { db } from "@/backend/db/config"
-import { dwPool } from "@/backend/db/dw-config"
+import { selectMethodologies, buildMethodologyPrompt } from "@/lib/server/agent/methodologies"
+import { loadSystemPrompt } from "@/lib/server/agent/prompt"
+import { searchDocuments } from "@/lib/server/agent/rag"
+import { getSessionUser } from "@/lib/server/auth/session"
+import { db } from "@/lib/server/db/config"
+import { dwPool } from "@/lib/server/db/dw-config"
 import {
   chatMessages,
   chatThreads,
@@ -30,7 +30,7 @@ import {
   technologyPartners,
   universityPartners,
   vendorProjects,
-} from "@/backend/db/schema"
+} from "@/lib/server/db/schema"
 import {
   analyzeProjectHealth,
   identifyAtRiskProjects,
@@ -38,7 +38,7 @@ import {
   recommendStaffing,
   findCriticalPath,
   crossEntityAnalysis,
-} from "@/backend/services/project-analytics"
+} from "@/lib/server/services/project-analytics"
 
 const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_KEY! })
 const OPENROUTER_MODEL_ID = process.env.OPENROUTER_MODEL_ID ?? "openrouter/owl-alpha"

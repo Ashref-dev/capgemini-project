@@ -1,17 +1,17 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useAuth } from "@/frontend/hooks/use-auth"
-import { Button } from "@/frontend/components/ui/button"
-import { Input } from "@/frontend/components/ui/input"
-import { Label } from "@/frontend/components/ui/label"
-import { toast } from "@/frontend/components/ui/toast"
-import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/frontend/components/ui/capgemini-table"
+import { useAuth } from "@/hooks/use-auth"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { toast } from "@/components/ui/toast"
+import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/components/ui/capgemini-table"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { UserMultiple02Icon } from "@hugeicons/core-free-icons"
-import { SparklesText } from "@/frontend/components/ui/sparkles-text"
-import { AddButton } from "@/frontend/components/ui/add-button"
-import { PartnerSelect } from "@/frontend/components/ui/partner-select"
+import { SparklesText } from "@/components/ui/sparkles-text"
+import { AddButton } from "@/components/ui/add-button"
+import { PartnerSelect } from "@/components/ui/partner-select"
 
 interface Contact {
   id: number

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { compare, hash } from "bcryptjs"
-import { db } from "@/backend/db/config"
-import { capgeminiEmployees, partners } from "@/backend/db/schema"
-import { getSessionUser } from "@/backend/auth/session"
+import { db } from "@/lib/server/db/config"
+import { capgeminiEmployees, partners } from "@/lib/server/db/schema"
+import { getSessionUser } from "@/lib/server/auth/session"
 import { eq } from "drizzle-orm"
 
 // POST /api/auth/change-password

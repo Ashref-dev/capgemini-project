@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect, use } from "react"
-import { useAuth } from "@/frontend/hooks/use-auth"
-import { PartnerForm } from "@/frontend/components/dashboard/partner-form"
-import { Spinner } from "@/frontend/components/ui/spinner"
+import { useAuth } from "@/hooks/use-auth"
+import { PartnerForm } from "@/components/dashboard/partner-form"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function EditPartnerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)

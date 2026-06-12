@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getSessionUser } from "@/backend/auth/session"
-import { buildDailyBriefing } from "@/backend/agent/briefing"
+import { getSessionUser } from "@/lib/server/auth/session"
+import { buildDailyBriefing } from "@/lib/server/agent/briefing"
 
 export async function GET(request: NextRequest) {
   const user = await getSessionUser(request)

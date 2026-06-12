@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/backend/db/config"
-import { partnerDocuments, partners } from "@/backend/db/schema"
-import { getSessionUser } from "@/backend/auth/session"
+import { db } from "@/lib/server/db/config"
+import { partnerDocuments, partners } from "@/lib/server/db/schema"
+import { getSessionUser } from "@/lib/server/auth/session"
 import { eq, desc, and } from "drizzle-orm"
 import { writeFile, mkdir } from "fs/promises"
 import path from "path"
 import crypto from "crypto"
-import { fireAndForgetIngest } from "@/backend/agent/upload-ingest"
+import { fireAndForgetIngest } from "@/lib/server/agent/upload-ingest"
 
 const UPLOAD_DIR = path.join(process.cwd(), "uploads", "documents")
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB

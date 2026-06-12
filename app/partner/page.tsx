@@ -15,11 +15,11 @@ import {
   MoneyBag02Icon,
 } from "@hugeicons/core-free-icons"
 import Link from "next/link"
-import { Spinner } from "@/frontend/components/ui/spinner"
-import { BallpitHero } from "@/frontend/components/ui/ballpit-hero"
-import { GradientStatCard } from "@/frontend/components/ui/gradient-stat-card"
-import { SparklesText } from "@/frontend/components/ui/sparkles-text"
-import { cn } from "@/frontend/lib/utils"
+import { Spinner } from "@/components/ui/spinner"
+import { BallpitHero } from "@/components/ui/ballpit-hero"
+import { GradientStatCard } from "@/components/ui/gradient-stat-card"
+import { SparklesText } from "@/components/ui/sparkles-text"
+import { cn } from "@/lib/utils"
 
 interface PartnerData {
   partner: {

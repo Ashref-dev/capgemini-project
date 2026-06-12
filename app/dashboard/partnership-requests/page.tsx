@@ -1,16 +1,16 @@
 "use client"
 
 import React, { useEffect, useState, useCallback } from "react"
-import { useAuth } from "@/frontend/hooks/use-auth"
-import { toast } from "@/frontend/components/ui/toast"
-import { Button } from "@/frontend/components/ui/button"
-import { Card } from "@/frontend/components/ui/card"
-import { Textarea } from "@/frontend/components/ui/textarea"
-import { cn } from "@/frontend/lib/utils"
+import { useAuth } from "@/hooks/use-auth"
+import { toast } from "@/components/ui/toast"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Textarea } from "@/components/ui/textarea"
+import { cn } from "@/lib/utils"
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { SparklesText } from "@/frontend/components/ui/sparkles-text"
-import { GradientStatCard } from "@/frontend/components/ui/gradient-stat-card"
+import { SparklesText } from "@/components/ui/sparkles-text"
+import { GradientStatCard } from "@/components/ui/gradient-stat-card"
 import {
   CheckmarkCircle02Icon,
   Cancel01Icon,

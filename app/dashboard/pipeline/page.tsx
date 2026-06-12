@@ -15,11 +15,11 @@ import {
   Loading03Icon,
 } from "@hugeicons/core-free-icons"
 
-import { useAuth } from "@/frontend/hooks/use-auth"
-import { Button } from "@/frontend/components/ui/button"
-import { Input } from "@/frontend/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/frontend/components/ui/tabs"
-import { cn } from "@/frontend/lib/utils"
+import { useAuth } from "@/hooks/use-auth"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { cn } from "@/lib/utils"
 
 type TabKey = "offers" | "requests" | "recruitments"
 const TAB_KEYS: TabKey[] = ["offers", "requests", "recruitments"]

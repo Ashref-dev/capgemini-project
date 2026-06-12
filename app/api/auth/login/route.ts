@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { compare } from "bcryptjs"
-import { db } from "@/backend/db/config"
-import { capgeminiEmployees, partners } from "@/backend/db/schema"
+import { db } from "@/lib/server/db/config"
+import { capgeminiEmployees, partners } from "@/lib/server/db/schema"
 import { sql } from "drizzle-orm"
-import { signToken } from "@/backend/auth/jwt"
+import { signToken } from "@/lib/server/auth/jwt"
 
 export async function POST(request: NextRequest) {
   try {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { dwPool } from "@/backend/db/dw-config"
-import { getSessionUser } from "@/backend/auth/session"
+import { dwPool } from "@/lib/server/db/dw-config"
+import { getSessionUser } from "@/lib/server/auth/session"
 
 // GET /api/bi - BI dashboard data from DW
 export async function GET(request: NextRequest) {

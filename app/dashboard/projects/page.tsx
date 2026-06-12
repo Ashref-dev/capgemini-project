@@ -18,11 +18,11 @@ import {
   Delete02Icon,
 } from "@hugeicons/core-free-icons"
 
-import { useAuth } from "@/frontend/hooks/use-auth"
-import { Button } from "@/frontend/components/ui/button"
-import { Input } from "@/frontend/components/ui/input"
-import { toast } from "@/frontend/components/ui/toast"
-import { cn } from "@/frontend/lib/utils"
+import { useAuth } from "@/hooks/use-auth"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { toast } from "@/components/ui/toast"
+import { cn } from "@/lib/utils"
 import {
   ProjectStatusBadge,
   ProjectHealthDot,
@@ -31,8 +31,8 @@ import {
   HEALTH_OPTIONS,
   type ProjectHealth,
   type ProjectStatus,
-} from "@/frontend/components/projects/project-status-badge"
-import { ProjectForm, type Project } from "@/frontend/components/projects/project-form"
+} from "@/components/projects/project-status-badge"
+import { ProjectForm, type Project } from "@/components/projects/project-form"
 
 type HealthFilter = "all" | ProjectHealth
 type StatusFilter = "all" | ProjectStatus
