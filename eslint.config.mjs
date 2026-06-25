@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone Node CommonJS maintenance/seed scripts are not part of the
+    // Next app and intentionally use require(); linting them with the app's
+    // TypeScript/ESM ruleset is a misconfiguration.
+    "scripts/**",
   ]),
 ]);
 
