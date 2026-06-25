@@ -22,33 +22,29 @@ export function MethodologyHeader({
   const [open, setOpen] = React.useState(hasDetails)
 
   return (
-    <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-primary/3 to-transparent p-3 backdrop-blur-sm">
+    <div className="rounded-lg border border-border bg-muted/30 px-2.5 py-1.5">
       <button
         type="button"
         disabled={!hasDetails}
         onClick={() => hasDetails && setOpen((o) => !o)}
         className={cn(
-          "flex w-full items-center gap-3 text-left",
+          "flex w-full items-center gap-2 text-left",
           hasDetails && "cursor-pointer"
         )}
       >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
-          <HugeiconsIcon icon={AnalyticsUpIcon} className="h-4 w-4" strokeWidth={2.2} />
+        <HugeiconsIcon icon={AnalyticsUpIcon} className="h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={2.2} />
+        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Méthode
         </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">
-            Methodology
-          </p>
-          <div className="mt-1 flex flex-wrap items-center gap-1.5">
-            {methodologies.map((m) => (
-              <span
-                key={m}
-                className="inline-flex items-center rounded-md border border-primary/25 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
-              >
-                {m}
-              </span>
-            ))}
-          </div>
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+          {methodologies.map((m) => (
+            <span
+              key={m}
+              className="inline-flex items-center rounded-md bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary"
+            >
+              {m}
+            </span>
+          ))}
         </div>
         {hasDetails && (
           <HugeiconsIcon
@@ -75,7 +71,7 @@ export function MethodologyHeader({
               {rationale && (
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Why these methods
+                    Pourquoi ces méthodes
                   </p>
                   <p className="mt-1 text-sm leading-relaxed text-foreground/90">{rationale}</p>
                 </div>
@@ -83,7 +79,7 @@ export function MethodologyHeader({
               {assumptions.length > 0 && (
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Assumptions
+                    Hypothèses
                   </p>
                   <ul className="mt-1 space-y-0.5">
                     {assumptions.map((a) => (

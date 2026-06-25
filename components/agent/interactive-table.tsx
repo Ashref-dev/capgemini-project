@@ -107,7 +107,7 @@ function formatCellValue(value: unknown, type: ColumnType = "text") {
         ? new Date(value).toLocaleDateString("fr-FR")
         : String(value)
     case "boolean":
-      return typeof value === "boolean" ? (value ? "Yes" : "No") : String(value)
+      return typeof value === "boolean" ? (value ? "Oui" : "Non") : String(value)
     default:
       return String(value)
   }
@@ -141,7 +141,7 @@ let xlsxPromise: Promise<XLSXModule> | null = null
 
 function loadXlsx() {
   if (typeof window === "undefined") {
-    return Promise.reject(new Error("Excel export is only available in the browser."))
+    return Promise.reject(new Error("L'export Excel n'est disponible que dans le navigateur."))
   }
 
   if (window.XLSX) {
@@ -159,7 +159,7 @@ function loadXlsx() {
       if (window.XLSX) {
         resolve(window.XLSX)
       } else {
-        reject(new Error("Excel export library failed to initialize."))
+        reject(new Error("La bibliothèque d'export Excel n'a pas pu démarrer."))
       }
     }
 
@@ -167,7 +167,7 @@ function loadXlsx() {
       existingScript.addEventListener("load", resolveFromWindow, { once: true })
       existingScript.addEventListener(
         "error",
-        () => reject(new Error("Unable to load the Excel export library.")),
+        () => reject(new Error("Impossible de charger la bibliothèque d'export Excel.")),
         { once: true }
       )
       return
@@ -178,7 +178,7 @@ function loadXlsx() {
     script.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
     script.async = true
     script.onload = resolveFromWindow
-    script.onerror = () => reject(new Error("Unable to load the Excel export library."))
+    script.onerror = () => reject(new Error("Impossible de charger la bibliothèque d'export Excel."))
     document.body.appendChild(script)
   })
 
@@ -278,7 +278,7 @@ export function InteractiveTable({ title, description, columns, data }: Interact
       const visibleCount = columns.filter((column) => visibleColumns[column.key] !== false).length
 
       if (visibleColumns[columnKey] !== false && visibleCount === 1) {
-        toast.warning("At least one column must stay visible.")
+        toast.warning("Au moins une colonne doit rester visible.")
         return
       }
 
@@ -292,7 +292,7 @@ export function InteractiveTable({ title, description, columns, data }: Interact
 
   const handleCsvExport = React.useCallback(() => {
     if (exportRows.length === 0) {
-      toast.info("There is no table data to export.")
+      toast.info("Aucune donnée à exporter.")
       return
     }
 
@@ -312,12 +312,12 @@ export function InteractiveTable({ title, description, columns, data }: Interact
     link.click()
     URL.revokeObjectURL(url)
 
-    toast.success("CSV export started.")
+    toast.success("Export CSV lancé.")
   }, [displayedColumns, exportRows, title])
 
   const handleExcelExport = React.useCallback(async () => {
     if (exportRows.length === 0) {
-      toast.info("There is no table data to export.")
+      toast.info("Aucune donnée à exporter.")
       return
     }
 
@@ -332,17 +332,17 @@ export function InteractiveTable({ title, description, columns, data }: Interact
         workbook,
         `${title.toLowerCase().replace(/[^a-z0-9]+/gi, "-") || "table"}.xlsx`
       )
-      toast.success("Excel export completed.")
+      toast.success("Export Excel terminé.")
     } catch (error) {
-      const description = error instanceof Error ? error.message : "Unable to export Excel file."
-      toast.error("Excel export failed", { description })
+      const description = error instanceof Error ? error.message : "Impossible d'exporter le fichier Excel."
+      toast.error("Export Excel échoué", { description })
     } finally {
       setIsExportingExcel(false)
     }
   }, [exportRows, title])
 
   return (
-    <Card className="border-border/70 bg-card/95">
+    <Card className="border-border/70 bg-card">
       <CardHeader className="gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1">
           <CardTitle>{title}</CardTitle>
@@ -353,7 +353,7 @@ export function InteractiveTable({ title, description, columns, data }: Interact
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="justify-start sm:justify-center">
                 <HugeiconsIcon icon={ViewIcon} className="mr-2 h-4 w-4" />
-                Columns
+                Colonnes
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -373,7 +373,7 @@ export function InteractiveTable({ title, description, columns, data }: Interact
                       <Checkbox
                         checked={checked}
                         onCheckedChange={() => toggleColumn(column.key)}
-                        aria-label={`Toggle ${column.label} column`}
+                        aria-label={`Afficher/masquer la colonne ${column.label}`}
                       />
                       <span>{column.label}</span>
                     </div>
@@ -388,7 +388,7 @@ export function InteractiveTable({ title, description, columns, data }: Interact
           </Button>
           <Button variant="outline" onClick={() => void handleExcelExport()} disabled={isExportingExcel}>
             <HugeiconsIcon icon={Download04Icon} className="mr-2 h-4 w-4" />
-            {isExportingExcel ? "Exporting…" : "Excel"}
+            {isExportingExcel ? "Export…" : "Excel"}
           </Button>
         </div>
       </CardHeader>
@@ -396,14 +396,15 @@ export function InteractiveTable({ title, description, columns, data }: Interact
         <Input
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
-          placeholder="Search this table..."
-          aria-label="Search table rows"
+          placeholder="Rechercher dans le tableau…"
+          aria-label="Rechercher des lignes"
         />
 
-        <div className="rounded-xl border border-border">
+        <div className="rounded-lg border border-border">
           <Table>
             <TableCaption>
-              {sortedData.length} row{sortedData.length === 1 ? "" : "s"} found.
+              {sortedData.length} ligne{sortedData.length === 1 ? "" : "s"} trouvée
+              {sortedData.length === 1 ? "" : "s"}.
             </TableCaption>
             <TableHeader>
               <TableRow>
@@ -422,7 +423,7 @@ export function InteractiveTable({ title, description, columns, data }: Interact
                         <HugeiconsIcon icon={ArrowUpDownIcon} className="ml-2 h-4 w-4" />
                         {isSorted ? (
                           <span className="sr-only">
-                            Sorted {sortDirection === "asc" ? "ascending" : "descending"}
+                            Trié par ordre {sortDirection === "asc" ? "croissant" : "décroissant"}
                           </span>
                         ) : null}
                       </Button>
@@ -451,7 +452,7 @@ export function InteractiveTable({ title, description, columns, data }: Interact
               ) : (
                 <TableRow>
                   <TableCell colSpan={Math.max(displayedColumns.length, 1)} className="h-24 text-center text-muted-foreground">
-                    No records match the current filters.
+                    Aucun enregistrement ne correspond aux filtres.
                   </TableCell>
                 </TableRow>
               )}
@@ -461,8 +462,8 @@ export function InteractiveTable({ title, description, columns, data }: Interact
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
-            Showing {(page - 1) * ROWS_PER_PAGE + (paginatedData.length > 0 ? 1 : 0)}–
-            {(page - 1) * ROWS_PER_PAGE + paginatedData.length} of {sortedData.length}
+            {(page - 1) * ROWS_PER_PAGE + (paginatedData.length > 0 ? 1 : 0)}–
+            {(page - 1) * ROWS_PER_PAGE + paginatedData.length} sur {sortedData.length}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -472,7 +473,7 @@ export function InteractiveTable({ title, description, columns, data }: Interact
               disabled={page === 1}
             >
               <HugeiconsIcon icon={ArrowLeft01Icon} className="mr-2 h-4 w-4" />
-              Previous
+              Précédent
             </Button>
             <span className="min-w-20 text-center text-sm text-muted-foreground">
               Page {page} / {totalPages}
@@ -483,7 +484,7 @@ export function InteractiveTable({ title, description, columns, data }: Interact
               onClick={() => setPage((currentPage) => Math.min(totalPages, currentPage + 1))}
               disabled={page === totalPages}
             >
-              Next
+              Suivant
               <HugeiconsIcon icon={ArrowRight01Icon} className="ml-2 h-4 w-4" />
             </Button>
           </div>

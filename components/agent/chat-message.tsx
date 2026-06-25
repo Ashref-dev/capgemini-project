@@ -1,11 +1,13 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import type { UIMessage } from "ai"
 import { Streamdown } from "streamdown"
 import "streamdown/styles.css"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons"
 
-import { AnalysisPlan } from "./analysis-plan"
 import { BarChart } from "./bar-chart"
 import { ClarificationPrompt } from "./clarification-prompt"
 import { CodeResult } from "./code-result"
@@ -15,7 +17,11 @@ import { MethodologyHeader } from "./methodology-header"
 import { PieChart } from "./pie-chart"
 import { ReportPreview } from "./report-preview"
 import { ToolCallCard } from "./tool-call-card"
-import { cn } from "@/lib/utils"
+import { ToolCallStack } from "./tool-call-stack"
+import { groupToolParts } from "./tool-grouping"
+import { cn, isInternalDashboardHref } from "@/lib/utils"
+
+export { isInternalDashboardHref } from "@/lib/utils"
 
 interface ChatMessageProps {
   message: UIMessage
@@ -63,7 +69,7 @@ function getToolInfoFromState(
     return {
       toolName,
       input,
-      errorText: typeof errorText === "string" ? errorText : "Tool execution failed.",
+      errorText: typeof errorText === "string" ? errorText : "Échec de l'exécution de l'outil.",
       status: "error",
     }
   }
@@ -255,7 +261,9 @@ function renderToolResult(
     case "declareMethodology":
       return isMethodologyPayload(payload) ? <MethodologyHeader {...payload} /> : null
     case "createPlan":
-      return isPlanPayload(payload) ? <AnalysisPlan {...payload} /> : null
+      // Plan rendering is owned by the floating PlanHud overlay; suppress the
+      // inline duplicate so the HUD is the single canonical plan surface.
+      return null
     case "askClarification":
       return isClarificationPayload(payload) ? (
         <ClarificationPrompt {...payload} onSelect={onSuggestionClick} />
@@ -273,24 +281,11 @@ function isMethodologyPayload(value: unknown): value is React.ComponentProps<typ
   )
 }
 
-function isPlanPayload(value: unknown): value is React.ComponentProps<typeof AnalysisPlan> {
-  return (
-    isRecord(value) &&
-    typeof value.objective === "string" &&
-    Array.isArray(value.steps) &&
-    value.steps.every(
-      (s) =>
-        isRecord(s) &&
-        typeof s.id === "string" &&
-        typeof s.title === "string" &&
-        typeof s.status === "string"
-    )
-  )
-}
-
 function isClarificationPayload(value: unknown): value is React.ComponentProps<typeof ClarificationPrompt> {
   return isRecord(value) && typeof value.question === "string"
 }
+
+const linkClassName = "text-primary underline underline-offset-4 hover:text-primary/80"
 
 const markdownComponents = {
   p: ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
@@ -302,22 +297,78 @@ const markdownComponents = {
   ol: ({ className, ...props }: React.HTMLAttributes<HTMLOListElement>) => (
     <ol className={cn("ml-4 list-decimal space-y-1", className)} {...props} />
   ),
-  a: ({ className, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a
-      className={cn("text-primary underline underline-offset-4 hover:text-primary/80", className)}
-      target="_blank"
-      rel="noreferrer"
-      {...props}
-    />
-  ),
+  a: ({ className, href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
+    if (typeof href !== "string" || href.length === 0) {
+      return <span className={cn(linkClassName, className)}>{children}</span>
+    }
+
+    if (isInternalDashboardHref(href)) {
+      return (
+        <Link href={href} className={cn(linkClassName, className)}>
+          {children}
+        </Link>
+      )
+    }
+
+    return (
+      <a
+        className={cn(linkClassName, className)}
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        {...props}
+      >
+        {children}
+      </a>
+    )
+  },
   code: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
     <code className={cn("rounded bg-muted px-1 py-0.5 font-mono text-[0.85em]", className)} {...props} />
   ),
-  pre: ({ className, ...props }: React.HTMLAttributes<HTMLPreElement>) => (
-    <pre className={cn("overflow-x-auto rounded-lg bg-muted p-3 text-xs", className)} {...props} />
-  ),
+  pre: ({ children, className }: { children?: React.ReactNode; className?: string }) => {
+    let text = ""
+    React.Children.forEach(children, (child) => {
+      if (typeof child === "string") {
+        text += child
+      } else if (React.isValidElement(child)) {
+        const p = child.props as { children?: React.ReactNode }
+        if (typeof p.children === "string") {
+          text += p.children
+        } else {
+          React.Children.forEach(p.children, (gc) => {
+            if (typeof gc === "string") text += gc
+          })
+        }
+      }
+    })
+
+    const trimmed = text.trim()
+    if (trimmed.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(trimmed) as Record<string, unknown>
+        const action = typeof parsed.action === "string" ? parsed.action : ""
+        const title = typeof parsed.title === "string" ? parsed.title : "Graphique"
+        const description = typeof parsed.description === "string" ? parsed.description : undefined
+
+        if ((action === "create_bar_chart" || action === "createBarChart") && Array.isArray(parsed.data)) {
+          return <BarChart title={title} data={parsed.data as React.ComponentProps<typeof BarChart>["data"]} description={description} />
+        }
+        if ((action === "create_line_chart" || action === "createLineChart") && Array.isArray(parsed.data)) {
+          return <LineChart title={title} data={parsed.data as React.ComponentProps<typeof LineChart>["data"]} description={description} />
+        }
+        if ((action === "create_pie_chart" || action === "createPieChart") && Array.isArray(parsed.data)) {
+          return <PieChart title={title} data={parsed.data as React.ComponentProps<typeof PieChart>["data"]} description={description} />
+        }
+        if ((action === "create_table" || action === "createTable") && Array.isArray(parsed.data) && Array.isArray(parsed.columns)) {
+          return <InteractiveTable title={title} columns={parsed.columns as React.ComponentProps<typeof InteractiveTable>["columns"]} data={parsed.data as React.ComponentProps<typeof InteractiveTable>["data"]} description={description} />
+        }
+      } catch {}
+    }
+
+    return <pre className={cn("overflow-x-auto rounded-lg bg-muted p-3 text-xs", className)}>{children}</pre>
+  },
   blockquote: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
-    <blockquote className={cn("border-l-2 border-primary/40 pl-3 italic text-muted-foreground", className)} {...props} />
+    <blockquote className={cn("border-l-2 border-border pl-3 italic text-muted-foreground", className)} {...props} />
   ),
   h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1 className={cn("mt-3 text-base font-semibold", className)} {...props} />
@@ -330,73 +381,127 @@ const markdownComponents = {
   ),
 }
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = React.useState(false)
+
+  const handleCopy = React.useCallback(() => {
+    void navigator.clipboard.writeText(text).then(
+      () => {
+        setCopied(true)
+        window.setTimeout(() => setCopied(false), 1600)
+      },
+      () => setCopied(false),
+    )
+  }, [text])
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      aria-label={copied ? "Copié" : "Copier la réponse"}
+      className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+    >
+      <HugeiconsIcon icon={copied ? Tick02Icon : Copy01Icon} className="h-3.5 w-3.5" />
+      {copied ? "Copié" : "Copier"}
+    </button>
+  )
+}
+
 export function ChatMessage({ message, isStreaming, onSuggestionClick }: ChatMessageProps) {
   const isUser = message.role === "user"
 
-  return (
-    <div className={cn("w-full", isUser ? "max-w-xl" : "max-w-4xl")}>
-      <div
-        className={cn(
-          "space-y-2",
-          isUser
-            ? "rounded-xl bg-blue-600 px-3 py-2 text-sm text-white shadow-sm"
-            : "space-y-2"
-        )}
-      >
-        {message.parts.map((part) => {
-          const partKey = getPartKey(part, message.id, String(part.type))
+  const textContent = React.useMemo(
+    () =>
+      message.parts
+        .filter((part): part is Extract<UIMessage["parts"][number], { type: "text" }> => part.type === "text")
+        .map((part) => part.text)
+        .join("\n\n")
+        .trim(),
+    [message.parts],
+  )
 
-          if (part.type === "text") {
-            return isUser ? (
-              <p key={partKey} className="whitespace-pre-wrap leading-5">
+  // Hooks must run unconditionally: compute segments before the user-branch
+  // early return so the hook order is stable across renders.
+  const segments = React.useMemo(() => groupToolParts(message.parts), [message.parts])
+
+  if (isUser) {
+    return (
+      <div className="ml-auto max-w-[85%] sm:max-w-[78%]">
+        <div className="rounded-lg bg-primary px-3.5 py-2 text-sm text-primary-foreground shadow-sm">
+          {message.parts.map((part) =>
+            part.type === "text" ? (
+              <p
+                key={getPartKey(part, message.id, String(part.type))}
+                className="whitespace-pre-wrap leading-6"
+              >
                 {part.text}
               </p>
-            ) : (
-              <div
-                key={partKey}
-                className="rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground shadow-sm"
-              >
-                <Streamdown
-                  components={markdownComponents}
-                  animated={Boolean(isStreaming)}
-                >
-                  {part.text}
-                </Streamdown>
-              </div>
-            )
-          }
-
-          const toolInfo = getToolPartInfo(part)
-
-          if (!toolInfo) {
-            return null
-          }
-
-          if (toolInfo.status === "success") {
-            const renderedTool = renderToolResult(
-              toolInfo.toolName,
-              toolInfo.output ?? toolInfo.input,
-              onSuggestionClick
-            )
-
-            if (renderedTool) {
-              return React.cloneElement(renderedTool, { key: partKey })
-            }
-          }
-
-          return (
-            <ToolCallCard
-              key={partKey}
-              toolName={toolInfo.toolName}
-              status={toolInfo.status}
-              input={toolInfo.input}
-              output={toolInfo.output}
-              errorText={toolInfo.errorText}
-              defaultOpen={toolInfo.status === "error"}
-            />
-          )
-        })}
+            ) : null,
+          )}
+        </div>
       </div>
+    )
+  }
+
+  return (
+    <div className="group w-full space-y-2.5">
+      {segments.map((segment, segmentIndex) => {
+        if (segment.kind === "tool-run") {
+          const firstPart = segment.parts[0]
+          const runKey = `${segmentIndex}-${getPartKey(firstPart, message.id, `tool-run-${segmentIndex}`)}`
+
+          return <ToolCallStack key={runKey} parts={segment.parts} />
+        }
+
+        const part = segment.part
+        const partKey = `${segmentIndex}-${getPartKey(part, message.id, String(part.type))}`
+
+        if (part.type === "text") {
+          return (
+            <div key={partKey} className="text-sm leading-6 text-foreground">
+              <Streamdown components={markdownComponents} animated={Boolean(isStreaming)}>
+                {part.text}
+              </Streamdown>
+            </div>
+          )
+        }
+
+        const toolInfo = getToolPartInfo(part)
+
+        if (!toolInfo) {
+          return null
+        }
+
+        if (toolInfo.status === "success") {
+          const renderedTool = renderToolResult(
+            toolInfo.toolName,
+            toolInfo.output ?? toolInfo.input,
+            onSuggestionClick,
+          )
+
+          if (renderedTool) {
+            return React.cloneElement(renderedTool, { key: partKey })
+          }
+        }
+
+        return (
+          <ToolCallCard
+            key={partKey}
+            toolName={toolInfo.toolName}
+            status={toolInfo.status}
+            input={toolInfo.input}
+            output={toolInfo.output}
+            errorText={toolInfo.errorText}
+            defaultOpen={toolInfo.status === "error"}
+          />
+        )
+      })}
+
+      {!isStreaming && textContent.length > 0 ? (
+        <div className="flex items-center gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+          <CopyButton text={textContent} />
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -149,7 +149,7 @@ export function BarChart({ data, title, description, yAxisLabel }: BarChartProps
   const hasData = chartData.length > 0 && seriesDefinitions.length > 0
 
   return (
-    <Card className="border-border/70 bg-card/95">
+    <Card className="border-border/70 bg-card">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
@@ -195,8 +195,8 @@ export function BarChart({ data, title, description, yAxisLabel }: BarChartProps
             </RechartsBarChart>
           </ChartContainer>
         ) : (
-          <div className="flex min-h-[320px] items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-6 text-center text-sm text-muted-foreground">
-            No chart data is available for this query yet.
+          <div className="flex min-h-[320px] items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 px-6 text-center text-sm text-muted-foreground">
+            Aucune donnée disponible pour cette requête.
           </div>
         )}
       </CardContent>

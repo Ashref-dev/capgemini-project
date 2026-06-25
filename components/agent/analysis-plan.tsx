@@ -39,11 +39,11 @@ const stepIconMap: Record<StepStatus, { icon: typeof Loading03Icon; tone: string
   },
   completed: {
     icon: Tick02Icon,
-    tone: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 border-emerald-500/40",
+    tone: "text-success bg-success/15 border-success/40",
   },
   blocked: {
     icon: AlertCircleIcon,
-    tone: "text-red-600 dark:text-red-400 bg-red-500/15 border-red-500/40",
+    tone: "text-destructive bg-destructive/15 border-destructive/40",
   },
 }
 
@@ -59,7 +59,7 @@ export function AnalysisPlan({ objective, steps }: AnalysisPlanProps) {
   }, [allDone])
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/60 backdrop-blur-sm">
+    <div className="overflow-hidden rounded-lg border border-border/70 bg-card">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -70,7 +70,7 @@ export function AnalysisPlan({ objective, steps }: AnalysisPlanProps) {
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
-            <span className="text-sm font-semibold text-foreground">Analysis plan</span>
+            <span className="text-sm font-semibold text-foreground">Plan d&apos;analyse</span>
             <span className="text-xs font-medium text-muted-foreground">
               {completedCount}/{totalCount}
             </span>
@@ -137,7 +137,7 @@ export function AnalysisPlan({ objective, steps }: AnalysisPlanProps) {
                           step.status === "completed" && "text-muted-foreground line-through",
                           step.status === "in_progress" && "font-medium text-foreground",
                           step.status === "pending" && "text-foreground/80",
-                          step.status === "blocked" && "text-red-700 dark:text-red-300"
+                          step.status === "blocked" && "text-destructive"
                         )}
                       >
                         {step.title}

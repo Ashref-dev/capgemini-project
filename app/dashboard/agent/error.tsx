@@ -11,12 +11,11 @@ type AgentErrorProps = {
   reset: () => void
 }
 
-function getFriendlyMessage(error: Error) {
+function getFriendlyMessage(error: Error): string {
   if (error.message.includes("Maximum update depth exceeded")) {
-    return "The AI panel hit an internal render loop. It has been paused so you can retry safely."
+    return "L'assistant a rencontré une boucle de rendu interne. Il a été mis en pause pour vous permettre de réessayer sans risque."
   }
-
-  return "The AI agent hit an unexpected problem. You can retry the page or return to the dashboard and try again."
+  return "L'assistant IA a rencontré un problème inattendu. Vous pouvez recharger la page ou revenir au tableau de bord et réessayer."
 }
 
 export default function AgentError({ error, reset }: AgentErrorProps) {
@@ -25,19 +24,23 @@ export default function AgentError({ error, reset }: AgentErrorProps) {
   }, [error])
 
   return (
-    <div className="flex min-h-[calc(100vh-5.5rem)] items-center justify-center p-6">
+    <div className="flex min-h-[calc(100dvh-7rem)] items-center justify-center p-6">
       <div className="w-full max-w-xl space-y-4">
         <Alert variant="destructive">
-          <AlertTitle>AI Agent paused</AlertTitle>
+          <AlertTitle>Assistant IA en pause</AlertTitle>
           <AlertDescription>{getFriendlyMessage(error)}</AlertDescription>
         </Alert>
 
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Button type="button" onClick={reset} className="bg-blue-600 text-white hover:bg-blue-700">
-            Retry agent
+          <Button
+            type="button"
+            onClick={reset}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            Réessayer
           </Button>
           <Button asChild type="button" variant="outline">
-            <Link href="/dashboard">Back to dashboard</Link>
+            <Link href="/dashboard">Retour au tableau de bord</Link>
           </Button>
         </div>
       </div>

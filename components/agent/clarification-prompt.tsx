@@ -20,20 +20,20 @@ export function ClarificationPrompt({
   onSelect,
 }: ClarificationPromptProps) {
   return (
-    <div className="rounded-2xl border border-amber-500/30 bg-amber-50/50 p-4 dark:border-amber-400/30 dark:bg-amber-950/30">
+    <div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300">
+        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-warning/15 text-warning">
           <HugeiconsIcon icon={HelpCircleIcon} className="h-4 w-4" strokeWidth={2.4} />
         </span>
         <div className="min-w-0 flex-1 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700/80 dark:text-amber-300/80">
-            Clarification needed
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-warning">
+            Clarification requise
           </p>
-          <p className="text-sm font-medium leading-snug text-amber-950 dark:text-amber-50">
+          <p className="text-sm font-medium leading-snug text-foreground">
             {question}
           </p>
           {reason && (
-            <p className="text-xs leading-snug text-amber-800/80 dark:text-amber-200/80">
+            <p className="text-xs leading-snug text-muted-foreground">
               {reason}
             </p>
           )}
@@ -48,9 +48,8 @@ export function ClarificationPrompt({
               type="button"
               onClick={() => onSelect?.(opt)}
               className={cn(
-                "group inline-flex items-center gap-1 rounded-full border bg-background px-3 py-1 text-xs font-medium transition-all",
-                "border-amber-500/40 text-amber-900 hover:border-amber-500 hover:bg-amber-500/10",
-                "dark:border-amber-400/40 dark:text-amber-100 dark:hover:border-amber-400 dark:hover:bg-amber-400/10",
+                "group inline-flex items-center gap-1 rounded-md border bg-background px-3 py-1 text-xs font-medium transition-all",
+                "border-warning/40 text-foreground hover:border-warning hover:bg-warning/10",
                 "active:scale-95"
               )}
             >
