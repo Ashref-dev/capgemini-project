@@ -107,7 +107,91 @@ function formatCategory(category: string | null) {
 }
 
 function formatWeight(weight: number) {
-  return `${weight}% weight`
+  return `Pondération ${weight} %`
+}
+
+const dimensionLabels: Record<DimensionKey, string> = {
+  budget: "Budget",
+  satisfaction: "Satisfaction",
+  activity: "Activité",
+  trackRecord: "Historique",
+  strategicFit: "Alignement stratégique",
+}
+
+function formatDimensionLabel(dimension: ScoreDimensionResult) {
+  return dimensionLabels[dimension.key] ?? dimension.label
+}
+
+const radarDimensionLabels: Record<DimensionKey, string> = {
+  budget: "Budget",
+  satisfaction: "Satisfaction",
+  activity: "Activité",
+  trackRecord: "Historique",
+  strategicFit: "Stratégie",
+}
+
+function formatRadarLabel(dimension: ScoreDimensionResult) {
+  return radarDimensionLabels[dimension.key] ?? dimension.label
+}
+
+const recommendationLabels: Record<Recommendation, string> = {
+  APPROVE: "Approuver",
+  REVIEW: "À revoir",
+  REJECT: "Rejeter",
+}
+
+// Localize the English signal strings from scoring.ts at render time only (its logic must not change).
+const SIGNAL_LABEL_REPLACEMENTS: ReadonlyArray<readonly [string, string]> = [
+  ["Scoring cap reached at 200,000 TND reference budget", "Plafond de score atteint à 200 000 TND de budget de référence"],
+  ["Annual budget:", "Budget annuel :"],
+  ["Current partner level:", "Niveau de partenaire actuel :"],
+  ["Average satisfaction:", "Satisfaction moyenne :"],
+  ["Signals used:", "Signaux utilisés :"],
+  ["Latest KPI satisfaction:", "Satisfaction KPI récente :"],
+  ["Recent events:", "Événements récents :"],
+  ["Meetings logged:", "Réunions enregistrées :"],
+  ["Active offers:", "Offres actives :"],
+  ["KPI interactions:", "Interactions KPI :"],
+  ["Vendor projects:", "Projets fournisseur :"],
+  ["Recruitments converted to CDI:", "Recrutements convertis en CDI :"],
+  ["Conversion rate:", "Taux de conversion :"],
+  ["Category:", "Catégorie :"],
+  ["Status/level:", "Statut/niveau :"],
+  ["Strategic boosts:", "Atouts stratégiques :"],
+]
+
+const SIGNAL_VALUE_REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = [
+  [/\bNot defined\b/g, "Non défini"],
+  [/\bUnavailable\b/g, "Indisponible"],
+  [/\bUnspecified\b/g, "Non précisé"],
+  [/\bDedicated support\b/g, "Support dédié"],
+  [/\bFramework agreement\b/g, "Convention cadre"],
+  [/\bNo additional boosts\b/g, "Aucun atout supplémentaire"],
+  [/\brecent notifications\b/g, "notifications récentes"],
+  [/\brecent notification\b/g, "notification récente"],
+  [/\bsupplier\b/gi, "Fournisseur"],
+  [/\bcustomer\b/gi, "Client"],
+  [/\buniversity\b/gi, "Université"],
+  [/\bmarketing\b/gi, "Marketing"],
+  [/\bplatinum\b/gi, "Platine"],
+  [/\bgold\b/gi, "Or"],
+  [/\bsilver\b/gi, "Argent"],
+  [/\bbronze\b/gi, "Bronze"],
+  [/\ben_negociation\b/gi, "En négociation"],
+  [/\binactif\b/gi, "Inactif"],
+  [/\bactif\b/gi, "Actif"],
+  [/\btermine\b/gi, "Terminé"],
+]
+
+function translateScoreSignal(signal: string): string {
+  let result = signal
+  for (const [from, to] of SIGNAL_LABEL_REPLACEMENTS) {
+    result = result.split(from).join(to)
+  }
+  for (const [pattern, replacement] of SIGNAL_VALUE_REPLACEMENTS) {
+    result = result.replace(pattern, replacement)
+  }
+  return result
 }
 
 function AnimatedScore({ score, color }: { score: number; color: string }) {
@@ -139,8 +223,8 @@ function AnimatedScore({ score, color }: { score: number; color: string }) {
 
   return (
     <div className="relative flex items-center justify-center">
-      <svg width={SCORE_RING_SIZE} height={SCORE_RING_SIZE} className="-rotate-90 overflow-visible" role="img" aria-label={`Partner score ${score} out of 100`}>
-        <title>{`Partner score ${score} out of 100`}</title>
+      <svg width={SCORE_RING_SIZE} height={SCORE_RING_SIZE} className="-rotate-90 overflow-visible" role="img" aria-label={`Score partenaire ${score} sur 100`}>
+        <title>{`Score partenaire ${score} sur 100`}</title>
         <circle
           cx={SCORE_RING_SIZE / 2}
           cy={SCORE_RING_SIZE / 2}
@@ -164,7 +248,7 @@ function AnimatedScore({ score, color }: { score: number; color: string }) {
           transition={shouldReduceMotion ? { duration: 0 } : { duration: 1.1, ease: "easeOut" }}
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full border border-border/60 bg-card/80 backdrop-blur-sm">
+      <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full border border-border/60 bg-card">
         <span className="text-5xl font-bold tracking-tight tabular-nums" style={{ color }}>
           {displayValue}
         </span>
@@ -217,7 +301,7 @@ export default function PartnerScoringPage({ params }: { params: Promise<{ id: s
     }
 
     return data.dimensions.map((dimension) => ({
-      dimension: dimension.label,
+      dimension: formatRadarLabel(dimension),
       score: dimension.score,
       fullMark: 100,
     }))
@@ -240,7 +324,7 @@ export default function PartnerScoringPage({ params }: { params: Promise<{ id: s
             Retour
           </Button>
         </Link>
-        <div className="rounded-xl border border-border bg-card p-8 text-center text-muted-foreground">
+        <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground">
           Score partenaire indisponible.
         </div>
       </div>
@@ -262,9 +346,9 @@ export default function PartnerScoringPage({ params }: { params: Promise<{ id: s
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Partner Compatibility Score</h1>
+            <h1 className="text-2xl font-bold">Score de compatibilité partenaire</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              AI explainability view for the partnership fit assessment.
+              Vue explicative de l&apos;IA pour l&apos;évaluation de l&apos;adéquation du partenariat.
             </p>
           </div>
         </div>
@@ -286,36 +370,64 @@ export default function PartnerScoringPage({ params }: { params: Promise<{ id: s
           transition={{ duration: 0.45 }}
         >
           <Card className="border-border bg-card/95">
-            <CardHeader className="border-b border-border bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5 pb-4">
-              <CardTitle className="text-xl">Score summary</CardTitle>
+            <CardHeader className="border-b border-border pb-4">
+              <CardTitle className="text-xl">Synthèse du score</CardTitle>
               <CardDescription>
-                Weighted across five dimensions to support an approval decision.
+                Pondéré sur cinq dimensions pour appuyer une décision d&apos;approbation.
               </CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-8 pt-6 lg:grid-cols-[minmax(0,240px)_minmax(0,1fr)] lg:items-center">
-              <AnimatedScore score={data.finalScore} color={palette.color} />
+            <CardContent className="grid gap-6 pt-6 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)] lg:items-stretch lg:gap-8">
+              <div className="flex items-center justify-center">
+                <AnimatedScore score={data.finalScore} color={palette.color} />
+              </div>
 
-              <div className="space-y-5">
-                <div className="flex flex-wrap items-center gap-3">
+              <div className="flex min-w-0 flex-col gap-5">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                   <Badge className={cn("h-8 rounded-full border px-3 text-sm font-semibold", palette.badge)}>
                     <HugeiconsIcon icon={RecommendationIcon} className="mr-1.5 h-4 w-4" />
-                    {data.recommendation}
+                    {recommendationLabels[data.recommendation]}
                   </Badge>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="min-w-0 text-sm text-muted-foreground">
                     {data.methodology}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 lg:flex-1 lg:auto-rows-fr">
                   {[
-                    { label: "Budget", value: `${data.signals.annualBudgetTnd.toLocaleString("fr-FR")} TND` },
-                    { label: "Satisfaction", value: `${data.signals.avgSatisfaction.toLocaleString("fr-FR")} / 100` },
-                    { label: "Activity", value: `${data.signals.recentEvents + data.signals.meetings} touchpoints` },
-                    { label: "Track record", value: `${data.signals.vendorProjects + data.signals.recruitmentsConvertedToCdi} outcomes` },
+                    {
+                      label: "Budget",
+                      value: data.signals.annualBudgetTnd.toLocaleString("fr-FR"),
+                      unit: "TND",
+                    },
+                    {
+                      label: "Satisfaction",
+                      value: data.signals.avgSatisfaction.toLocaleString("fr-FR"),
+                      unit: "/ 100",
+                    },
+                    {
+                      label: "Activité",
+                      value: (data.signals.recentEvents + data.signals.meetings).toLocaleString("fr-FR"),
+                      unit: "points de contact",
+                    },
+                    {
+                      label: "Historique",
+                      value: (data.signals.vendorProjects + data.signals.recruitmentsConvertedToCdi).toLocaleString("fr-FR"),
+                      unit: "résultats",
+                    },
                   ].map((item) => (
-                    <div key={item.label} className="rounded-xl border border-border/80 bg-muted/30 p-3">
-                      <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{item.label}</div>
-                      <div className="mt-1 text-sm font-semibold text-foreground">{item.value}</div>
+                    <div
+                      key={item.label}
+                      className="flex min-w-0 flex-col justify-center gap-1.5 rounded-lg border border-border/80 bg-muted/40 p-3"
+                    >
+                      <div className="truncate text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        {item.label}
+                      </div>
+                      <div className="flex min-w-0 flex-wrap items-baseline gap-x-1">
+                        <span className="text-base font-semibold tabular-nums text-foreground">
+                          {item.value}
+                        </span>
+                        <span className="text-xs font-medium text-muted-foreground">{item.unit}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -331,9 +443,9 @@ export default function PartnerScoringPage({ params }: { params: Promise<{ id: s
         >
           <Card className="border-border bg-card/95">
             <CardHeader className="border-b border-border pb-4">
-              <CardTitle className="text-xl">Dimension radar</CardTitle>
+              <CardTitle className="text-xl">Radar des dimensions</CardTitle>
               <CardDescription>
-                Relative performance across budget, satisfaction, activity, track record, and strategic fit.
+                Performance relative sur le budget, la satisfaction, l&apos;activité, l&apos;historique et l&apos;alignement stratégique.
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
@@ -374,7 +486,7 @@ export default function PartnerScoringPage({ params }: { params: Promise<{ id: s
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <CardTitle>{dimension.label}</CardTitle>
+                    <CardTitle>{formatDimensionLabel(dimension)}</CardTitle>
                     <CardDescription>{formatWeight(dimension.weight)}</CardDescription>
                   </div>
                   <Badge
@@ -393,7 +505,7 @@ export default function PartnerScoringPage({ params }: { params: Promise<{ id: s
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs uppercase tracking-wide text-muted-foreground">
-                    <span>Dimension score</span>
+                    <span>Score de la dimension</span>
                     <span>{dimension.score}%</span>
                   </div>
                   <div className="h-3 overflow-hidden rounded-full bg-muted">
@@ -409,13 +521,13 @@ export default function PartnerScoringPage({ params }: { params: Promise<{ id: s
 
                 <div className="space-y-2">
                   <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Key signals
+                    Signaux clés
                   </div>
                   <ul className="space-y-2 text-sm text-foreground">
                     {dimension.signals.map((signal) => (
                       <li key={signal} className="flex gap-2 rounded-lg border border-border/70 bg-muted/20 px-3 py-2">
                         <span className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: palette.color }} />
-                        <span>{signal}</span>
+                        <span>{translateScoreSignal(signal)}</span>
                       </li>
                     ))}
                   </ul>
@@ -432,29 +544,29 @@ export default function PartnerScoringPage({ params }: { params: Promise<{ id: s
         transition={{ duration: 0.45, delay: 0.32 }}
       >
         <Card className="border-border bg-card/95">
-          <CardHeader className="border-b border-border bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5 pb-4">
-            <CardTitle className="text-xl">Scoring methodology</CardTitle>
+          <CardHeader className="border-b border-border pb-4">
+            <CardTitle className="text-xl">Méthodologie de scoring</CardTitle>
             <CardDescription>
-              How the AI explainability layer turns partner activity into a recommendation.
+              Comment la couche d&apos;explicabilité IA transforme l&apos;activité du partenaire en recommandation.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 pt-6 md:grid-cols-3">
-            <div className="rounded-xl border border-border/80 bg-muted/20 p-4">
-              <div className="text-sm font-semibold text-foreground">1. Weighted dimensions</div>
+            <div className="rounded-lg border border-border/80 bg-muted/20 p-4">
+              <div className="text-sm font-semibold text-foreground">1. Dimensions pondérées</div>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Budget, satisfaction, activity, track record, and strategic fit are each normalized to a 0-100 scale, then combined using fixed weights.
+                Le budget, la satisfaction, l&apos;activité, l&apos;historique et l&apos;alignement stratégique sont chacun normalisés sur une échelle de 0 à 100, puis combinés selon des pondérations fixes.
               </p>
             </div>
-            <div className="rounded-xl border border-border/80 bg-muted/20 p-4">
-              <div className="text-sm font-semibold text-foreground">2. Evidence-based signals</div>
+            <div className="rounded-lg border border-border/80 bg-muted/20 p-4">
+              <div className="text-sm font-semibold text-foreground">2. Signaux fondés sur des preuves</div>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                The score relies on operational data already stored in the platform: KPIs, events, meetings, offers, recruitments, projects, and partner profile metadata.
+                Le score s&apos;appuie sur les données opérationnelles déjà présentes dans la plateforme : KPIs, événements, réunions, offres, recrutements, projets et métadonnées du profil partenaire.
               </p>
             </div>
-            <div className="rounded-xl border border-border/80 bg-muted/20 p-4">
-              <div className="text-sm font-semibold text-foreground">3. Decision thresholds</div>
+            <div className="rounded-lg border border-border/80 bg-muted/20 p-4">
+              <div className="text-sm font-semibold text-foreground">3. Seuils de décision</div>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Scores from 75-100 are APPROVE, 50-74 are REVIEW, and below 50 are REJECT, helping teams decide whether to progress, validate, or stop the partnership opportunity.
+                Un score de 75 à 100 vaut « Approuver », de 50 à 74 « À revoir », et en dessous de 50 « Rejeter », ce qui aide les équipes à décider de poursuivre, valider ou arrêter l&apos;opportunité de partenariat.
               </p>
             </div>
           </CardContent>

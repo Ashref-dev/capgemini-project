@@ -1,21 +1,20 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion, type Variants } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   UserGroupIcon,
   ContactBookIcon,
   AnalyticsUpIcon,
   Calendar03Icon,
-  Discount01Icon,
-  ClockIcon,
   UserAdd01Icon,
   UserIcon,
   MortarboardIcon,
 } from "@hugeicons/core-free-icons"
-import { NavCircularGallery, NavGalleryItem } from "@/components/ui/nav-circular-gallery"
 import { DailyBriefing } from "@/components/dashboard/daily-briefing"
+import Link from "next/link"
 
 interface SectionDef {
   title: string
@@ -25,6 +24,14 @@ interface SectionDef {
   color: string
   bgColor: string
   roles?: string[]
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Administrateur",
+  manager: "Manager",
+  commercial: "Commercial",
+  analyst: "Analyste",
+  rh: "Ressources Humaines",
 }
 
 const sections: SectionDef[] = [
@@ -43,22 +50,6 @@ const sections: SectionDef[] = [
     icon: ContactBookIcon,
     color: "text-violet-600 dark:text-violet-400",
     bgColor: "bg-violet-50 dark:bg-violet-900/20",
-  },
-  {
-    title: "Offres",
-    description: "Gérer les offres et propositions commerciales.",
-    href: "/dashboard/offers",
-    icon: Discount01Icon,
-    color: "text-emerald-600 dark:text-emerald-400",
-    bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
-  },
-  {
-    title: "Historique Statuts",
-    description: "Suivre l'historique des changements de statut des partenaires.",
-    href: "/dashboard/status-history",
-    icon: ClockIcon,
-    color: "text-orange-600 dark:text-orange-400",
-    bgColor: "bg-orange-50 dark:bg-orange-900/20",
   },
   {
     title: "Dashboard BI",
@@ -114,71 +105,163 @@ const sections: SectionDef[] = [
   },
 ]
 
+const containerVariants: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 6 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.18, ease: "easeOut" } },
+}
+
 export default function DashboardPage() {
   const { user } = useAuth()
+  const shouldReduceMotion = useReducedMotion()
 
   if (!user) return null
 
   const visibleSections = sections.filter(
-    (s) => !s.roles || s.roles.includes(user.role || "")
+    (s) => !s.roles || s.roles.includes(user.role ?? "")
   )
 
-  const galleryItems: NavGalleryItem[] = visibleSections.map((s) => ({
-    id: s.href,
-    label: s.title,
-    description: s.description,
-    href: s.href,
-    icon: <HugeiconsIcon icon={s.icon} className={`w-8 h-8 ${s.color}`} />,
-    color: s.color,
-    bgColor: s.bgColor,
-  }))
-
+  const hour = new Date().getHours()
   const greeting =
-    new Date().getHours() < 12
-      ? "Bonjour"
-      : new Date().getHours() < 18
-        ? "Bon après-midi"
-        : "Bonsoir"
+    hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir"
+
+  const roleLabel = ROLE_LABELS[user.role ?? ""] ?? user.role ?? "Employé"
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-background via-background to-primary/5 p-8 shadow-sm">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,112,173,0.12),transparent_42%),radial-gradient(circle_at_bottom_left,rgba(18,171,219,0.08),transparent_36%)]" />
-        <div className="relative flex flex-col gap-4">
-          <p className="text-base font-bold uppercase tracking-[0.15em] text-primary">{greeting}</p>
-          <h1
-            className="max-w-3xl text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl lg:text-6xl bg-clip-text bg-[linear-gradient(135deg,#0070AD_0%,#12ABDB_100%)]"
-          >
-            {user.name || "Khaled Maatoug"}
+      {/* ── Compact header ── */}
+      <div className="flex flex-col gap-0.5 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-foreground">
+            {greeting},{" "}
+            <span className="text-primary">
+              {user.name?.split(" ")[0] ?? user.name ?? "—"}
+            </span>
           </h1>
-          <p className="max-w-md text-sm text-muted-foreground">
-            Tableau de bord de gestion des partenariats — Capgemini Tunisie
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            <span className="capitalize">{roleLabel}</span>{" · "}Capgemini Tunisie — IntelliConnect
           </p>
-          <span className="inline-flex w-fit items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-bold capitalize text-primary">
-            {user.role || "Admin"}
-          </span>
         </div>
+        <p className="text-xs text-muted-foreground">
+          {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+        </p>
       </div>
 
       <DailyBriefing />
 
-      {/* ── Circular navigation gallery ── */}
+      <ActivitySummary userRole={user.role ?? ""} />
+
+      {/* ── Accès rapide ── */}
       <div>
-        <motion.h2
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4"
-        >
+        <h2 className="mb-4 text-base font-semibold text-foreground">
           Accès rapide
-        </motion.h2>
+        </h2>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
+          variants={shouldReduceMotion ? undefined : containerVariants}
+          initial={shouldReduceMotion ? false : "hidden"}
+          animate={shouldReduceMotion ? false : "visible"}
+          className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
         >
-          <NavCircularGallery items={galleryItems} radius={480} autoRotateSpeed={0.028} />
+          {visibleSections.map((section) => (
+            <motion.div
+              key={section.href}
+              variants={shouldReduceMotion ? undefined : itemVariants}
+              whileHover={
+                shouldReduceMotion
+                  ? undefined
+                  : { y: -2, transition: { duration: 0.15 } }
+              }
+            >
+              <Link
+                href={section.href}
+                className="group flex h-full items-start gap-4 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+              >
+                <div
+                  className={`shrink-0 rounded-lg p-2.5 ${section.bgColor}`}
+                >
+                  <HugeiconsIcon
+                    icon={section.icon}
+                    className={`h-5 w-5 ${section.color}`}
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-medium leading-snug text-foreground">
+                    {section.title}
+                  </p>
+                  <p className="mt-0.5 line-clamp-2 text-sm leading-snug text-muted-foreground">
+                    {section.description}
+                  </p>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
         </motion.div>
+      </div>
+    </div>
+  )
+}
+
+function ActivitySummary({ userRole }: { userRole: string }) {
+  const [pendingRequests, setPendingRequests] = useState<number | null>(null)
+  const [negotiatingPartners, setNegotiatingPartners] = useState<number | null>(null)
+  const [activeRecruitments, setActiveRecruitments] = useState<number | null>(null)
+
+  const isAdminOrManager = userRole === "admin" || userRole === "manager"
+  const canSeeRecruitments = userRole === "admin" || userRole === "rh"
+
+  useEffect(() => {
+    if (isAdminOrManager) {
+      fetch("/api/admin/partnership-requests")
+        .then(r => r.ok ? r.json() : null)
+        .then(d => d?.counts?.pending != null && setPendingRequests(d.counts.pending as number))
+        .catch(() => {})
+    }
+    fetch("/api/partners?status=en_negociation")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d?.partners != null && setNegotiatingPartners((d.partners as unknown[]).length))
+      .catch(() => {})
+    if (canSeeRecruitments) {
+      fetch("/api/hr/recruitments")
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          if (d?.recruitments) {
+            const active = (d.recruitments as Array<{ endDate: string | null }>).filter(r => !r.endDate || new Date(r.endDate) >= new Date()).length
+            setActiveRecruitments(active)
+          }
+        })
+        .catch(() => {})
+    }
+  }, [isAdminOrManager, canSeeRecruitments])
+
+  type StatCard = { label: string; value: number | null; href: string; show: boolean }
+  const cards: StatCard[] = [
+    { label: "Demandes en attente", value: pendingRequests, href: "/dashboard/partnership-requests", show: isAdminOrManager },
+    { label: "En négociation", value: negotiatingPartners, href: "/dashboard/partners?status=en_negociation", show: true },
+    { label: "Recrutements actifs", value: activeRecruitments, href: "/dashboard/hr/recruitments", show: canSeeRecruitments },
+  ].filter(c => c.show)
+
+  if (cards.length === 0) return null
+
+  return (
+    <div>
+      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">En cours</p>
+      <div className="flex divide-x divide-border overflow-hidden rounded-xl border border-border">
+        {cards.map((card) => (
+          <Link
+            key={card.href}
+            href={card.href}
+            className="flex flex-1 items-center justify-between px-4 py-3 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset"
+          >
+            <span className="text-sm text-muted-foreground">{card.label}</span>
+            <span className="ml-3 text-base font-semibold tabular-nums text-foreground">
+              {card.value ?? "—"}
+            </span>
+          </Link>
+        ))}
       </div>
     </div>
   )

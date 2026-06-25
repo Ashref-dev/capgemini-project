@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/toast"
-import { cn } from "@/lib/utils"
+import { cn, isInternalDashboardHref } from "@/lib/utils"
 
 const REPORT_STORAGE_KEY = "intelliconnect-report-markdown"
 
@@ -51,7 +51,7 @@ function deriveTitle(markdown: string) {
     .map((line) => line.trim())
     .find((line) => line.startsWith("# "))
 
-  return firstHeading?.replace(/^#\s+/, "").trim() || "Generated Report"
+  return firstHeading?.replace(/^#\s+/, "").trim() || "Rapport généré"
 }
 
 const markdownComponents = {
@@ -73,28 +73,49 @@ const markdownComponents = {
   ol: ({ className, ...props }: React.HTMLAttributes<HTMLOListElement>) => (
     <ol className={cn("mt-4 ml-6 list-decimal space-y-2 text-[17px] leading-8 text-slate-700", className)} {...props} />
   ),
+  a: ({ className, href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
+    const linkClassName = cn("font-medium text-primary underline underline-offset-2 hover:text-primary/80", className)
+
+    if (typeof href !== "string" || href.length === 0) {
+      return <span className={linkClassName}>{children}</span>
+    }
+
+    if (isInternalDashboardHref(href)) {
+      return (
+        <Link href={href} className={linkClassName}>
+          {children}
+        </Link>
+      )
+    }
+
+    return (
+      <a className={linkClassName} href={href} target="_blank" rel="noreferrer" {...props}>
+        {children}
+      </a>
+    )
+  },
   strong: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
     <strong className={cn("font-semibold text-slate-950", className)} {...props} />
   ),
   blockquote: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
-    <blockquote className={cn("mt-6 border-l-4 border-blue-600 bg-blue-50 px-5 py-4 italic text-slate-700", className)} {...props} />
+    <blockquote className={cn("mt-6 border-l-4 border-primary/60 bg-primary/5 px-5 py-4 italic text-slate-700", className)} {...props} />
   ),
   code: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
     <code className={cn("rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.9em] text-slate-900", className)} {...props} />
   ),
   pre: ({ className, ...props }: React.HTMLAttributes<HTMLPreElement>) => (
-    <pre className={cn("mt-6 overflow-x-auto rounded-2xl border border-slate-200 bg-slate-950 p-5 text-sm text-slate-50", className)} {...props} />
+    <pre className={cn("mt-6 overflow-x-auto rounded-lg border border-slate-200 bg-slate-950 p-5 text-sm text-slate-50", className)} {...props} />
   ),
   table: ({ className, ...props }: React.TableHTMLAttributes<HTMLTableElement>) => (
-    <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-300 shadow-sm">
+    <div className="mt-6 overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
       <table className={cn("w-full border-collapse text-left text-sm", className)} {...props} />
     </div>
   ),
   thead: ({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) => (
-    <thead className={cn("bg-blue-700 text-white", className)} {...props} />
+    <thead className={cn("bg-primary text-white", className)} {...props} />
   ),
   th: ({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) => (
-    <th className={cn("border border-blue-800 px-4 py-3 font-semibold", className)} {...props} />
+    <th className={cn("border border-primary/80 px-4 py-3 font-semibold", className)} {...props} />
   ),
   tbody: ({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) => (
     <tbody className={cn("[&_tr:nth-child(even)]:bg-slate-50", className)} {...props} />
@@ -145,24 +166,24 @@ export default function ReportsPage() {
 
   const handleCopy = React.useCallback(async () => {
     if (!markdown.trim()) {
-      toast.info("No markdown to copy.")
+      toast.info("Aucun contenu à copier.")
       return
     }
 
     try {
       await navigator.clipboard.writeText(markdown)
-      toast.success("Markdown copied", {
-        description: "The raw report markdown is now in your clipboard.",
+      toast.success("Markdown copié", {
+        description: "Le markdown brut du rapport est dans votre presse-papiers.",
       })
     } catch (error) {
-      const description = error instanceof Error ? error.message : "Unable to copy the markdown."
-      toast.error("Copy failed", { description })
+      const description = error instanceof Error ? error.message : "Impossible de copier le markdown."
+      toast.error("Copie échouée", { description })
     }
   }, [markdown])
 
   const handleExportPdf = React.useCallback(async () => {
     if (!printRef.current || !markdown.trim()) {
-      toast.info("There is no report content to export yet.")
+      toast.info("Aucun contenu à exporter.")
       return
     }
 
@@ -172,7 +193,7 @@ export default function ReportsPage() {
       await html2pdf()
         .set({
           margin: [14, 14, 14, 14],
-          filename: `${title.toLowerCase().replace(/[^a-z0-9]+/gi, "-") || "report"}.pdf`,
+          filename: `${title.toLowerCase().replace(/[^a-z0-9]+/gi, "-") || "rapport"}.pdf`,
           image: { type: "jpeg", quality: 0.98 },
           html2canvas: { scale: 2, backgroundColor: "#ffffff" },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
@@ -181,12 +202,12 @@ export default function ReportsPage() {
         .from(printRef.current)
         .save()
 
-      toast.success("PDF export started", {
-        description: "Your report is being downloaded as a PDF.",
+      toast.success("PDF téléchargé", {
+        description: "Votre rapport a été exporté en PDF.",
       })
     } catch (error) {
-      const description = error instanceof Error ? error.message : "Unable to export the report to PDF."
-      toast.error("PDF export failed", { description })
+      const description = error instanceof Error ? error.message : "Impossible d'exporter le rapport en PDF."
+      toast.error("Export PDF échoué", { description })
     } finally {
       setIsExporting(false)
     }
@@ -200,16 +221,16 @@ export default function ReportsPage() {
         transition={{ duration: 0.25, ease: "easeOut" }}
         className="mx-auto max-w-6xl space-y-6"
       >
-        <div className="rounded-2xl border border-border bg-card shadow-sm">
-          <div className="flex flex-col gap-4 border-b border-border bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5 p-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="rounded-lg border border-border bg-card shadow-sm">
+          <div className="flex flex-col gap-4 border-b border-border p-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600/10 text-blue-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <HugeiconsIcon icon={FileAttachmentIcon} className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-foreground">Report Viewer</h1>
+                <h1 className="text-xl font-semibold text-foreground">Visionneur de rapports</h1>
                 <p className="text-sm text-muted-foreground">
-                  Review, refine, copy, and export AI-generated markdown reports.
+                  Prévisualisez, modifiez, copiez et exportez vos rapports générés par l&apos;IA.
                 </p>
               </div>
             </div>
@@ -218,23 +239,23 @@ export default function ReportsPage() {
               <Button asChild variant="ghost" className="cursor-pointer text-muted-foreground hover:text-foreground">
                 <Link href="/dashboard/agent">
                   <HugeiconsIcon icon={ArrowLeft01Icon} className="mr-2 h-4 w-4" />
-                  Back to Agent
+                  Retour à l&apos;agent
                 </Link>
               </Button>
 
               <Button type="button" variant="outline" onClick={() => void handleCopy()} className="cursor-pointer">
                 <HugeiconsIcon icon={Copy01Icon} className="mr-2 h-4 w-4" />
-                Copy Markdown
+                Copier Markdown
               </Button>
 
               <Button
                 type="button"
                 onClick={() => void handleExportPdf()}
                 disabled={isExporting || !markdown.trim()}
-                className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
+                className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 <HugeiconsIcon icon={Download04Icon} className="mr-2 h-4 w-4" />
-                {isExporting ? "Exporting..." : "Export PDF"}
+                {isExporting ? "Export…" : "Exporter PDF"}
               </Button>
             </div>
           </div>
@@ -244,7 +265,7 @@ export default function ReportsPage() {
               <div>
                 <h2 className="text-lg font-semibold text-foreground">{title}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Reports are rendered on a print-friendly white canvas for consistent PDF output.
+                  Rendu sur canvas blanc optimisé pour l&apos;export PDF A4.
                 </p>
               </div>
 
@@ -252,11 +273,11 @@ export default function ReportsPage() {
                 <TabsList className="grid w-full grid-cols-2 border border-border bg-muted/60 lg:w-[240px]">
                   <TabsTrigger value="preview" className="cursor-pointer text-xs font-medium">
                     <HugeiconsIcon icon={ViewIcon} className="mr-2 h-4 w-4" />
-                    Preview
+                    Aperçu
                   </TabsTrigger>
                   <TabsTrigger value="edit" className="cursor-pointer text-xs font-medium">
                     <HugeiconsIcon icon={Edit02Icon} className="mr-2 h-4 w-4" />
-                    Edit Markdown
+                    Modifier
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -266,15 +287,15 @@ export default function ReportsPage() {
               <Textarea
                 value={markdown}
                 onChange={(event) => setMarkdown(event.target.value)}
-                placeholder="Paste or edit markdown report content here..."
+                placeholder="Collez ou modifiez le contenu markdown du rapport ici…"
                 className="min-h-[70vh] resize-y border-border bg-white font-mono text-sm leading-7 text-slate-900"
-                aria-label="Report markdown editor"
+                aria-label="Éditeur markdown du rapport"
               />
             ) : null}
 
             {mode === "preview" ? (
               markdown.trim() ? (
-                <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
                   <div ref={printRef} className="mx-auto w-full max-w-[800px] bg-white px-6 py-10 md:px-12 md:py-14 print:px-8 print:py-10">
                     <article className="font-serif text-slate-900">
                       <Markdown components={markdownComponents} remarkPlugins={[remarkGfm]}>
@@ -284,14 +305,19 @@ export default function ReportsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex min-h-[50vh] flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card/50 px-6 text-center">
-                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600/10 text-blue-600">
+                <div className="flex min-h-[50vh] flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card/50 px-6 text-center">
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <HugeiconsIcon icon={FileAttachmentIcon} className="h-7 w-7" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">No report loaded</h3>
+                  <h3 className="text-lg font-semibold text-foreground">Aucun rapport chargé</h3>
                   <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                    Generate a report from the AI agent, or paste markdown into edit mode to preview and export it here.
+                    Générez un rapport depuis l&apos;agent IA — le bouton <strong>« Rapport complet »</strong> ou <strong>« Télécharger PDF »</strong> dans la carte rapport ouvrira cette page avec le contenu. Vous pouvez aussi coller du markdown en mode Modifier.
                   </p>
+                  <Button asChild className="mt-5 bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Link href="/dashboard/agent">
+                      Aller à l&apos;agent IA
+                    </Link>
+                  </Button>
                 </div>
               )
             ) : null}

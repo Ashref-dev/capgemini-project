@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { SparklesText } from "@/components/ui/sparkles-text"
 import { GradientStatCard } from "@/components/ui/gradient-stat-card"
 import {
   CheckmarkCircle02Icon,
@@ -196,7 +195,7 @@ export default function PartnershipRequestsPage() {
           <HugeiconsIcon icon={UserGroupIcon} className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <SparklesText text="Demandes de partenariat" className="text-2xl" />
+          <h1 className="text-2xl font-bold text-foreground">Demandes de partenariat</h1>
           <p className="text-muted-foreground mt-1">Gérez les demandes de partenariat soumises par les entreprises.</p>
         </div>
       </div>
@@ -272,7 +271,7 @@ export default function PartnershipRequestsPage() {
                             </span>
                           )}
                           {analysis && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-[#0070AD]/10 text-[#0070AD] dark:text-blue-300">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary/10 text-primary">
                               Score AI {analysis.compatibilityScore}/100
                             </span>
                           )}
@@ -296,7 +295,7 @@ export default function PartnershipRequestsPage() {
                     >
                       <div className="p-5 space-y-4">
                         {analysis && (
-                          <div className="rounded-lg border border-[#0070AD]/10 bg-[#0070AD]/5 p-4">
+                          <div className="rounded-lg border border-primary/10 bg-primary/5 p-4">
                             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                               <div>
                                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Analyse automatique</p>
@@ -309,12 +308,12 @@ export default function PartnershipRequestsPage() {
                                 </div>
                                 <p className="mt-3 text-sm text-foreground">{analysis.summary}</p>
                               </div>
-                              <div className="rounded-lg bg-white/70 dark:bg-white/5 px-3 py-2 text-xs text-muted-foreground">
+                              <p className="text-xs text-muted-foreground">
                                 Aide à la décision uniquement
-                              </div>
+                              </p>
                             </div>
 
-                            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/80 dark:bg-white/10">
+                            <div className="mt-4 h-2 overflow-hidden rounded-full bg-primary/10">
                               <div
                                 className={cn("h-full rounded-full", aiRecommendationBars[analysis.recommendation])}
                                 style={{ width: `${analysis.compatibilityScore}%` }}
@@ -333,7 +332,7 @@ export default function PartnershipRequestsPage() {
                             )}
 
                             {analysis.riskFlags.length > 0 && (
-                              <div className="mt-3 rounded-lg bg-amber-500/10 p-3">
+                              <div className="mt-3">
                                 <span className="text-xs font-medium text-amber-700 dark:text-amber-300">Points de vigilance</span>
                                 <ul className="mt-1 space-y-1">
                                   {analysis.riskFlags.map((flag) => (
@@ -351,7 +350,7 @@ export default function PartnershipRequestsPage() {
                                 { label: "Potentiel", value: analysis.breakdown.scalePotential },
                                 { label: "Catégorie", value: analysis.breakdown.categoryBoost },
                               ].map((item) => (
-                                <div key={item.label} className="rounded-lg bg-white/70 dark:bg-white/5 px-3 py-2">
+                                <div key={item.label}>
                                   <div className="text-[11px] text-muted-foreground">{item.label}</div>
                                   <div className="text-sm font-semibold text-foreground">{item.value}</div>
                                 </div>
@@ -551,7 +550,7 @@ function RequestCard({ children, index }: { children: React.ReactNode; index: nu
     >
       <motion.div
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        className="overflow-hidden rounded-2xl border border-[#0070AD]/20 bg-white shadow-sm dark:border-white/10 dark:bg-white/5"
+        className="overflow-hidden rounded-2xl border border-primary/20 bg-card shadow-sm dark:border-border"
       >
         <div style={{ transform: "translateZ(30px)", transformStyle: "preserve-3d" }}>
           {children}

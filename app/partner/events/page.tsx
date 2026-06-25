@@ -8,16 +8,13 @@ import { Spinner } from "@/components/ui/spinner"
 import { AddButton } from "@/components/ui/add-button"
 import { SparklesText } from "@/components/ui/sparkles-text"
 import { cn } from "@/lib/utils"
+import { formatEventType, formatEventStatus } from "@/lib/format"
 import Link from "next/link"
 
 interface PartnerEvent {
   id: number; eventName: string; eventType: string | null; eventDate: string
   eventLocation: string | null; numParticipants: number | null; eventBudget: number | null
   eventStatus: string | null; notes: string | null; createdAt: string
-}
-
-const statusLabels: Record<string, string> = {
-  planifie: "Planifié", en_cours: "En cours", termine: "Terminé", annule: "Annulé",
 }
 
 const statusBar: Record<string, string> = {
@@ -98,7 +95,7 @@ export default function PartnerEventsPage() {
                           {event.eventLocation}
                         </span>
                       )}
-                      {event.eventType && <span>{event.eventType}</span>}
+                      {event.eventType && <span>{formatEventType(event.eventType)}</span>}
                       {event.numParticipants && (
                         <span className="flex items-center gap-1">
                           <HugeiconsIcon icon={UserGroupIcon} className="w-3 h-3" />
@@ -114,7 +111,7 @@ export default function PartnerEventsPage() {
                     </div>
                   </div>
                   <span className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-full border shrink-0", statusBadge[event.eventStatus || ""] || "bg-muted text-muted-foreground border-border")}>
-                    {statusLabels[event.eventStatus || ""] || event.eventStatus}
+                    {formatEventStatus(event.eventStatus)}
                   </span>
                 </div>
               </div>

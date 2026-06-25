@@ -116,9 +116,9 @@ export default function SolutionsPage() {
           {/* Pill nav */}
           <div className="hidden md:flex items-center space-x-1 rounded-full bg-black/5 dark:bg-white/5 backdrop-blur-xl border border-black/10 dark:border-white/10 p-1">
             {([
-              { label: "Home", href: "/" },
-              { label: "Why Capgemini", href: "/#why-capgemini", anchor: true },
-              { label: "Success Stories", href: "/success-stories" },
+              { label: "Accueil", href: "/" },
+              { label: "Pourquoi Capgemini", href: "/#why-capgemini", anchor: true },
+              { label: "Réussites", href: "/success-stories" },
               { label: "Solutions", href: "/solutions", active: true },
             ] as { label: string; href: string; anchor?: boolean; active?: boolean }[]).map((link) =>
               link.anchor ? (
@@ -203,22 +203,43 @@ export default function SolutionsPage() {
             </motion.p>
           </div>
 
-          {/* Colonne droite — vidéo */}
+          {/* Colonne droite — panneau visuel de marque */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3, duration: 0.6 }}
             className="relative h-[520px] w-full hidden lg:block rounded-2xl overflow-hidden shadow-2xl ring-2 ring-[#12ABDB]/20 dark:ring-[#0070AD]/30"
           >
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="rounded-2xl w-full h-full object-cover"
-            >
-              <source src="/video_partnership.mov" type="video/mp4" />
-            </video>
+            {/* Dégradé de marque */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0070AD] to-[#12ABDB]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_18%,rgba(255,255,255,0.22),transparent_55%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:linear-gradient(to_bottom,black,transparent)]" />
+
+            {/* Contenu */}
+            <div className="relative z-10 flex h-full flex-col justify-between p-8">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
+                  Écosystème partenaires
+                </p>
+                <h2 className="mt-3 text-2xl font-bold leading-snug text-white">
+                  Six modèles de collaboration, un seul objectif&nbsp;: créer de la valeur partagée.
+                </h2>
+              </div>
+
+              <div className="space-y-3">
+                {solutions.slice(0, 4).map((solution) => (
+                  <div
+                    key={solution.title}
+                    className="flex items-center gap-3 rounded-xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm"
+                  >
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/15">
+                      <HugeiconsIcon icon={solution.icon} className="size-5 text-white" />
+                    </div>
+                    <span className="text-sm font-medium text-white">{solution.category}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>

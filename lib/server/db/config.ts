@@ -10,6 +10,7 @@ import { resolvePgSsl } from "./ssl"
  */
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  statement_timeout: 20_000,
   ssl: resolvePgSsl(process.env.DATABASE_URL, "DATABASE_SSL"),
 })
 

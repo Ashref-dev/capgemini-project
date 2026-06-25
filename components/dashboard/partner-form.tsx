@@ -291,7 +291,6 @@ export function PartnerForm({ initialData, isEdit }: PartnerFormProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="overflow-hidden border-y border-border bg-background"
       >
         <AnimatePresence mode="wait">
           <motion.div

@@ -37,16 +37,16 @@ export interface CapgeminiTableProps<T> {
 
 // ─── Row entrance variants ────────────────────────────────────────────────────
 const rowVariants = {
-  hidden: { opacity: 0, x: -20, scale: 0.97, filter: "blur(4px)" },
+  hidden: { opacity: 0, y: 4 },
   visible: {
-    opacity: 1, x: 0, scale: 1, filter: "blur(0px)",
-    transition: { type: "spring" as const, stiffness: 400, damping: 28, mass: 0.6 },
+    opacity: 1, y: 0,
+    transition: { duration: 0.14, ease: "easeOut" as const },
   },
 }
 
 const containerVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
+  visible: { transition: { staggerChildren: 0.025, delayChildren: 0 } },
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -85,9 +85,8 @@ export function CapgeminiTable<T>({
   return (
     <div className={cn("relative w-full border border-border/40 rounded-2xl bg-card shadow-sm overflow-hidden", className)}>
       {/* ── Card Header ── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-5 border-b border-border/40 bg-gradient-to-r from-primary/5 via-accent/5 to-transparent">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-5 border-b border-border/40 bg-muted/20">
         <div className="flex items-center gap-3">
-          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           <div>
             <h2 className="text-base font-semibold text-foreground">{title}</h2>
             {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
@@ -131,12 +130,14 @@ export function CapgeminiTable<T>({
                 <motion.div
                   key={keyExtractor(row)}
                   variants={rowVariants}
+                  initial={i < 12 ? "hidden" : false}
+                  animate="visible"
                   className="relative"
                   whileHover={clickable ? { y: -1, transition: { type: "spring", stiffness: 400, damping: 25 } } : {}}
                   onClick={clickable ? () => handleRowClick(row) : undefined}
                   style={clickable ? { cursor: "pointer" } : undefined}
                 >
-                  <div className="relative bg-muted/40 border border-border/40 rounded-xl overflow-hidden hover:border-border/70 hover:bg-muted/60 transition-colors duration-150 px-5 py-3.5">
+                  <div className="relative bg-muted/40 border border-border/25 rounded-xl overflow-hidden hover:border-border/70 hover:bg-muted/60 transition-colors duration-150 px-5 py-3.5">
                       {/* Status gradient overlay */}
                       {gradient && (
                         <div
@@ -167,7 +168,7 @@ export function CapgeminiTable<T>({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-background/70 backdrop-blur-sm flex flex-col rounded-2xl z-20 overflow-hidden"
+            className="absolute inset-0 bg-background/80 flex flex-col rounded-2xl z-20 overflow-hidden"
           >
             {renderDetail(selectedRow, closeDetail)}
           </motion.div>

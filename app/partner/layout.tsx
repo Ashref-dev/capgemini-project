@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
-import { PartnerSidebar } from "@/components/partner/partner-sidebar"
+import { PartnerSidebar, PartnerMobileSidebar } from "@/components/partner/partner-sidebar"
 import { UserMenu } from "@/components/auth/user-menu"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Footer } from "@/components/footer"
@@ -222,16 +222,19 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
       <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
         {/* ── Header ── */}
         <header className="h-16 border-b border-[#0070AD]/10 dark:border-white/10 bg-white/95 dark:bg-[#000e24]/95 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-40">
-          {/* Left: brand + app title */}
-          <div className="flex items-center gap-1" style={{ height: 40, width: 380 }}>
-            <VaporizeTextCycle
-              texts={["IntelliConnect", "Espace Partenaire"]}
-              font={{ fontFamily: "Inter, sans-serif", fontSize: "20px", fontWeight: 700 }}
-              alignment="left"
-              spread={3}
-              density={5}
-              animation={{ vaporizeDuration: 2, fadeInDuration: 0.8, waitDuration: 2 }}
-            />
+          {/* Left: mobile menu + brand + app title */}
+          <div className="flex items-center gap-3 min-w-0">
+            <PartnerMobileSidebar />
+            <div className="hidden md:flex items-center gap-1" style={{ height: 40, width: 380, maxWidth: "100%" }}>
+              <VaporizeTextCycle
+                texts={["IntelliConnect", "Espace Partenaire"]}
+                font={{ fontFamily: "Inter, sans-serif", fontSize: "20px", fontWeight: 700 }}
+                alignment="left"
+                spread={3}
+                density={5}
+                animation={{ vaporizeDuration: 2, fadeInDuration: 0.8, waitDuration: 2 }}
+              />
+            </div>
           </div>
 
           {/* Right: actions */}

@@ -274,7 +274,7 @@ export async function computePartnerScore(partnerId: number): Promise<PartnerSco
     category: details.partner.categories,
     finalScore,
     recommendation,
-    methodology: "Weighted score using budget (20%), satisfaction (25%), activity (20%), track record (20%), and strategic fit (15%).",
+    methodology: "Score pondéré : budget (20 %), satisfaction (25 %), activité (20 %), historique (20 %) et alignement stratégique (15 %).",
     breakdown: {
       budget: budgetScore,
       satisfaction: satisfactionScore,

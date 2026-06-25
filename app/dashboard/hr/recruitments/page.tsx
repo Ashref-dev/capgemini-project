@@ -11,8 +11,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { motion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { MortarboardIcon, Delete01Icon } from "@hugeicons/core-free-icons"
-import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/components/ui/capgemini-table"
-import { SparklesText } from "@/components/ui/sparkles-text"
+import { CapgeminiTable, CapgeminiTableColumn, StatusBadge } from "@/components/ui/capgemini-table"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { GradientStatCard } from "@/components/ui/gradient-stat-card"
 import { AddButton } from "@/components/ui/add-button"
 import { PartnerSelect } from "@/components/ui/partner-select"
@@ -67,6 +67,7 @@ export default function HRRecruitmentsPage() {
   const [typeFilter, setTypeFilter] = useState("")
   const [showForm, setShowForm] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
+  const [selectedRecruitment, setSelectedRecruitment] = useState<Recruitment | null>(null)
   const [form, setForm] = useState({
     universityPartnerId: "",
     studentFirstName: "",
@@ -195,7 +196,7 @@ export default function HRRecruitmentsPage() {
             <HugeiconsIcon icon={MortarboardIcon} className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <SparklesText text="Recrutements Étudiants" className="text-2xl" />
+            <h1 className="text-2xl font-semibold text-foreground">Recrutements Étudiants</h1>
             <p className="text-sm text-muted-foreground">
               {recruitments.length} recrutement{recruitments.length > 1 ? "s" : ""}
             </p>
@@ -416,26 +417,57 @@ export default function HRRecruitmentsPage() {
           const t = r.recruitmentType || ""
           return t === "cdi" ? "from-emerald-500/8 to-transparent" : t === "cdd" ? "from-blue-500/8 to-transparent" : "from-amber-500/8 to-transparent"
         }}
-        renderDetail={(r, onClose) => (
-          <DetailPanel onClose={onClose} title={`${r.studentFirstName} ${r.studentLastName}`}>
-            <div className="grid grid-cols-2 gap-3">
-              <DetailCard label="Email" value={r.studentEmail || "—"} />
-              <DetailCard label="Type" value={recruitmentTypeLabels[r.recruitmentType || ""] || r.recruitmentType || "—"} />
-              <DetailCard label="Spécialisation" value={r.specialization || "—"} />
-              <DetailCard label="Niveau" value={r.degreeLevel || "—"} />
-              <DetailCard label="Début" value={new Date(r.startDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} />
-              <DetailCard label="Fin" value={r.endDate ? new Date(r.endDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "—"} />
-              <DetailCard label="Durée contrat" value={r.contractDurationMonths ? `${r.contractDurationMonths} mois` : "—"} />
-              <DetailCard label="Projet" value={r.assignedProject || "—"} />
-              <DetailCard label="Équipe" value={r.assignedTeam || "—"} />
-              <DetailCard label="Manager" value={r.managerName || "—"} />
-              <DetailCard label="Score performance" value={r.performanceScore != null ? `${r.performanceScore}/10` : "—"} />
-              <DetailCard label="Score satisfaction" value={r.satisfactionScore != null ? `${r.satisfactionScore}/10` : "—"} />
-              <DetailCard label="Converti CDI" value={<StatusBadge status={r.convertedToCdi ? "success" : "neutral"} label={r.convertedToCdi ? "Oui" : "Non"} />} />
-            </div>
-          </DetailPanel>
-        )}
+        onRowClick={setSelectedRecruitment}
       />
+
+      <Sheet open={!!selectedRecruitment} onOpenChange={(open) => !open && setSelectedRecruitment(null)}>
+        <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-xl">
+          {selectedRecruitment && (
+            <div className="flex min-h-full flex-col">
+              <SheetHeader className="border-b border-border px-6 py-5 text-left">
+                <SheetTitle>{selectedRecruitment.studentFirstName} {selectedRecruitment.studentLastName}</SheetTitle>
+                <SheetDescription>
+                  {recruitmentTypeLabels[selectedRecruitment.recruitmentType || ""] || selectedRecruitment.recruitmentType || "Recrutement"}
+                  {selectedRecruitment.specialization ? ` · ${selectedRecruitment.specialization}` : ""}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="flex-1 px-6 py-5">
+                <dl>
+                  {[
+                    { label: "Email", value: selectedRecruitment.studentEmail || "—" },
+                    { label: "Téléphone", value: selectedRecruitment.studentPhone || "—" },
+                    { label: "Spécialisation", value: selectedRecruitment.specialization || "—" },
+                    { label: "Niveau", value: selectedRecruitment.degreeLevel || "—" },
+                    { label: "Début", value: new Date(selectedRecruitment.startDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) },
+                    { label: "Fin", value: selectedRecruitment.endDate ? new Date(selectedRecruitment.endDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "—" },
+                    { label: "Durée contrat", value: selectedRecruitment.contractDurationMonths ? `${selectedRecruitment.contractDurationMonths} mois` : "—" },
+                    { label: "Projet assigné", value: selectedRecruitment.assignedProject || "—" },
+                    { label: "Équipe", value: selectedRecruitment.assignedTeam || "—" },
+                    { label: "Manager", value: selectedRecruitment.managerName || "—" },
+                    { label: "Score performance", value: selectedRecruitment.performanceScore != null ? `${selectedRecruitment.performanceScore}/10` : "—" },
+                    { label: "Score satisfaction", value: selectedRecruitment.satisfactionScore != null ? `${selectedRecruitment.satisfactionScore}/10` : "—" },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="border-b border-border py-3 last:border-b-0">
+                      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+                      <dd className="mt-1 text-sm font-medium text-foreground">{value}</dd>
+                    </div>
+                  ))}
+                  <div className="border-b border-border py-3 last:border-b-0">
+                    <dt className="text-xs font-medium text-muted-foreground">Converti CDI</dt>
+                    <dd className="mt-1"><StatusBadge status={selectedRecruitment.convertedToCdi ? "success" : "neutral"} label={selectedRecruitment.convertedToCdi ? "Oui" : "Non"} /></dd>
+                  </div>
+                  {selectedRecruitment.notes && (
+                    <div className="py-3">
+                      <dt className="text-xs font-medium text-muted-foreground">Notes</dt>
+                      <dd className="mt-1 text-sm text-foreground">{selectedRecruitment.notes}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

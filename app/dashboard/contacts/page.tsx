@@ -286,13 +286,13 @@ export default function ContactsPage() {
                   </form>
                 ) : (
                   <>
-                    <div className="rounded-2xl bg-muted/35 p-4">
-                      <p className="text-sm text-muted-foreground">Rôle</p>
-                      <p className="mt-1 text-base font-medium text-foreground">{selectedContact.role || "Non renseigné"}</p>
-                      {selectedContact.isPrimary && <div className="mt-3"><StatusBadge status="info" label="Contact principal" /></div>}
+                    <div className="border-b border-border py-3">
+                      <p className="text-xs text-muted-foreground">Rôle</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{selectedContact.role || "Non renseigné"}</p>
+                      {selectedContact.isPrimary && <div className="mt-2"><StatusBadge status="info" label="Contact principal" /></div>}
                     </div>
 
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
                       <ContactInfo icon={Mail01Icon} label="Email" value={selectedContact.email} href={selectedContact.email ? `mailto:${selectedContact.email}` : undefined} />
                       <ContactInfo icon={CallIcon} label="Téléphone" value={selectedContact.phone} href={selectedContact.phone ? `tel:${selectedContact.phone}` : undefined} />
                       <ContactInfo icon={Building06Icon} label="Partenaire" value={selectedContact.partner?.name || `Partenaire ${selectedContact.partnerId}`} />
@@ -420,15 +420,15 @@ function ContactInfo({
 }) {
   const content = value || "Non renseigné"
   return (
-    <div className="rounded-2xl bg-muted/35 p-4">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+    <div className="border-b border-border py-3 last:border-b-0">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <HugeiconsIcon icon={icon} className="size-4" />
         {label}
       </div>
       {href && value ? (
-        <a href={href} className="mt-2 block break-words text-sm font-medium text-primary hover:underline">{content}</a>
+        <a href={href} className="mt-1 block break-words text-sm font-medium text-primary hover:underline">{content}</a>
       ) : (
-        <p className="mt-2 break-words text-sm font-medium text-foreground">{content}</p>
+        <p className="mt-1 break-words text-sm font-medium text-foreground">{content}</p>
       )}
     </div>
   )

@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/toast"
 import { Spinner } from "@/components/ui/spinner"
 import { SparklesText } from "@/components/ui/sparkles-text"
+import { formatPartnerCategory, formatPartnerStatus, formatPartnershipLevel } from "@/lib/format"
 
 interface PartnerProfile {
   id: number
@@ -31,13 +32,6 @@ interface PartnerProfile {
   country: string | null
   satisfactionScore: number | null
   annualBudgetTnd: number | null
-}
-
-const categoryLabels: Record<string, string> = {
-  customer: "Client",
-  marketing: "Marketing",
-  supplier: "Fournisseur",
-  university: "Université",
 }
 
 export default function PartnerProfilePage() {
@@ -286,9 +280,9 @@ export default function PartnerProfilePage() {
               <div>
                 <SparklesText text="Mon Profil" className="text-xl" />
                 <p className="text-sm text-muted-foreground">
-                  {categoryLabels[partner.categories || ""] || partner.categories} •{" "}
-                  {partner.partnershipLevel || "Standard"} •{" "}
-                  {partner.partnershipStatus}
+                  {formatPartnerCategory(partner.categories)} •{" "}
+                  {partner.partnershipLevel ? formatPartnershipLevel(partner.partnershipLevel) : "Standard"} •{" "}
+                  {formatPartnerStatus(partner.partnershipStatus)}
                 </p>
               </div>
             </div>
@@ -313,13 +307,13 @@ export default function PartnerProfilePage() {
           <div className="px-6 pt-4 pb-2">
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground bg-muted/30 rounded-lg p-3">
               <span>
-                <strong>Catégorie :</strong> {categoryLabels[partner.categories || ""] || partner.categories}
+                <strong>Catégorie :</strong> {formatPartnerCategory(partner.categories)}
               </span>
               <span>
-                <strong>Niveau :</strong> {partner.partnershipLevel || "Standard"}
+                <strong>Niveau :</strong> {partner.partnershipLevel ? formatPartnershipLevel(partner.partnershipLevel) : "Standard"}
               </span>
               <span>
-                <strong>Statut :</strong> {partner.partnershipStatus}
+                <strong>Statut :</strong> {formatPartnerStatus(partner.partnershipStatus)}
               </span>
               {partner.partnershipStartDate && (
                 <span>

@@ -250,9 +250,9 @@ export default function PartnershipApplyPage() {
               : "bg-white/10 border border-white/20"
           )}>
             {([
-              { label: "Home", href: "/" },
-              { label: "Why Capgemini", href: "/#why-capgemini", anchor: true },
-              { label: "Success Stories", href: "/success-stories" },
+              { label: "Accueil", href: "/" },
+              { label: "Pourquoi Capgemini", href: "/#why-capgemini", anchor: true },
+              { label: "Réussites", href: "/success-stories" },
               { label: "Solutions", href: "/solutions" },
             ] as { label: string; href: string; anchor?: boolean }[]).map((link) =>
               link.anchor ? (

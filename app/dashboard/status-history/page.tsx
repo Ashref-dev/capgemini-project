@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/hooks/use-auth"
-import { Spinner } from "@/components/ui/spinner"
 import { toast } from "@/components/ui/toast"
 import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/components/ui/capgemini-table"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Clock01Icon } from "@hugeicons/core-free-icons"
 import { SparklesText } from "@/components/ui/sparkles-text"
+import { formatPartnerStatus } from "@/lib/format"
 
 interface StatusHistory {
   id: number
@@ -69,12 +69,12 @@ export default function StatusHistoryPage() {
     {
       key: "old", label: "Ancien statut", weight: 1.5,
       render: h => h.oldStatus
-        ? <StatusBadge status={statusVariant(h.oldStatus)} label={h.oldStatus.replace("_", " ")} />
+        ? <StatusBadge status={statusVariant(h.oldStatus)} label={formatPartnerStatus(h.oldStatus)} />
         : <span className="text-muted-foreground text-xs">—</span>,
     },
     {
       key: "new", label: "Nouveau statut", weight: 1.5,
-      render: h => <StatusBadge status={statusVariant(h.newStatus)} label={h.newStatus.replace("_", " ")} />,
+      render: h => <StatusBadge status={statusVariant(h.newStatus)} label={formatPartnerStatus(h.newStatus)} />,
     },
     {
       key: "date", label: "Date", weight: 2,
@@ -119,8 +119,8 @@ export default function StatusHistoryPage() {
             <div className="grid grid-cols-2 gap-3">
               <DetailCard label="Partenaire" value={h.partner?.name || `#${h.partnerId}`} />
               <DetailCard label="Date" value={new Date(h.changedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })} />
-              <DetailCard label="Ancien statut" value={h.oldStatus ? <StatusBadge status={statusVariant(h.oldStatus)} label={h.oldStatus.replace("_", " ")} /> : "—"} />
-              <DetailCard label="Nouveau statut" value={<StatusBadge status={statusVariant(h.newStatus)} label={h.newStatus.replace("_", " ")} />} />
+                <DetailCard label="Ancien statut" value={h.oldStatus ? <StatusBadge status={statusVariant(h.oldStatus)} label={formatPartnerStatus(h.oldStatus)} /> : "—"} />
+                <DetailCard label="Nouveau statut" value={<StatusBadge status={statusVariant(h.newStatus)} label={formatPartnerStatus(h.newStatus)} />} />
               <DetailCard label="Modifié par" value={h.changedBy || "—"} />
             </div>
             {h.changeReason && (

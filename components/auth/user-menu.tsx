@@ -74,6 +74,14 @@ export function UserMenu() {
           <a href={profileHref}>Mon Profil</a>
         </DropdownMenuItem>
 
+        {user.userType === "employee" && (
+          <>
+            <DropdownMenuItem asChild>
+              <a href="/dashboard/status-history">Historique statuts</a>
+            </DropdownMenuItem>
+          </>
+        )}
+
         <DropdownMenuSeparator />
 
         <DropdownMenuItem onClick={handleSignOut} disabled={loading} className="text-red-600 focus:text-red-600">

@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState } from "react"
 import { motion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { UserIcon, LockPasswordIcon, UserAdd01Icon, Briefcase01Icon, CheckmarkCircle02Icon, Cancel01Icon } from "@hugeicons/core-free-icons"
+import { UserIcon, LockPasswordIcon, UserAdd01Icon } from "@hugeicons/core-free-icons"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,24 +20,6 @@ const roleLabels: Record<string, string> = {
   rh: "Ressources Humaines",
 }
 
-const categoryLabels: Record<string, string> = {
-  customer: "Client",
-  marketing: "Marketing",
-  supplier: "Fournisseur Technologique",
-  university: "Universitaire",
-}
-
-interface NegotiationPartner {
-  id: number
-  name: string
-  categories: string | null
-  email: string | null
-  phone: string | null
-  description: string | null
-  country: string | null
-  partnershipLevel: string | null
-  partnershipStartDate: string | null
-}
 
 export default function EmployeeProfilePage() {
   const { user } = useAuth()
@@ -63,60 +45,9 @@ export default function EmployeeProfilePage() {
   })
   const [submittingPartner, setSubmittingPartner] = useState(false)
 
-  // Negotiation partners (for commercial role)
-  const [negotiationPartners, setNegotiationPartners] = useState<NegotiationPartner[]>([])
-  const [loadingNegotiation, setLoadingNegotiation] = useState(false)
-  const [processingId, setProcessingId] = useState<number | null>(null)
-
   const isCommercial = user?.role === "commercial"
-  const canNegotiate = isCommercial || user?.role === "admin" || user?.role === "manager"
-
-  const fetchNegotiationPartners = useCallback(async () => {
-    if (!canNegotiate) return
-    setLoadingNegotiation(true)
-    try {
-      const res = await fetch("/api/partners/negotiate")
-      const data = await res.json()
-      if (res.ok) {
-        setNegotiationPartners(data.partners || [])
-      }
-    } catch {
-      // silent
-    } finally {
-      setLoadingNegotiation(false)
-    }
-  }, [canNegotiate])
-
-  useEffect(() => {
-    fetchNegotiationPartners()
-  }, [fetchNegotiationPartners])
 
   if (!user) return null
-
-  const handleNegotiationAction = async (partnerId: number, action: "activate" | "terminate", reason?: string) => {
-    setProcessingId(partnerId)
-    try {
-      const res = await fetch("/api/partners/negotiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ partnerId, action, reason }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        toast.success(
-          action === "activate" ? "Partenariat activé" : "Négociation terminée",
-          { description: data.message }
-        )
-        setNegotiationPartners((prev) => prev.filter((p) => p.id !== partnerId))
-      } else {
-        toast.error(data.error || "Erreur")
-      }
-    } catch {
-      toast.error("Erreur de connexion")
-    } finally {
-      setProcessingId(null)
-    }
-  }
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -207,7 +138,7 @@ export default function EmployeeProfilePage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         {/* Profile Info */}
         <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="flex items-center gap-3 p-6 border-b border-border bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5">
+          <div className="flex items-center gap-3 p-6 border-b border-border bg-muted/20">
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
               <HugeiconsIcon icon={UserIcon} className="w-4 h-4 text-primary" />
             </div>
@@ -240,7 +171,7 @@ export default function EmployeeProfilePage() {
 
         {/* Password Change Section */}
         <div className="bg-card border border-border rounded-xl overflow-hidden mt-6">
-          <div className="flex items-center gap-3 p-6 border-b border-border bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5">
+          <div className="flex items-center gap-3 p-6 border-b border-border bg-muted/20">
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
               <HugeiconsIcon icon={LockPasswordIcon} className="w-4 h-4 text-primary" />
             </div>
@@ -293,95 +224,10 @@ export default function EmployeeProfilePage() {
           </form>
         </div>
 
-        {/* Commercial: Negotiation Pipeline */}
-        {canNegotiate && (
-          <div className="bg-card border border-border rounded-xl overflow-hidden mt-6">
-            <div className="flex items-center justify-between p-6 border-b border-border bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500/10">
-                  <HugeiconsIcon icon={Briefcase01Icon} className="w-4 h-4 text-amber-600" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-foreground">Pipeline de négociation</h2>
-                  <p className="text-sm text-muted-foreground">Partenaires en attente de décision commerciale</p>
-                </div>
-              </div>
-              {negotiationPartners.length > 0 && (
-                <span className="bg-amber-500/10 text-amber-600 text-xs font-bold px-2.5 py-1 rounded-full">
-                  {negotiationPartners.length} en attente
-                </span>
-              )}
-            </div>
-            <div className="p-6">
-              {loadingNegotiation ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Chargement...</p>
-              ) : negotiationPartners.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Aucun partenaire en négociation pour le moment.</p>
-              ) : (
-                <div className="space-y-4">
-                  {negotiationPartners.map((partner) => (
-                    <div key={partner.id} className="border border-border rounded-lg p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <h3 className="font-semibold text-foreground">{partner.name}</h3>
-                          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                              {categoryLabels[partner.categories || ""] || partner.categories}
-                            </span>
-                            {partner.partnershipLevel && (
-                              <span className="bg-muted px-2 py-0.5 rounded-full">{partner.partnershipLevel}</span>
-                            )}
-                            {partner.country && (
-                              <span className="bg-muted px-2 py-0.5 rounded-full">{partner.country}</span>
-                            )}
-                          </div>
-                          {partner.email && (
-                            <p className="text-xs text-muted-foreground mt-1">📧 {partner.email}</p>
-                          )}
-                          {partner.phone && (
-                            <p className="text-xs text-muted-foreground">📞 {partner.phone}</p>
-                          )}
-                          {partner.description && (
-                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{partner.description}</p>
-                          )}
-                        </div>
-                        <div className="flex gap-2 ml-4 shrink-0">
-                          <Button
-                            size="sm"
-                            onClick={() => handleNegotiationAction(partner.id, "activate")}
-                            disabled={processingId === partner.id}
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-4 h-4 mr-1" />
-                            {processingId === partner.id ? "..." : "Valider"}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              const reason = prompt("Motif du refus (optionnel) :")
-                              handleNegotiationAction(partner.id, "terminate", reason || undefined)
-                            }}
-                            disabled={processingId === partner.id}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
-                          >
-                            <HugeiconsIcon icon={Cancel01Icon} className="w-4 h-4 mr-1" />
-                            Refuser
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Commercial: Partnership Request Section */}
         {isCommercial && (
           <div className="bg-card border border-border rounded-xl overflow-hidden mt-6">
-            <div className="flex items-center gap-3 p-6 border-b border-border bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5">
+            <div className="flex items-center gap-3 p-6 border-b border-border bg-muted/20">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
                 <HugeiconsIcon icon={UserAdd01Icon} className="w-4 h-4 text-primary" />
               </div>
@@ -481,7 +327,7 @@ export default function EmployeeProfilePage() {
                 </div>
               </div>
               <div className="flex justify-end">
-                <Button type="submit" disabled={submittingPartner} className="bg-blue-600 hover:bg-blue-700 text-white font-medium">
+                <Button type="submit" disabled={submittingPartner} className="font-medium">
                   {submittingPartner ? "Envoi en cours..." : "Soumettre la demande"}
                 </Button>
               </div>

@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/ui/spinner"
 import { toast } from "@/components/ui/toast"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -16,6 +15,7 @@ import { SparklesText } from "@/components/ui/sparkles-text"
 import { GradientStatCard } from "@/components/ui/gradient-stat-card"
 import { AddButton } from "@/components/ui/add-button"
 import { PartnerSelect } from "@/components/ui/partner-select"
+import { formatEventType, formatEventStatus } from "@/lib/format"
 
 interface Event {
   id: number
@@ -31,13 +31,6 @@ interface Event {
   eventStatus: string | null
   notes: string | null
   partner?: { id: number; name: string }
-}
-
-const statusColors: Record<string, string> = {
-  planifie: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  en_cours: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  termine: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  annule: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 }
 
 export default function HREventsPage() {
@@ -285,7 +278,7 @@ export default function HREventsPage() {
             render: evt => (
               <div>
                 <p className="font-semibold text-sm text-foreground">{evt.eventName}</p>
-                {evt.eventType && <p className="text-xs text-muted-foreground mt-0.5">{evt.eventType}</p>}
+                {evt.eventType && <p className="text-xs text-muted-foreground mt-0.5">{formatEventType(evt.eventType)}</p>}
               </div>
             ),
           },
@@ -323,7 +316,7 @@ export default function HREventsPage() {
             render: evt => {
               const s = evt.eventStatus || ""
               const v = s === "termine" ? "success" : s === "en_cours" ? "warning" : s === "annule" ? "error" : "info"
-              return <StatusBadge status={v} label={s.replace("_", " ") || "—"} />
+              return <StatusBadge status={v} label={formatEventStatus(s)} />
             },
           },
           {
@@ -346,14 +339,14 @@ export default function HREventsPage() {
           <DetailPanel onClose={onClose} title={evt.eventName}>
             <div className="grid grid-cols-2 gap-3">
               <DetailCard label="Partenaire" value={evt.partner?.name || "—"} />
-              <DetailCard label="Type" value={evt.eventType || "—"} />
+              <DetailCard label="Type" value={evt.eventType ? formatEventType(evt.eventType) : "—"} />
               <DetailCard label="Date" value={new Date(evt.eventDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} />
               <DetailCard label="Lieu" value={evt.eventLocation || "—"} />
               <DetailCard label="Participants" value={evt.numParticipants?.toString() || "—"} />
               <DetailCard label="Participants Capgemini" value={evt.numCapgeminiAttendees?.toString() || "—"} />
               <DetailCard label="Budget" value={evt.eventBudget ? `${evt.eventBudget.toLocaleString()} TND` : "—"} />
               <DetailCard label="Score satisfaction" value={evt.satisfactionScore != null ? `${evt.satisfactionScore}/10` : "—"} />
-              <DetailCard label="Statut" value={<StatusBadge status={evt.eventStatus === "termine" ? "success" : evt.eventStatus === "en_cours" ? "warning" : evt.eventStatus === "annule" ? "error" : "info"} label={evt.eventStatus?.replace("_", " ") || "—"} />} />
+              <DetailCard label="Statut" value={<StatusBadge status={evt.eventStatus === "termine" ? "success" : evt.eventStatus === "en_cours" ? "warning" : evt.eventStatus === "annule" ? "error" : "info"} label={formatEventStatus(evt.eventStatus)} />} />
             </div>
             {evt.notes && <DetailCard label="Notes" value={<p className="text-sm text-foreground leading-relaxed">{evt.notes}</p>} />}
           </DetailPanel>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -14,11 +14,21 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
+  AlertCircleIcon,
   ArrowUpRight01Icon,
   Building06Icon,
+  CheckmarkCircle02Icon,
   Delete01Icon,
   Edit02Icon,
   FileAttachmentIcon,
@@ -28,6 +38,7 @@ import {
 } from "@hugeicons/core-free-icons"
 import { CapgeminiTable, CapgeminiTableColumn, StatusBadge } from "@/components/ui/capgemini-table"
 import { AddButton } from "@/components/ui/add-button"
+import { formatPartnerCategory, formatPartnerStatus, formatPartnershipLevel } from "@/lib/format"
 
 interface Partner {
   id: number
@@ -49,31 +60,12 @@ const CATEGORIES = ["customer", "marketing", "supplier", "university"]
 const STATUSES = ["actif", "en_negociation", "inactif", "termine"]
 const LEVELS = ["Standard", "Stratégique", "Exclusif", "actif"]
 
-const statusColors: Record<string, string> = {
-  actif: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  en_negociation: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  inactif: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-  termine: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  prospect: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-}
-
-const categoryLabels: Record<string, string> = {
-  customer: "Client",
-  marketing: "Marketing",
-  supplier: "Fournisseur",
-  university: "Université",
-}
-
 function statusVariant(status: string | null | undefined) {
   const normalized = status?.trim()
   if (normalized === "actif") return "success"
   if (normalized === "en_negociation") return "warning"
   if (normalized === "termine") return "error"
   return "neutral"
-}
-
-function formatStatus(status: string | null | undefined) {
-  return status?.replace("_", " ") || "—"
 }
 
 function PartnerDetailField({
@@ -187,6 +179,96 @@ export default function PartnersPage() {
     }
   }
 
+  const columns = useMemo<CapgeminiTableColumn<Partner>[]>(() => [
+    {
+      key: "name", label: "Nom", weight: 2,
+      render: p => (
+        <div>
+          <p className="font-semibold text-sm text-foreground">{p.name}</p>
+          {p.legalName && p.legalName !== p.name && <p className="text-xs text-muted-foreground">{p.legalName}</p>}
+          {p.partnerSubcategory && <p className="text-xs text-primary/70">{p.partnerSubcategory}</p>}
+        </div>
+      ),
+    },
+    {
+      key: "cat", label: "Catégorie", weight: 1.5,
+      render: p => <StatusBadge status="neutral" label={formatPartnerCategory(p.categories)} />,
+    },
+    {
+      key: "level", label: "Niveau", weight: 1.2,
+      render: p => <span className="text-sm text-muted-foreground">{p.partnershipLevel ? formatPartnershipLevel(p.partnershipLevel) : "—"}</span>,
+    },
+    {
+      key: "status", label: "Statut", weight: 1.2,
+      render: p => {
+        const s = p.partnershipStatus?.trim() || ""
+        return <StatusBadge status={statusVariant(s)} label={formatPartnerStatus(s)} />
+      },
+    },
+    {
+      key: "country", label: "Pays", weight: 1,
+      render: p => <span className="text-sm text-muted-foreground">{p.country || "—"}</span>,
+    },
+    {
+      key: "email", label: "Email", weight: 1.8,
+      render: p => <span className="text-xs text-muted-foreground">{p.email || "—"}</span>,
+    },
+    {
+      key: "actions", label: "Actions", weight: 2.4,
+      render: p => (
+        <div className="flex flex-wrap justify-end gap-1.5" onClick={e => e.stopPropagation()}>
+          <Link href={`/dashboard/partners/${p.id}/communications`}>
+            <Button variant="outline" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs">
+              <HugeiconsIcon icon={MessageMultiple02Icon} className="size-3.5" />
+              Communications
+              <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3" />
+            </Button>
+          </Link>
+          <Link href={`/dashboard/partners/${p.id}/documents`}>
+            <Button variant="outline" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs">
+              <HugeiconsIcon icon={FileAttachmentIcon} className="size-3.5" />
+              Documents
+              <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3" />
+            </Button>
+          </Link>
+          {isAdmin && (
+            <>
+              <Link href={`/dashboard/partners/${p.id}/edit`}>
+                <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs">
+                  <HugeiconsIcon icon={Edit02Icon} className="size-3.5" />
+                  Modifier
+                </Button>
+              </Link>
+              {p.partnershipStatus?.trim() !== "inactif" ? (
+                <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs text-orange-600 hover:text-orange-700" onClick={() => { setStatusModal({ open: true, partner: p, action: "suspend" }); setStatusReason("") }}>
+                  <HugeiconsIcon icon={PauseCircleIcon} className="size-3.5" />
+                  Suspendre
+                </Button>
+              ) : (
+                <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs text-emerald-600 hover:text-emerald-700" onClick={() => { setStatusModal({ open: true, partner: p, action: "reactivate" }); setStatusReason("") }}>
+                  <HugeiconsIcon icon={Refresh01Icon} className="size-3.5" />
+                  Réactiver
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs text-red-600 hover:text-red-700" onClick={() => handleDelete(p.id, p.name)}>
+                <HugeiconsIcon icon={Delete01Icon} className="size-3.5" />
+                Supprimer
+              </Button>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ], [isAdmin, setStatusModal, setStatusReason, handleDelete])
+
+  const getRowGradient = useCallback((p: Partner) => {
+    const s = p.partnershipStatus?.trim() || ""
+    return s === "actif" ? "from-emerald-500/8 to-transparent"
+      : s === "en_negociation" ? "from-amber-500/8 to-transparent"
+      : s === "termine" ? "from-red-500/8 to-transparent"
+      : "from-slate-500/8 to-transparent"
+  }, [])
+
   if (!user) return null
 
   return (
@@ -216,11 +298,11 @@ export default function PartnersPage() {
         <Input placeholder="Rechercher par nom..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-64" />
         <select value={category} onChange={(e) => setCategory(e.target.value)} className="h-9 rounded-md border border-border bg-background px-3 text-sm">
           <option value="">Toutes catégories</option>
-          {CATEGORIES.map((c) => (<option key={c} value={c}>{categoryLabels[c]}</option>))}
+          {CATEGORIES.map((c) => (<option key={c} value={c}>{formatPartnerCategory(c)}</option>))}
         </select>
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 rounded-md border border-border bg-background px-3 text-sm">
           <option value="">Tous statuts</option>
-          {STATUSES.map((s) => (<option key={s} value={s}>{s.replace("_", " ")}</option>))}
+          {STATUSES.map((s) => (<option key={s} value={s}>{formatPartnerStatus(s)}</option>))}
         </select>
         <select value={level} onChange={(e) => setLevel(e.target.value)} className="h-9 rounded-md border border-border bg-background px-3 text-sm">
           <option value="">Tous niveaux</option>
@@ -237,95 +319,12 @@ export default function PartnersPage() {
         title="Partenaires"
         subtitle="Cliquer sur un partenaire pour voir les détails"
         data={partners}
-        columns={[
-          {
-            key: "name", label: "Nom", weight: 2,
-            render: p => (
-              <div>
-                <p className="font-semibold text-sm text-foreground">{p.name}</p>
-                {p.legalName && p.legalName !== p.name && <p className="text-xs text-muted-foreground">{p.legalName}</p>}
-                {p.partnerSubcategory && <p className="text-xs text-primary/70">{p.partnerSubcategory}</p>}
-              </div>
-            ),
-          },
-          {
-            key: "cat", label: "Catégorie", weight: 1.5,
-            render: p => <StatusBadge status="neutral" label={categoryLabels[p.categories || ""] || p.categories || "—"} />,
-          },
-          {
-            key: "level", label: "Niveau", weight: 1.2,
-            render: p => <span className="text-sm text-muted-foreground">{p.partnershipLevel || "—"}</span>,
-          },
-          {
-            key: "status", label: "Statut", weight: 1.2,
-            render: p => {
-              const s = p.partnershipStatus?.trim() || ""
-              return <StatusBadge status={statusVariant(s)} label={formatStatus(s)} />
-            },
-          },
-          {
-            key: "country", label: "Pays", weight: 1,
-            render: p => <span className="text-sm text-muted-foreground">{p.country || "—"}</span>,
-          },
-          {
-            key: "email", label: "Email", weight: 1.8,
-            render: p => <span className="text-xs text-muted-foreground">{p.email || "—"}</span>,
-          },
-          {
-            key: "actions", label: "Actions", weight: 2.4,
-            render: p => (
-              <div className="flex flex-wrap justify-end gap-1.5" onClick={e => e.stopPropagation()}>
-                <Link href={`/dashboard/partners/${p.id}/communications`}>
-                  <Button variant="outline" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs">
-                    <HugeiconsIcon icon={MessageMultiple02Icon} className="size-3.5" />
-                    Communications
-                    <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3" />
-                  </Button>
-                </Link>
-                <Link href={`/dashboard/partners/${p.id}/documents`}>
-                  <Button variant="outline" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs">
-                    <HugeiconsIcon icon={FileAttachmentIcon} className="size-3.5" />
-                    Documents
-                    <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3" />
-                  </Button>
-                </Link>
-                {isAdmin && (
-                  <>
-                    <Link href={`/dashboard/partners/${p.id}/edit`}>
-                      <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs">
-                        <HugeiconsIcon icon={Edit02Icon} className="size-3.5" />
-                        Modifier
-                      </Button>
-                    </Link>
-                    {p.partnershipStatus?.trim() !== "inactif" ? (
-                      <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs text-orange-600 hover:text-orange-700" onClick={() => { setStatusModal({ open: true, partner: p, action: "suspend" }); setStatusReason("") }}>
-                        <HugeiconsIcon icon={PauseCircleIcon} className="size-3.5" />
-                        Suspendre
-                      </Button>
-                    ) : (
-                      <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs text-emerald-600 hover:text-emerald-700" onClick={() => { setStatusModal({ open: true, partner: p, action: "reactivate" }); setStatusReason("") }}>
-                        <HugeiconsIcon icon={Refresh01Icon} className="size-3.5" />
-                        Réactiver
-                      </Button>
-                    )}
-                    <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs text-red-600 hover:text-red-700" onClick={() => handleDelete(p.id, p.name)}>
-                      <HugeiconsIcon icon={Delete01Icon} className="size-3.5" />
-                      Supprimer
-                    </Button>
-                  </>
-                )}
-              </div>
-            ),
-          },
-        ] satisfies CapgeminiTableColumn<Partner>[]}
+        columns={columns}
         loading={loading}
         emptyMessage="Aucun partenaire trouvé"
         keyExtractor={p => p.id}
         onRowClick={setSelectedPartner}
-        getRowGradient={p => {
-          const s = p.partnershipStatus?.trim() || ""
-          return s === "actif" ? "from-emerald-500/8 to-transparent" : s === "en_negociation" ? "from-amber-500/8 to-transparent" : s === "termine" ? "from-red-500/8 to-transparent" : "from-slate-500/8 to-transparent"
-        }}
+        getRowGradient={getRowGradient}
       />
 
       <Sheet open={!!selectedPartner} onOpenChange={(open) => !open && setSelectedPartner(null)}>
@@ -340,11 +339,11 @@ export default function PartnersPage() {
                   <div className="min-w-0">
                     <SheetTitle className="text-xl">{selectedPartner.name}</SheetTitle>
                     <SheetDescription>
-                      {selectedPartner.legalName || categoryLabels[selectedPartner.categories || ""] || "Détails du partenaire"}
+                      {selectedPartner.legalName || formatPartnerCategory(selectedPartner.categories) || "Détails du partenaire"}
                     </SheetDescription>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <StatusBadge status={statusVariant(selectedPartner.partnershipStatus)} label={formatStatus(selectedPartner.partnershipStatus)} />
-                      <StatusBadge status="neutral" label={categoryLabels[selectedPartner.categories || ""] || selectedPartner.categories || "Catégorie inconnue"} />
+                      <StatusBadge status={statusVariant(selectedPartner.partnershipStatus)} label={formatPartnerStatus(selectedPartner.partnershipStatus)} />
+                      <StatusBadge status="neutral" label={formatPartnerCategory(selectedPartner.categories)} />
                     </div>
                   </div>
                 </div>
@@ -353,17 +352,17 @@ export default function PartnersPage() {
               <div className="flex-1 space-y-6 px-6 py-5">
                 <section>
                   <h3 className="text-sm font-semibold text-foreground">Informations générales</h3>
-                  <dl className="mt-3 rounded-xl border border-border px-4">
+                  <dl className="mt-2">
                     <PartnerDetailField label="Raison sociale" value={selectedPartner.legalName || "—"} />
                     <PartnerDetailField label="Sous-catégorie" value={selectedPartner.partnerSubcategory || "—"} />
-                    <PartnerDetailField label="Niveau" value={selectedPartner.partnershipLevel || "—"} />
+                    <PartnerDetailField label="Niveau" value={selectedPartner.partnershipLevel ? formatPartnershipLevel(selectedPartner.partnershipLevel) : "—"} />
                     <PartnerDetailField label="Pays" value={selectedPartner.country || "—"} />
                   </dl>
                 </section>
 
                 <section>
                   <h3 className="text-sm font-semibold text-foreground">Contact</h3>
-                  <dl className="mt-3 rounded-xl border border-border px-4">
+                  <dl className="mt-2">
                     <PartnerDetailField label="Email" value={selectedPartner.email || "—"} />
                     <PartnerDetailField label="Téléphone" value={selectedPartner.phone || "—"} />
                   </dl>
@@ -371,7 +370,7 @@ export default function PartnersPage() {
 
                 <section>
                   <h3 className="text-sm font-semibold text-foreground">Partenariat</h3>
-                  <dl className="mt-3 rounded-xl border border-border px-4">
+                  <dl className="mt-2">
                     <PartnerDetailField
                       label="Depuis"
                       value={selectedPartner.partnershipStartDate ? new Date(selectedPartner.partnershipStartDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "—"}
@@ -410,74 +409,83 @@ export default function PartnersPage() {
       </Sheet>
 
       {/* Suspension/Reactivation Modal */}
-      {statusModal.open && statusModal.partner && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card border border-border rounded-xl w-full max-w-lg mx-4 overflow-hidden shadow-2xl">
-            <div className={`p-6 border-b border-border ${
-              statusModal.action === "suspend"
-                ? "bg-gradient-to-r from-orange-500/10 via-red-500/10 to-transparent"
-                : "bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-transparent"
-            }`}>
-              <h2 className="text-lg font-semibold text-foreground">
-                {statusModal.action === "suspend" ? "⚠️ Suspendre le partenaire" : "✅ Réactiver le partenaire"}
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                {statusModal.partner.name} — Statut actuel : {statusModal.partner.partnershipStatus}
-              </p>
+      <Dialog
+        open={statusModal.open}
+        onOpenChange={(o) => {
+          if (!o) {
+            setStatusModal({ open: false, partner: null, action: "suspend" })
+            setStatusReason("")
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <HugeiconsIcon
+                icon={statusModal.action === "suspend" ? AlertCircleIcon : CheckmarkCircle02Icon}
+                className={statusModal.action === "suspend" ? "size-5 text-destructive" : "size-5 text-primary"}
+              />
+              {statusModal.action === "suspend" ? "Suspendre le partenaire" : "Réactiver le partenaire"}
+            </DialogTitle>
+            <DialogDescription>
+              {statusModal.partner?.name} — Statut actuel : {formatPartnerStatus(statusModal.partner?.partnershipStatus)}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-foreground">
+                Motif {statusModal.action === "suspend" ? "de la suspension" : "de la réactivation"} *
+              </Label>
+              <Textarea
+                value={statusReason}
+                onChange={(e) => setStatusReason(e.target.value)}
+                rows={4}
+                placeholder={
+                  statusModal.action === "suspend"
+                    ? "Décrivez la raison de la suspension du partenariat..."
+                    : "Décrivez la raison de la réactivation du partenariat..."
+                }
+                required
+              />
             </div>
-            <div className="p-6 space-y-4">
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold text-foreground">
-                  Motif {statusModal.action === "suspend" ? "de la suspension" : "de la réactivation"} *
-                </Label>
-                <Textarea
-                  value={statusReason}
-                  onChange={(e) => setStatusReason(e.target.value)}
-                  rows={4}
-                  placeholder={
-                    statusModal.action === "suspend"
-                      ? "Décrivez la raison de la suspension du partenariat..."
-                      : "Décrivez la raison de la réactivation du partenariat..."
-                  }
-                  required
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {statusModal.action === "suspend"
-                  ? "Un email sera envoyé au partenaire pour l'informer de la suspension et planifier une réunion."
-                  : "Un email sera envoyé au partenaire pour l'informer de la réactivation et planifier une réunion de reprise."}
-              </p>
-            </div>
-            <div className="flex justify-end gap-2 p-4 border-t border-border">
+            <p className="text-xs text-muted-foreground">
+              {statusModal.action === "suspend"
+                ? "Un email sera envoyé au partenaire pour l'informer de la suspension et planifier une réunion."
+                : "Un email sera envoyé au partenaire pour l'informer de la réactivation et planifier une réunion de reprise."}
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setStatusModal({ open: false, partner: null, action: "suspend" })
+                setStatusReason("")
+              }}
+              disabled={statusLoading}
+            >
+              Annuler
+            </Button>
+            {statusModal.action === "suspend" ? (
               <Button
-                variant="ghost"
-                onClick={() => {
-                  setStatusModal({ open: false, partner: null, action: "suspend" })
-                  setStatusReason("")
-                }}
-                disabled={statusLoading}
+                variant="destructive"
+                onClick={handleStatusChange}
+                disabled={statusLoading || !statusReason.trim()}
               >
-                Annuler
+                {statusLoading ? "En cours..." : "Confirmer la suspension"}
               </Button>
+            ) : (
               <Button
                 onClick={handleStatusChange}
                 disabled={statusLoading || !statusReason.trim()}
-                className={
-                  statusModal.action === "suspend"
-                    ? "bg-orange-600 hover:bg-orange-700 text-white"
-                    : "bg-green-600 hover:bg-green-700 text-white"
-                }
               >
-                {statusLoading
-                  ? "En cours..."
-                  : statusModal.action === "suspend"
-                    ? "Confirmer la suspension"
-                    : "Confirmer la réactivation"}
+                {statusLoading ? "En cours..." : "Confirmer la réactivation"}
               </Button>
-            </div>
-          </div>
-        </div>
-      )}
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

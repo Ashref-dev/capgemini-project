@@ -9,6 +9,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { AddButton } from "@/components/ui/add-button"
 import { SparklesText } from "@/components/ui/sparkles-text"
 import { cn } from "@/lib/utils"
+import { formatOfferAudience, formatDiscountValue } from "@/lib/format"
 import Link from "next/link"
 
 interface Offer {
@@ -92,7 +93,7 @@ export default function PartnerOffersPage() {
                       {offer.targetAudience && (
                         <span className="flex items-center gap-1">
                           <HugeiconsIcon icon={UserGroupIcon} className="w-3 h-3" />
-                          {offer.targetAudience}
+                          {formatOfferAudience(offer.targetAudience)}
                         </span>
                       )}
                       {offer.usageCount !== null && offer.usageCount > 0 && (
@@ -108,7 +109,7 @@ export default function PartnerOffersPage() {
                       {offer.isActive ? "Active" : "Inactive"}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
-                      {offer.discountType === "percentage" ? "%" : "Montant fixe"}
+                      {formatDiscountValue(offer.discountType, offer.totalValueTnd)}
                     </Badge>
                   </div>
                 </div>

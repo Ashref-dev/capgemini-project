@@ -12,7 +12,6 @@ import { Footer } from "@/components/footer"
 import { cn } from "@/lib/utils"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
-  ArrowRight01Icon,
   Calendar03Icon,
   UserGroupIcon,
   ChartLineData03Icon,
@@ -212,9 +211,9 @@ export default function SuccessStoriesPage() {
           {/* Center — pill nav */}
           <div className="hidden md:flex items-center space-x-1 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 p-1">
             {([
-              { label: "Home", href: "/" },
-              { label: "Why Capgemini", href: "/#why-capgemini", anchor: true },
-              { label: "Success Stories", href: "/success-stories", active: true },
+              { label: "Accueil", href: "/" },
+              { label: "Pourquoi Capgemini", href: "/#why-capgemini", anchor: true },
+              { label: "Réussites", href: "/success-stories", active: true },
               { label: "Solutions", href: "/solutions" },
             ] as { label: string; href: string; anchor?: boolean; active?: boolean }[]).map((link) =>
               link.anchor ? (

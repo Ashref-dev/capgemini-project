@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
-import { DashboardSidebar } from "@/components/dashboard/sidebar"
+import { DashboardSidebar, DashboardMobileSidebar } from "@/components/dashboard/sidebar"
 import { DashboardTourController } from "@/components/dashboard/dashboard-tour-controller"
 import { UserMenu } from "@/components/auth/user-menu"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -54,8 +54,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex min-h-screen min-w-0 flex-1 flex-col overflow-x-hidden">
         {/* ── Header ── */}
         <header className="h-16 border-b border-[#0070AD]/10 dark:border-white/10 bg-white/95 dark:bg-[#000e24]/95 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-40">
-          {/* Left: brand + app title */}
-          <div className="flex items-center gap-1" style={{ height: 40, width: 400 }}>
+          {/* Left: mobile menu + brand + app title */}
+          <div className="flex items-center gap-3 min-w-0">
+            <DashboardMobileSidebar userRole={user.role} />
+            <div className="hidden md:flex items-center gap-1" style={{ height: 40, width: 400, maxWidth: "100%" }}>
             <VaporizeTextCycle
               texts={["IntelliConnect", "Gestion des Partenariats"]}
               font={{ fontFamily: "Inter, sans-serif", fontSize: "20px", fontWeight: 700 }}
@@ -64,6 +66,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               density={5}
               animation={{ vaporizeDuration: 2, fadeInDuration: 0.8, waitDuration: 2 }}
             />
+            </div>
           </div>
 
           {/* Right: actions */}

@@ -83,9 +83,9 @@ export function DailyBriefing() {
     return (
       <section
         aria-busy="true"
-        className="rounded-3xl border border-border/60 bg-card p-5 shadow-sm"
+        className="space-y-3"
       >
-        <div className="mb-3 flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <span className="inline-flex h-6 w-32 animate-pulse rounded-full bg-muted" />
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -106,9 +106,9 @@ export function DailyBriefing() {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-      className="rounded-3xl border border-border/60 bg-card p-5 shadow-sm"
+      className="space-y-3"
     >
-      <div className="mb-3 flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
             <span className="relative flex h-1.5 w-1.5">

@@ -311,6 +311,7 @@ export async function identifyAtRiskProjects(filters: AtRiskProjectFilters = {})
     .from(projects)
     .leftJoin(partners, eq(projects.partnerId, partners.id))
     .where(and(...conditions))
+    .limit(50)
 
   const minRiskScore = filters.minRiskScore ?? 60
   const analyses = await Promise.all(rows.map(async (row): Promise<AtRiskProject | null> => {
