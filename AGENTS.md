@@ -301,3 +301,5 @@ A change is not done until it is:
 - Covered by loading, error, empty, and success states where applicable.
 - Verified with the strongest practical command or manual test for the change.
 - Documented when behavior, setup, or architecture changes.
+
+AVOID THE CARD INSIDE CARD INSIDE CARD SLOPPY DESIGN, ALWAYS MAKE DESIGNS NEXT LEVEL, CLEAN AND ELEGANT.

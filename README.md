@@ -35,7 +35,7 @@ Important product rule: source code, comments, commit messages, and documentatio
 - BI dashboard backed by a separate data warehouse database.
 - AI agent for partner search, analytics, scoring, churn risk, recommendations, report generation, and visual tool results.
 - Report generation with markdown preview and PDF export.
-- Guided demo and AI-vs-manual benchmark screens for presentation use.
+- Exportable AI-generated reports with markdown preview, deep links, and PDF download for presentation use.
 
 ## Tech Stack
 
@@ -300,6 +300,62 @@ Start PostgreSQL:
 ```bash
 brew services start postgresql@17
 ```
+
+## AI Agent Demo Prompts
+
+Use these prompts at `/dashboard/agent` to showcase the full system for the graduation demo. Each exercises multiple tools and produces charts, tables, and exportable reports.
+
+The flagship demo partner is **LangSmith** (partner id `184`, technology supplier), seeded with rich, realistic data across every scoring dimension. Run `bun scripts/seed-langsmith-demo.js` once after restoring the database so the report below is fully populated.
+
+### 🏆 Mega showcase — LangSmith (use this first — exercises everything)
+
+```
+Génère le rapport exécutif stratégique du partenaire LangSmith (fournisseur technologique) pour Capgemini Tunisia. Déclare d'abord ta méthodologie et ton plan d'analyse, puis : (1) score les 5 dimensions stratégiques de LangSmith — graphique en barres et tableau détaillé ; (2) répartition de son activité (événements, réunions, projets) en camembert ; (3) évolution trimestrielle des KPIs (interactions, revenus, satisfaction) en courbes ; (4) évalue le risque de churn avec signaux d'alerte et plan de rétention sur 30 jours ; (5) analyse la santé de ses projets ; (6) cite les obligations contractuelles et les conditions de renouvellement depuis nos documents. Termine par un rapport PDF exportable et une section ## Sources avec liens profonds vers les fiches concernées.
+```
+
+Expected output: methodology header → plan → bar chart + table (5 dimensions) → pie chart (activity) → line chart (quarterly KPIs) → churn risk + retention table → project health → document citations → `generateReport` card with **Télécharger PDF** button and deep links to `/dashboard/partners/184/scoring`.
+
+### Portefeuille global (vue d'ensemble)
+
+```
+Génère le rapport exécutif complet du portefeuille partenaires Capgemini Tunisia : répartition par catégorie (camembert), top 5 partenaires par score stratégique (tableau + graphique en barres), top 3 à risque de churn avec plan de rétention, indicateurs budgétaires par catégorie, et recommandations stratégiques prioritaires. Finalise avec un rapport PDF exportable.
+```
+
+Expected output: pie chart → bar chart → table → churn risk bar chart → table → `generateReport` card with **Télécharger PDF** button.
+
+### Scoring comparatif (3 partenaires)
+
+```
+Compare et score les partenaires LangSmith, BIAT et Microsoft Tunisie sur les 5 dimensions stratégiques. Affiche un tableau comparatif détaillé, un graphique en barres des scores, et dis-moi lequel renouveler en priorité avec justification.
+```
+
+### Risque de churn
+
+```
+Identifie les 3 partenaires les plus à risque de churn. Pour chacun : score de risque, 3 signaux d'alerte principaux, et plan de rétention concret sur 30 jours. Affiche un graphique des niveaux de risque et un tableau récapitulatif.
+```
+
+### Santé des projets
+
+```
+Analyse la santé de tous les projets actifs. Classe-les Rouge / Orange / Vert, affiche un tableau avec budget, avancement et retard, un graphique de distribution des statuts, et propose 3 actions correctives prioritaires pour les projets en rouge.
+```
+
+### Staffing intelligent
+
+```
+Pour le projet 1, identifie les 5 meilleurs profils internes Capgemini pour le staffing. Justifie chaque recommandation avec compétences clés, taux d'adéquation et disponibilité. Affiche un tableau comparatif et un graphique d'adéquation.
+```
+
+### Recherche documentaire (RAG)
+
+```
+Cherche dans nos documents partenaires : quelles sont les obligations contractuelles et les conditions de renouvellement du partenariat LangSmith ? Cite les extraits sources exacts et affiche un tableau récapitulatif des clauses clés.
+```
+
+### Report viewer flow
+
+After the agent generates a report, click **Télécharger PDF** in the report card to download immediately, or **Rapport complet** to open `/dashboard/reports` for full editing, markdown copy, and PDF export.
 
 ## Documentation Policy
 
