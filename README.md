@@ -305,15 +305,30 @@ brew services start postgresql@17
 
 Use these prompts at `/dashboard/agent` to showcase the full system for the graduation demo. Each exercises multiple tools and produces charts, tables, and exportable reports.
 
-The flagship demo partner is **LangSmith** (partner id `184`, technology supplier), seeded with rich, realistic data across every scoring dimension. Run `bun scripts/seed-langsmith-demo.js` once after restoring the database so the report below is fully populated.
+There are **two flagship demo partners**, each seeded with rich, realistic, accurate data across every scoring dimension. Run both seed scripts once after restoring the database:
 
-### 🏆 Mega showcase — LangSmith (use this first — exercises everything)
+```bash
+bun scripts/seed-langsmith-demo.js   # LangSmith — technology supplier (partner id 184)
+bun scripts/seed-polytech-demo.js    # Polytech Intl — Tunisian engineering university (partner id 187)
+```
+
+Both score **90/100 (APPROUVER)** with all five dimensions populated, and both have RAG documents so the agent can cite real partnership clauses.
+
+### 🏆 Mega showcase 1 — LangSmith (technology supplier)
 
 ```
 Génère le rapport exécutif stratégique du partenaire LangSmith (fournisseur technologique) pour Capgemini Tunisia. Déclare d'abord ta méthodologie et ton plan d'analyse, puis : (1) score les 5 dimensions stratégiques de LangSmith — graphique en barres et tableau détaillé ; (2) répartition de son activité (événements, réunions, projets) en camembert ; (3) évolution trimestrielle des KPIs (interactions, revenus, satisfaction) en courbes ; (4) évalue le risque de churn avec signaux d'alerte et plan de rétention sur 30 jours ; (5) analyse la santé de ses projets ; (6) cite les obligations contractuelles et les conditions de renouvellement depuis nos documents. Termine par un rapport PDF exportable et une section ## Sources avec liens profonds vers les fiches concernées.
 ```
 
 Expected output: methodology header → plan → bar chart + table (5 dimensions) → pie chart (activity) → line chart (quarterly KPIs) → churn risk + retention table → project health → document citations → `generateReport` card with **Télécharger PDF** button and deep links to `/dashboard/partners/184/scoring`.
+
+### 🏆 Mega showcase 2 — Polytech Intl (Tunisian engineering university)
+
+```
+Génère le rapport exécutif stratégique du partenaire universitaire Polytechnique Internationale (Polytech Intl) pour Capgemini Tunisia. Déclare d'abord ta méthodologie et ton plan d'analyse, puis : (1) score les 5 dimensions stratégiques de Polytech Intl — graphique en barres et tableau détaillé ; (2) répartition de l'activité (événements, réunions, recrutements) en camembert ; (3) évolution trimestrielle des KPIs en courbes ; (4) analyse le pipeline de recrutement (stages, alternances, conversions CDI) avec un plan de rétention des talents ; (5) évalue le risque de churn du partenariat académique ; (6) cite les obligations de l'accord-cadre depuis nos documents. Termine par un rapport PDF exportable et une section ## Sources avec liens profonds vers les fiches concernées.
+```
+
+Expected output: methodology header → plan → bar chart + table (5 dimensions) → pie chart (activity) → line chart (quarterly KPIs) → recruitment pipeline + talent-retention table → academic churn risk → accord-cadre citations → `generateReport` card with **Télécharger PDF** button and deep links to `/dashboard/partners/187/scoring`. Polytech Intl is a real EUR-ACE-accredited Tunisian engineering school — ideal when the jury knows the institution.
 
 ### Portefeuille global (vue d'ensemble)
 
