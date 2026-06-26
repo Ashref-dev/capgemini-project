@@ -101,7 +101,7 @@ export function AgentShell({ userKey, userName, initialThreadId }: AgentShellPro
           </div>
         ) : showEmptyState ? (
           <div className="flex-1 overflow-y-auto">
-            <EmptyAgentState userName={userName} onSelect={handleSubmit} disabled={chat.isBusy} />
+            <EmptyAgentState userName={userName} />
           </div>
         ) : (
           <MessageList
@@ -123,6 +123,8 @@ export function AgentShell({ userKey, userName, initialThreadId }: AgentShellPro
           isBusy={chat.isBusy}
           disabled={chat.isThreadLoading}
           textareaRef={chat.textareaRef}
+          showSuggestions={showEmptyState}
+          onSuggestionSelect={handleSubmit}
         />
       </div>
     </div>

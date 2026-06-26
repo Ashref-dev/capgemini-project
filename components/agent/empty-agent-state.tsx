@@ -3,16 +3,10 @@
 import * as React from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { AiChat02Icon } from "@hugeicons/core-free-icons"
-
-import { cn } from "@/lib/utils"
-import { CAPABILITIES } from "./capabilities"
-import { PromptStarters } from "./prompt-starters"
+import { AiChat02Icon, ArrowDown01Icon } from "@hugeicons/core-free-icons"
 
 interface EmptyAgentStateProps {
   userName?: string | null
-  onSelect: (prompt: string) => void
-  disabled?: boolean
 }
 
 function useGreeting(): string {
@@ -25,58 +19,74 @@ function useGreeting(): string {
   }, [])
 }
 
-const EXAMPLE_PROMPTS = CAPABILITIES.slice(0, 3).map((capability) => capability.prompt)
-
-export function EmptyAgentState({ userName, onSelect, disabled }: EmptyAgentStateProps) {
+export function EmptyAgentState({ userName }: EmptyAgentStateProps) {
   const greeting = useGreeting()
   const reduceMotion = useReducedMotion()
   const firstName = userName?.trim().split(/\s+/)[0] ?? null
 
-  return (
-    <div className="flex min-h-full flex-col items-center justify-center px-4 py-10">
-      <motion.div
-        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        className="flex w-full max-w-[840px] flex-col items-center text-center"
-      >
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
-          <HugeiconsIcon icon={AiChat02Icon} className="h-5 w-5 text-primary" />
-        </div>
+  const container = {
+    hidden: {},
+    show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+  }
+  const item = reduceMotion
+    ? { hidden: { opacity: 1 }, show: { opacity: 1 } }
+    : {
+        hidden: { opacity: 0, y: 10 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const } },
+      }
 
-        <h2 className="mt-4 text-balance text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+  return (
+    <div className="flex min-h-full flex-col items-center justify-center px-4 py-12">
+      <motion.div
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className="flex w-full max-w-[640px] flex-col items-center text-center"
+      >
+        <motion.div variants={item} className="relative">
+          {!reduceMotion ? (
+            <motion.span
+              aria-hidden="true"
+              className="absolute inset-0 rounded-2xl bg-primary/25 blur-xl"
+              animate={{ opacity: [0.35, 0.6, 0.35], scale: [0.92, 1.06, 0.92] }}
+              transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+            />
+          ) : null}
+          <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
+            <HugeiconsIcon icon={AiChat02Icon} className="h-6 w-6" />
+          </div>
+        </motion.div>
+
+        <motion.h2
+          variants={item}
+          className="mt-6 text-balance text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+        >
           {greeting}
           {firstName ? `, ${firstName}` : ""}
-        </h2>
-        <p className="mt-1.5 max-w-md text-pretty text-sm text-muted-foreground">
-          Votre analyste partenariat IntelliConnect. Choisissez une capacité ou posez votre question
-          — réponses basées uniquement sur vos données réelles.
-        </p>
+        </motion.h2>
 
-        <PromptStarters onSelect={onSelect} disabled={disabled} className="mt-6" />
+        <motion.p variants={item} className="mt-2 max-w-md text-pretty text-sm leading-6 text-muted-foreground">
+          Votre analyste partenariat IntelliConnect. Posez une question ou lancez une démonstration —
+          chaque réponse s&apos;appuie uniquement sur vos données réelles.
+        </motion.p>
 
-        <div className="mt-8 w-full max-w-xl">
-          <p className="mb-2 text-xs font-medium text-muted-foreground">Exemples de questions</p>
-          <div className="flex flex-col gap-1.5">
-            {EXAMPLE_PROMPTS.map((prompt) => (
-              <button
-                key={prompt}
-                type="button"
-                onClick={() => onSelect(prompt)}
-                disabled={disabled}
-                className={cn(
-                  "w-full truncate rounded-lg border border-border/70 bg-card px-3 py-2 text-left text-sm text-foreground/90 transition-colors",
-                  "hover:border-primary/40 hover:bg-accent",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-                  "disabled:cursor-not-allowed disabled:opacity-50",
-                )}
-                title={prompt}
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-        </div>
+        <motion.div
+          variants={item}
+          className="mt-7 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground/80"
+        >
+          <span>Suggestions sous le champ de saisie</span>
+          {!reduceMotion ? (
+            <motion.span
+              animate={{ y: [0, 3, 0] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              className="text-primary"
+            >
+              <HugeiconsIcon icon={ArrowDown01Icon} className="h-3.5 w-3.5" />
+            </motion.span>
+          ) : (
+            <HugeiconsIcon icon={ArrowDown01Icon} className="h-3.5 w-3.5 text-primary" />
+          )}
+        </motion.div>
       </motion.div>
     </div>
   )

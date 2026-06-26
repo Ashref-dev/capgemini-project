@@ -1,7 +1,9 @@
 import {
+  AiBrain01Icon,
   AnalyticsUpIcon,
   Briefcase01Icon,
   ChartIncreaseIcon,
+  MortarboardIcon,
   PresentationBarChart01Icon,
   SparklesIcon,
   UserMultiple02Icon,
@@ -13,9 +15,30 @@ type StarterIcon = typeof ChartIncreaseIcon
 
 export type CapabilityStarter = PromptStarter & {
   icon: StarterIcon
+  featured?: boolean
 }
 
 export const CAPABILITIES: CapabilityStarter[] = [
+  {
+    id: "langsmith",
+    command: "/langsmith",
+    icon: AiBrain01Icon,
+    label: "LangSmith",
+    description: "Rapport exécutif du partenaire fournisseur LangSmith — scoring, churn, RAG, PDF.",
+    featured: true,
+    prompt:
+      "Génère le rapport exécutif stratégique du partenaire LangSmith (fournisseur technologique) pour Capgemini Tunisia. Déclare d'abord ta méthodologie et ton plan d'analyse, puis : (1) score les 5 dimensions stratégiques de LangSmith — graphique en barres et tableau détaillé ; (2) répartition de son activité (événements, réunions, projets) en camembert ; (3) évolution trimestrielle des KPIs (interactions, revenus, satisfaction) en courbes ; (4) évalue le risque de churn avec signaux d'alerte et plan de rétention sur 30 jours ; (5) analyse la santé de ses projets ; (6) cite les obligations contractuelles et les conditions de renouvellement depuis nos documents. Termine par un rapport PDF exportable et une section ## Sources avec liens profonds vers les fiches concernées.",
+  },
+  {
+    id: "polytech",
+    command: "/polytech",
+    icon: MortarboardIcon,
+    label: "Polytech Intl",
+    description: "Rapport exécutif du partenaire universitaire Polytech Intl — pipeline CDI, RAG, PDF.",
+    featured: true,
+    prompt:
+      "Génère le rapport exécutif stratégique du partenaire universitaire Polytechnique Internationale (Polytech Intl) pour Capgemini Tunisia. Déclare d'abord ta méthodologie et ton plan d'analyse, puis : (1) score les 5 dimensions stratégiques de Polytech Intl — graphique en barres et tableau détaillé ; (2) répartition de l'activité (événements, réunions, recrutements) en camembert ; (3) évolution trimestrielle des KPIs en courbes ; (4) analyse le pipeline de recrutement (stages, alternances, conversions CDI) avec un plan de rétention des talents ; (5) évalue le risque de churn du partenariat académique ; (6) cite les obligations de l'accord-cadre depuis nos documents. Termine par un rapport PDF exportable et une section ## Sources avec liens profonds.",
+  },
   {
     id: "report",
     command: "/rapport",
@@ -78,3 +101,9 @@ export const SLASH_COMMANDS: SlashCommand[] = CAPABILITIES.map((capability) => (
   description: capability.description,
   template: capability.prompt,
 }))
+
+const PILL_IDS = ["langsmith", "polytech", "report", "churn", "health", "rag"] as const
+
+export const SUGGESTION_PILLS: CapabilityStarter[] = PILL_IDS.map(
+  (id) => CAPABILITIES.find((capability) => capability.id === id),
+).filter((capability): capability is CapabilityStarter => capability !== undefined)
