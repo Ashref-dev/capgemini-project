@@ -232,3 +232,37 @@ const RECRUITMENT_STATUS_LABELS: Record<string, string> = {
 export function formatRecruitmentStatus(value: string | null | undefined): string {
   return fromMap(value, RECRUITMENT_STATUS_LABELS)
 }
+
+const MS_PER_DAY = 86_400_000
+
+/**
+ * Render a timestamp as a compact French relative label for dense list rows:
+ * today → "14:32", yesterday → "Hier", same calendar year → "12 juin",
+ * older → "12 juin 2023". Returns an empty string for missing or invalid input
+ * so callers can omit the element without rendering a placeholder.
+ */
+export function formatRelativeDateTime(value: string | Date | null | undefined): string {
+  if (value == null) {
+    return ""
+  }
+
+  const date = value instanceof Date ? value : new Date(value)
+  const time = date.getTime()
+  if (Number.isNaN(time)) {
+    return ""
+  }
+
+  const now = new Date()
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+
+  if (time >= startOfToday) {
+    return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+  }
+  if (time >= startOfToday - MS_PER_DAY) {
+    return "Hier"
+  }
+  if (date.getFullYear() === now.getFullYear()) {
+    return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
+  }
+  return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })
+}

@@ -78,6 +78,9 @@ export function PlanHud({ plan }: PlanHudProps) {
   const collapseTransition = reduceMotion
     ? { duration: 0 }
     : { duration: 0.22, ease: "easeOut" as const }
+  const progressTransition = reduceMotion
+    ? { duration: 0 }
+    : { duration: 0.42, ease: [0.22, 1, 0.36, 1] as const }
   const expandInitial = reduceMotion
     ? { height: "auto", opacity: 1 }
     : { height: 0, opacity: 0 }
@@ -141,7 +144,7 @@ export function PlanHud({ plan }: PlanHudProps) {
       transition={collapseTransition}
       className="w-[min(20rem,calc(100%-1.5rem))] overflow-hidden rounded-lg border border-border bg-card/95 shadow-sm"
     >
-      <div className="flex items-center gap-2.5 px-3 py-2.5">
+      <div className="flex items-center gap-2 px-2.5 py-2">
         <span
           className={cn(
             "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
@@ -221,7 +224,7 @@ export function PlanHud({ plan }: PlanHudProps) {
           className={cn("h-full", done ? "bg-success" : "bg-primary")}
           initial={false}
           animate={{ width: `${progress}%` }}
-          transition={collapseTransition}
+          transition={progressTransition}
         />
       </div>
 

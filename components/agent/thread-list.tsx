@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowReloadHorizontalIcon, InboxIcon, Search01Icon } from "@hugeicons/core-free-icons"
 
@@ -63,6 +64,7 @@ export function ThreadList({
 }: ThreadListProps) {
   const [query, setQuery] = React.useState("")
   const [filter, setFilter] = React.useState<ThreadFilter>("all")
+  const reduceMotion = useReducedMotion()
   const pinnedSet = React.useMemo(() => new Set(pinnedIds), [pinnedIds])
   const todayStart = React.useMemo(startOfToday, [])
 
@@ -175,15 +177,19 @@ export function ThreadList({
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {sections.map((section) => (
-              <div key={section.label} className="space-y-0.5">
-                <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">
+          <div className="flex flex-col">
+            <AnimatePresence initial={false}>
+              {sections.flatMap((section) => [
+                <motion.p
+                  key={`header-${section.label}`}
+                  layout={!reduceMotion}
+                  className="px-2 pb-1 pt-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70 first:pt-0"
+                >
                   {section.label}
-                </p>
-                {section.items.map(renderRow)}
-              </div>
-            ))}
+                </motion.p>,
+                ...section.items.map(renderRow),
+              ])}
+            </AnimatePresence>
           </div>
         )}
       </div>

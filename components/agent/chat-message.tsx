@@ -472,6 +472,10 @@ export function ChatMessage({ message, isStreaming, onSuggestionClick }: ChatMes
           return null
         }
 
+        if (toolInfo.toolName === "createPlan") {
+          return null
+        }
+
         if (toolInfo.status === "success") {
           const renderedTool = renderToolResult(
             toolInfo.toolName,

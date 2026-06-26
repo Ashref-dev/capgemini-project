@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { motion, useReducedMotion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   Cancel01Icon,
@@ -29,6 +30,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { formatRelativeDateTime } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { ThreadListItem } from "./types"
 
@@ -61,6 +63,8 @@ export function ThreadItem({
   onDelete,
 }: ThreadItemProps) {
   const label = threadLabel(thread)
+  const timeLabel = formatRelativeDateTime(thread.updatedAt)
+  const reduceMotion = useReducedMotion()
   const [editing, setEditing] = React.useState(false)
   const [draft, setDraft] = React.useState(label)
   const [confirmOpen, setConfirmOpen] = React.useState(false)
@@ -82,7 +86,10 @@ export function ThreadItem({
 
   if (editing) {
     return (
-      <div className="flex items-center gap-1 rounded-lg border border-ring bg-card px-2 py-1.5 ring-2 ring-ring/40">
+      <motion.div
+        layout={!reduceMotion}
+        className="flex items-center gap-1 rounded-lg border border-ring bg-card px-2 py-1.5 ring-2 ring-ring/40"
+      >
         <input
           ref={inputRef}
           value={draft}
@@ -116,13 +123,18 @@ export function ThreadItem({
         >
           <HugeiconsIcon icon={Cancel01Icon} className="h-3.5 w-3.5" />
         </button>
-      </div>
+      </motion.div>
     )
   }
 
   return (
     <>
-      <div
+      <motion.div
+        layout={!reduceMotion}
+        initial={reduceMotion ? false : { opacity: 0, y: -4, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.96 }}
+        transition={reduceMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
         className={cn(
           "group/item relative flex items-center gap-1 rounded-lg px-2 py-1.5 transition-colors",
           isActive ? "bg-accent" : "hover:bg-muted/60",
@@ -150,6 +162,11 @@ export function ThreadItem({
           >
             {label}
           </span>
+          {timeLabel ? (
+            <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground/80 transition-opacity group-hover/item:opacity-0">
+              {timeLabel}
+            </span>
+          ) : null}
         </button>
 
         {isDeleting || isRenaming ? (
@@ -188,7 +205,7 @@ export function ThreadItem({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-      </div>
+      </motion.div>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
