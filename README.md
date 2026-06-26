@@ -2,7 +2,9 @@
 
 IntelliConnect is a Capgemini Tunisia partnership management platform built as a master's degree final internship project in software engineering, with an applied AI focus. The product manages the partnership lifecycle across public applications, employee operations, partner self-service, analytics, and AI-assisted decision support.
 
-The repository documentation is intentionally centralized here. Agent-specific engineering rules live in [AGENTS.md](/Users/mohamedashrefbenabdallah/Sideprojects/capgemini/AGENTS.md).
+The repository documentation is intentionally centralized here. Agent-specific engineering rules live in [AGENTS.md](AGENTS.md).
+
+> **Demo-ready state.** The database ships pruned to a clean, believable Capgemini Tunisia portfolio of **26 partners** (no vendor-catalog noise), with **two flagship partners** — **LangSmith** and **Polytech Intl** — fully seeded across every scoring dimension (both score **90/100**) plus RAG documents. Jump to [AI Agent Demo Prompts](#ai-agent-demo-prompts) to run the showcase.
 
 ## Quick test logins
 
@@ -27,15 +29,73 @@ Important product rule: source code, comments, commit messages, and documentatio
 
 ## Core Features
 
-- Partner lifecycle management across customer, marketing, supplier, and university partners.
-- Partner contacts, offers, events, meetings, documents, notifications, and status history.
-- Public partnership requests with employee review, acceptance, rejection, and optional email notification.
-- Employee role-based portal for admin, manager, commercial, analyst, and HR users.
-- Partner self-service portal with category-specific navigation and workflows.
-- BI dashboard backed by a separate data warehouse database.
-- AI agent for partner search, analytics, scoring, churn risk, recommendations, report generation, and visual tool results.
-- Report generation with markdown preview and PDF export.
-- Exportable AI-generated reports with markdown preview, deep links, and PDF download for presentation use.
+- **Partner lifecycle management** across customer, marketing, supplier, and university partners (create, edit, status workflow, negotiation, suspend).
+- **Partner CRM**: contacts, offers, events, meetings, documents, notifications, and full status history.
+- **Public partnership requests** with employee review, AI-assisted scoring, acceptance/rejection, and optional email notification.
+- **Role-based employee portal** for admin, manager, commercial, analyst, and HR users.
+- **Partner self-service portal** with category-specific navigation (offers, events, documents, recruitments, supplier projects, statistics).
+- **Project delivery management**: projects with milestones, tasks, team allocations, documents, health and progress tracking.
+- **HR workflows**: employee roster, recruitment pipeline, student recruitments and CDI conversions.
+- **Automated partner scoring** — a 5-dimension weighted model (budget, satisfaction, activity, track record, strategic fit) with an explainable scoring page (ring, radar, signals).
+- **BI dashboard** backed by a separate data-warehouse database.
+- **AI agent** for partner search, analytics, scoring, churn-risk prediction, recommendations, project health, RAG document search, and rich report generation with charts, tables, and exportable PDF reports.
+
+## Application Map — Pages & Routes
+
+User-facing copy is **French**; the tables below describe each surface in English.
+
+### Public website
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Landing page (hero, value proposition, partnership CTA). |
+| `/solutions` | Marketing page presenting the six partnership collaboration models. |
+| `/success-stories` | Public success-stories listing. |
+| `/success-stories/apply` | Partnership application wizard (submits a public partnership request). |
+| `/privacy`, `/terms` | Legal pages. |
+| `/auth/sign-in` | Unified login (employee / partner toggle, French inline validation). |
+
+### Employee portal (`/dashboard`)
+
+| Route | Purpose |
+| --- | --- |
+| `/dashboard` | Home hub: daily AI briefing, pending requests, negotiations, recruitment snapshots. |
+| `/dashboard/partners` | Partner list with search, category/status filters, and row actions. |
+| `/dashboard/partners/new` | Create a partner. |
+| `/dashboard/partners/[id]/scoring` | **Automated scoring** page — score ring, 5-dimension radar, signals, methodology. |
+| `/dashboard/partners/[id]/communications` | Tabbed hub: documents, meetings, notifications for a partner. |
+| `/dashboard/partners/[id]/documents` | Partner document upload / download. |
+| `/dashboard/partners/[id]/edit` | Edit a partner. |
+| `/dashboard/projects` | Project portfolio list. |
+| `/dashboard/projects/[id]` | Project detail: milestones, tasks, team allocations, documents. |
+| `/dashboard/agent` | **AI agent** chat (streaming tools, charts/tables, reports, plan HUD, conversation history). |
+| `/dashboard/reports` | Report viewer/editor with markdown preview and PDF export. |
+| `/dashboard/bi` | BI dashboard (data-warehouse-backed charts). |
+| `/dashboard/contacts` | Partner contacts directory. |
+| `/dashboard/events` | Partner events. |
+| `/dashboard/partnership-requests` | Review queue for incoming public requests. |
+| `/dashboard/status-history` | Partnership lifecycle history. |
+| `/dashboard/profile` | Employee profile + password change. |
+| `/dashboard/hr/employees` | HR employee roster. |
+| `/dashboard/hr/recruitments` | HR recruitment pipeline. |
+| `/dashboard/hr/events` | HR events. |
+
+### Partner portal (`/partner`)
+
+| Route | Purpose |
+| --- | --- |
+| `/partner` | Partner home dashboard (metrics, profile synthesis). |
+| `/partner/stats` | Partner statistics and comparison charts. |
+| `/partner/offers`, `/partner/offers/new` | Manage / create offers. |
+| `/partner/events`, `/partner/events/new` | Manage / create events. |
+| `/partner/projects`, `/partner/projects/new` | Supplier projects (where applicable). |
+| `/partner/recruitments`, `/partner/recruitments/new` | University recruitments. |
+| `/partner/documents` | Partner documents. |
+| `/partner/contacts` | Partner contacts. |
+| `/partner/notifications` | Notification center. |
+| `/partner/profile` | Partner profile + password change. |
+
+All portals are responsive (desktop / tablet / mobile with a slide-over drawer), support light and dark mode, and use the shared design tokens.
 
 ## Tech Stack
 
@@ -80,7 +140,7 @@ hooks/                        Client hooks
 lib/                          Shared utilities
   server/                     Server-only auth, DB, services, AI, and agent code
 
-scripts/                     Database, seed, migration, smoke-test, and maintenance scripts
+scripts/                     Idempotent seed, prune, and account-setup scripts (read DATABASE_URL from .env)
 scripts/db-dumps/            Main database and DW SQL dumps
 public/                      Static assets
 ```
@@ -201,15 +261,29 @@ Do not publish real secrets or production credentials in documentation, commits,
 ## Useful Commands
 
 ```bash
-bun dev                         # Start the development server
-bun run build                   # Production build
-bun run lint                    # ESLint
-bun run evals                   # AI agent eval dataset
-bun run db:generate             # Generate Drizzle migrations
-bun run db:migrate              # Apply Drizzle migrations
-bun run db:studio               # Open Drizzle Studio
-bun scripts/check-tables.js     # Inspect main DB tables
-bun scripts/explore-db.js       # Inspect DB structure and samples
+bun dev                            # Start the development server
+bun run build                      # Production build
+bun run lint                       # ESLint
+bun run evals                      # AI agent eval dataset
+bun run db:generate                # Generate Drizzle migrations
+bun run db:migrate                 # Apply Drizzle migrations
+bun run db:studio                  # Open Drizzle Studio
+bun test                           # Run unit tests (agent tools, formatters)
+```
+
+### Maintained data scripts
+
+All scripts read `DATABASE_URL` from `.env`, are idempotent, and never hardcode credentials.
+
+```bash
+bun scripts/reset-passwords.js        # Reset employee demo password (Capgemini2024!)
+bun scripts/setup-partner-accounts.js # Set the 8 partner demo passwords (Partner2024!)
+bun scripts/seed-langsmith-demo.js    # Seed flagship LangSmith (partner 184) + scoring data
+bun scripts/seed-langsmith-rag.js     # Seed LangSmith RAG documents + embeddings
+bun scripts/seed-polytech-demo.js     # Seed flagship Polytech Intl (partner 187) + scoring data
+bun scripts/seed-polytech-rag.js      # Seed Polytech Intl RAG documents + embeddings
+bun scripts/cleanup-demo-data.js      # Remove test/junk rows + de-duplicate requests
+bun scripts/prune-catalog-partners.js # Prune vendor-catalog noise to the clean 26-partner portfolio
 ```
 
 ## Verification Checklist
@@ -240,18 +314,62 @@ For UI work, also verify at mobile, tablet, desktop, light mode, dark mode, keyb
 - Feature-specific UI should stay close to its existing domain folder under `components`.
 - API routes must authenticate first where required, validate external input, use proper status codes, and return structured errors.
 
-## AI Agent Scope
+## AI Agent
 
-The AI agent is a read-oriented assistant for partnership intelligence. It should:
+The AI agent (`/dashboard/agent`) is a read-oriented partnership-intelligence assistant built on the Vercel AI SDK with typed, Zod-validated tools. It streams responses, renders rich visual tool results, persists conversations, and never fabricates data — every number traces to a tool result.
 
-- Query real database-backed data.
-- Use typed AI SDK tools with Zod `inputSchema`.
-- Stream UI messages with `toUIMessageStreamResponse()`.
-- Include useful visual tool results such as charts or tables when appropriate.
-- Persist chat threads and messages.
-- Handle tool errors gracefully in French user-facing copy.
-- Avoid exposing raw SQL, stack traces, or database errors to users.
-- Avoid modifying data unless the workflow has explicit product approval.
+### Capabilities (tools)
+
+| Group | Tools |
+| --- | --- |
+| Meta | `declareMethodology`, `createPlan`, `askClarification` |
+| Partner intelligence | `queryPartners`, `getPartnerDetails`, `queryAnalytics`, `scorePartner` (single + batch), `predictChurn`, `recommendPartners` |
+| Portfolio | `summarizePartnerPortfolio`, `getCategoryBenchmarks`, `getPartnerActivityTimeline` |
+| Projects | `analyzeProjectHealth`, `identifyAtRiskProjects`, `forecastProjectDelay`, `recommendStaffing`, `findCriticalPath`, `crossEntityAnalysis` |
+| Visualization | `createBarChart`, `createLineChart`, `createPieChart`, `createTable` |
+| Reporting | `generateReport` (executive report markdown → PDF) |
+| RAG | `searchDocuments` (semantic search over partner/project documents) |
+
+### Agent UX
+
+- **Landing page**: minimalist hero plus suggestion pills directly under the input — including one-click flagship demos for **LangSmith** and **Polytech Intl**.
+- **Plan HUD**: a compact, animated progress band showing the agent's live multi-step plan.
+- **Conversation history**: collapsible sidebar, date-grouped (today / yesterday / 7 days / 30 days / older + pinned), per-item timestamps, fluid optimistic list.
+- **Rich results**: bar / line / pie charts, interactive tables (CSV/Excel export), report cards with **Télécharger PDF**, and `## Sources` sections with deep links to the relevant in-app pages.
+- The agent runs with a high step budget; tool calls have timeouts as a safety net. Set `OPENROUTER_KEY` (and optionally `VOYAGE_API_KEY` for embeddings) to enable it.
+
+### Partner scoring model
+
+`scorePartner` and the `/dashboard/partners/[id]/scoring` page use one explainable weighted model (`lib/server/services/scoring.ts`):
+
+| Dimension | Weight | Driven by |
+| --- | --- | --- |
+| Budget | 20% | annual partnership budget (TND) |
+| Satisfaction | 25% | partner + event + meeting + KPI satisfaction scores |
+| Activity | 20% | events, meetings, active offers, KPI interactions |
+| Track record | 20% | vendor projects, CDI conversions, conversion rate, revenue |
+| Strategic fit | 15% | category, partnership level/status, framework/support agreements |
+
+Final score ≥ 75 → **APPROUVER**, 50–74 → **À revoir**, < 50 → **Rejeter**.
+
+## Demo Data & Seeding
+
+The restored dump is pruned to a clean **26-partner** Capgemini Tunisia portfolio (5 customers, 9 marketing, 6 suppliers, 6 universities). Two flagship partners are fully seeded for the demo:
+
+| Flagship | Type | Partner ID | Score | Highlights |
+| --- | --- | --- | --- | --- |
+| **LangSmith** | Technology supplier | `184` | 90/100 | events, meetings, multi-quarter KPIs, projects, vendor projects, offers, RAG contract docs |
+| **Polytech Intl** | Tunisian engineering university (EUR-ACE) | `187` | 90/100 | events, KPIs, 20 student recruitments (8 CDI conversions), accord-cadre RAG docs |
+
+To rebuild the demo data on a fresh database, run (after restoring the dumps):
+
+```bash
+bun scripts/seed-langsmith-demo.js && bun scripts/seed-langsmith-rag.js
+bun scripts/seed-polytech-demo.js && bun scripts/seed-polytech-rag.js
+bun scripts/prune-catalog-partners.js   # optional: re-prune vendor-catalog noise
+```
+
+All seed/prune scripts are idempotent — safe to re-run.
 
 ## Troubleshooting
 
