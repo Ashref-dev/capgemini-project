@@ -60,10 +60,10 @@ export function formatReportDate(value: Date | string | null | undefined) {
   const date = normalizeDate(value)
 
   if (!date) {
-    return "N/A"
+    return "N/D"
   }
 
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString("fr-FR", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -72,7 +72,21 @@ export function formatReportDate(value: Date | string | null | undefined) {
 
 export function sentenceCase(value: string | null | undefined) {
   if (!value) {
-    return "Unknown"
+    return "Inconnu"
+  }
+
+  const topicLabels: Record<string, string> = {
+    "partner-overview": "Aperçu du portefeuille partenaires",
+    "university-partnerships": "Partenariats universitaires",
+    "revenue-analysis": "Analyse du chiffre d'affaires",
+    "churn-risk": "Risque de résiliation",
+    "recruitment-performance": "Performance du recrutement",
+    "event-impact": "Impact des événements",
+  }
+
+  const topicLabel = topicLabels[value]
+  if (topicLabel) {
+    return topicLabel
   }
 
   return value
@@ -83,7 +97,7 @@ export function sentenceCase(value: string | null | undefined) {
 }
 
 export function markdownTable(headers: string[], rows: string[][]) {
-  const safeRows = rows.length > 0 ? rows : [["No data available", ...headers.slice(1).map(() => "—")]]
+  const safeRows = rows.length > 0 ? rows : [["Aucune donnée disponible", ...headers.slice(1).map(() => "—")]]
   const headerRow = `| ${headers.join(" | ")} |`
   const separatorRow = `| ${headers.map(() => "---").join(" | ")} |`
   const bodyRows = safeRows.map((row) => `| ${row.join(" | ")} |`).join("\n")
@@ -95,9 +109,9 @@ export function reportPreamble(title: string, topic: string, generatedAt: Date) 
   return [
     `# ${title}`,
     "",
-    `**Generated**: ${formatReportDate(generatedAt)}`,
-    "**Analyst**: IntelliConnect AI",
-    `**Topic**: ${sentenceCase(topic)}`,
+    `**Généré le** : ${formatReportDate(generatedAt)}`,
+    "**Analyste** : IntelliConnect IA",
+    `**Sujet** : ${sentenceCase(topic)}`,
     "",
   ].join("\n")
 }
@@ -106,7 +120,7 @@ export function toWordList(values: Array<string | null | undefined>) {
   const filtered = values.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
 
   if (filtered.length === 0) {
-    return "no dominant items"
+    return "aucun élément dominant"
   }
 
   if (filtered.length === 1) {
@@ -114,10 +128,10 @@ export function toWordList(values: Array<string | null | undefined>) {
   }
 
   if (filtered.length === 2) {
-    return `${filtered[0]} and ${filtered[1]}`
+    return `${filtered[0]} et ${filtered[1]}`
   }
 
-  return `${filtered.slice(0, -1).join(", ")}, and ${filtered[filtered.length - 1]}`
+  return `${filtered.slice(0, -1).join(", ")}, et ${filtered[filtered.length - 1]}`
 }
 
 export type ReportPayload = {

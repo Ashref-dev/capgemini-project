@@ -112,33 +112,33 @@ export async function buildPartnerOverviewReport(title?: string): Promise<Report
   )[0]
   const healthiestStatus = [...statusRows].sort((left, right) => normalizeAmount(right.count) - normalizeAmount(left.count))[0]
 
-  let markdown = reportPreamble(title || "Partner Overview Report", "partner-overview", generatedAt)
-  markdown += "## Executive Summary\n\n"
-  markdown += `The current partnership portfolio covers **${formatInteger(totalPartners)} active records across four strategic categories**, creating a diversified base of universities, customers, marketing allies, and supplier relationships. ${formatInteger(activePartners)} partners are currently marked as active, which means roughly ${formatPercent(totalPartners > 0 ? (activePartners / totalPartners) * 100 : 0)} of the portfolio is in an operational state rather than negotiation, suspension, or transition. That active ratio matters because it shows the platform is not only accumulating names; it is sustaining relationships that can produce revenue, events, talent, or market access.\n\n`
-  markdown += `Commercially, the portfolio currently points to **${formatCurrency(totalRevenue)} in declared partner-attributed annual revenue** and **${formatCurrency(totalBudget)} in combined annual budget capacity**. The strongest revenue concentration appears in **${sentenceCase(highestRevenueCategory?.category)}**, while the largest footprint by number of partnerships sits in **${sentenceCase(largestCategory?.category)}**. This mix indicates the business is not equally monetized across categories: some segments are broad but lighter in direct revenue, while others are smaller but more commercially dense. That distinction should guide where account leadership invests relationship-management time.\n\n`
-  markdown += `Operationally, the ecosystem also shows meaningful engagement depth beyond static partner records. The platform contains **${formatInteger(eventSummary[0]?.totalEvents)} tracked partnership events**, **${formatInteger(offerSummary[0]?.totalOffers)} commercial offers**, and **${formatInteger(eventSummary[0]?.totalParticipants)} total event participants**. Event activity has already generated **${formatInteger(eventSummary[0]?.totalLeads)} leads** and **${formatInteger(eventSummary[0]?.totalConversions)} conversions**, while the mean portfolio satisfaction score is approximately **${formatDecimal(portfolioSatisfaction)} / 100**. Taken together, the data suggests the portfolio is not dormant; it is functioning as a relationship engine with measurable pipeline, brand, and talent outcomes.\n\n`
+  let markdown = reportPreamble(title || "Rapport d'aperçu du portefeuille partenaires", "partner-overview", generatedAt)
+  markdown += "## Résumé exécutif\n\n"
+  markdown += `Le portefeuille partenarial actuel couvre **${formatInteger(totalPartners)} enregistrements actifs répartis sur quatre catégories stratégiques**, constituant une base diversifiée d'universités, de clients, d'alliés marketing et de relations fournisseurs. **${formatInteger(activePartners)} partenaires** sont actuellement marqués comme actifs, soit environ **${formatPercent(totalPartners > 0 ? (activePartners / totalPartners) * 100 : 0)}** du portefeuille dans un état opérationnel plutôt qu'en négociation, en suspension ou en transition. Ce taux d'activité est important, car il montre que la plateforme n'accumule pas seulement des noms, elle entretient des relations capables de générer du chiffre d'affaires, des événements, des talents ou de l'accès au marché.\n\n`
+  markdown += `Sur le plan commercial, le portefeuille affiche actuellement **${formatCurrency(totalRevenue)} de chiffre d'affaires annuel attribué aux partenaires** et **${formatCurrency(totalBudget)} de capacité budgétaire annuelle cumulée**. La concentration de revenus la plus forte apparaît dans **${sentenceCase(highestRevenueCategory?.category)}**, tandis que l'empreinte la plus large en nombre de partenariats se situe dans **${sentenceCase(largestCategory?.category)}**. Ce profil indique que l'activité n'est pas monétisée de manière homogène selon les catégories, certains segments étant larges mais moins générateurs de revenus directs, tandis que d'autres sont plus compacts mais beaucoup plus denses commercialement. Cette distinction doit guider la répartition du temps consacré au pilotage des comptes.\n\n`
+  markdown += `Sur le plan opérationnel, l'écosystème révèle aussi une profondeur d'engagement réelle au-delà des simples fiches partenaires. La plateforme recense **${formatInteger(eventSummary[0]?.totalEvents)} événements partenaires suivis**, **${formatInteger(offerSummary[0]?.totalOffers)} offres commerciales** et **${formatInteger(eventSummary[0]?.totalParticipants)} participants aux événements**. L'activité événementielle a déjà généré **${formatInteger(eventSummary[0]?.totalLeads)} leads** et **${formatInteger(eventSummary[0]?.totalConversions)} conversions**, tandis que le score moyen de satisfaction du portefeuille s'établit à **${formatDecimal(portfolioSatisfaction)} / 100**. Ensemble, ces données montrent que le portefeuille n'est pas dormant, mais fonctionne comme un moteur relationnel produisant des résultats mesurables en pipeline, en image de marque et en talents.\n\n`
 
-  markdown += "## Key Metrics\n\n"
+  markdown += "## Indicateurs clés\n\n"
   markdown += markdownTable(
-    ["Metric", "Value"],
+    ["Indicateur", "Valeur"],
     [
-      ["Total partners", formatInteger(totalPartners)],
-      ["Active partners", formatInteger(activePartners)],
-      ["Portfolio satisfaction", `${formatDecimal(portfolioSatisfaction)} / 100`],
-      ["Annual revenue generated", formatCurrency(totalRevenue)],
-      ["Annual partner budgets", formatCurrency(totalBudget)],
-      ["Tracked offers", formatInteger(offerSummary[0]?.totalOffers)],
-      ["Active offers", formatInteger(offerSummary[0]?.activeOffers)],
-      ["Tracked events", formatInteger(eventSummary[0]?.totalEvents)],
-      ["Event leads / conversions", `${formatInteger(eventSummary[0]?.totalLeads)} / ${formatInteger(eventSummary[0]?.totalConversions)}`],
-      ["Most represented status", sentenceCase(healthiestStatus?.status)],
+      ["Partenaires totaux", formatInteger(totalPartners)],
+      ["Partenaires actifs", formatInteger(activePartners)],
+      ["Satisfaction du portefeuille", `${formatDecimal(portfolioSatisfaction)} / 100`],
+      ["Chiffre d'affaires annuel généré", formatCurrency(totalRevenue)],
+      ["Budgets annuels partenaires", formatCurrency(totalBudget)],
+      ["Offres suivies", formatInteger(offerSummary[0]?.totalOffers)],
+      ["Offres actives", formatInteger(offerSummary[0]?.activeOffers)],
+      ["Événements suivis", formatInteger(eventSummary[0]?.totalEvents)],
+      ["Leads / conversions des événements", `${formatInteger(eventSummary[0]?.totalLeads)} / ${formatInteger(eventSummary[0]?.totalConversions)}`],
+      ["Statut le plus représenté", sentenceCase(healthiestStatus?.status)],
     ]
   )
   markdown += "\n\n"
 
-  markdown += "## Category Breakdown\n\n"
+  markdown += "## Répartition par catégorie\n\n"
   markdown += markdownTable(
-    ["Category", "Partners", "Active", "Avg Satisfaction", "Revenue", "Budget"],
+    ["Catégorie", "Partenaires", "Actifs", "Satisfaction moyenne", "Revenu", "Budget"],
     categoryRows.map((row) => [
       sentenceCase(row.category),
       formatInteger(row.partnerCount),
@@ -149,11 +149,11 @@ export async function buildPartnerOverviewReport(title?: string): Promise<Report
     ])
   )
   markdown += "\n\n"
-  markdown += `This breakdown shows where relationship density and economic weight diverge. A category can have a large number of partners but still underperform commercially if satisfaction is middling, offer usage is low, or event conversion is weak. In contrast, smaller categories with strong satisfaction and revenue may deserve greater executive sponsorship because each additional improvement there yields a disproportionate financial impact. The current portfolio therefore benefits from being managed as a segmented system rather than a flat partner list.\n\n`
+  markdown += `Cette répartition montre où la densité relationnelle et le poids économique divergent. Une catégorie peut compter de nombreux partenaires tout en restant sous-performante commercialement si la satisfaction est moyenne, si l'utilisation des offres est faible ou si la conversion événementielle est limitée. À l'inverse, des catégories plus petites mais plus performantes en satisfaction et en revenus peuvent mériter un parrainage exécutif plus fort, car chaque amélioration supplémentaire y produit un impact financier disproportionné. Le portefeuille gagne donc à être piloté comme un ensemble segmenté plutôt que comme une simple liste de partenaires.\n\n`
 
-  markdown += "## Commercial Leaders\n\n"
+  markdown += "## Principaux partenaires commerciaux\n\n"
   markdown += markdownTable(
-    ["Partner", "Category", "Level", "Revenue", "Satisfaction"],
+    ["Partenaire", "Catégorie", "Niveau", "Revenu", "Satisfaction"],
     topRevenueRows.map((row) => [
       row.name,
       sentenceCase(row.category),
@@ -163,11 +163,11 @@ export async function buildPartnerOverviewReport(title?: string): Promise<Report
     ])
   )
   markdown += "\n\n"
-  markdown += `The top revenue list highlights the partners that are already carrying the largest share of commercial output. These organizations should be treated as strategic accounts with proactive governance, not just periodic follow-up. Revenue concentration is healthy when it is backed by strong satisfaction and stable status, but it becomes a vulnerability when a few accounts contribute most of the value while showing softer sentiment or weaker engagement. The portfolio should therefore monitor not only which partners generate the most revenue, but also whether those same partners are receiving enough executive attention, offer renewal planning, and relationship maintenance.\n\n`
+  markdown += `La liste des plus gros générateurs de revenus met en évidence les partenaires qui portent déjà la plus grande part de la production commerciale. Ces organisations doivent être traitées comme des comptes stratégiques, avec une gouvernance proactive et non un simple suivi périodique. La concentration de revenus est saine lorsqu'elle s'appuie sur une forte satisfaction et un statut stable, mais elle devient une vulnérabilité lorsque quelques comptes concentrent l'essentiel de la valeur tout en affichant un sentiment plus faible ou un engagement moindre. Le portefeuille doit donc surveiller non seulement les partenaires qui génèrent le plus de revenus, mais aussi vérifier si ces mêmes partenaires reçoivent suffisamment d'attention exécutive, de planification de renouvellement des offres et de maintien relationnel.\n\n`
 
-  markdown += "## Relationship Quality Signals\n\n"
+  markdown += "## Signaux de qualité relationnelle\n\n"
   markdown += markdownTable(
-    ["Partner", "Category", "Status", "Satisfaction"],
+    ["Partenaire", "Catégorie", "Statut", "Satisfaction"],
     topSatisfactionRows.map((row) => [
       row.name,
       sentenceCase(row.category),
@@ -176,17 +176,17 @@ export async function buildPartnerOverviewReport(title?: string): Promise<Report
     ])
   )
   markdown += "\n\n"
-  markdown += `High-satisfaction partners create more than goodwill. They tend to renew faster, accept broader collaboration, and generate stronger advocacy in the market. The presence of clear satisfaction leaders suggests Capgemini already has repeatable practices worth scaling: responsive governance, clearer joint planning, better event execution, or more targeted offers. The important next step is to translate those practices from isolated successes into a standard operating model for portfolio management. If the best-performing relationships remain exceptions, portfolio quality will stay uneven.\n\n`
+  markdown += `Les partenaires les plus satisfaits produisent davantage qu'un simple climat favorable. Ils renouvellent plus vite, acceptent des collaborations plus larges et génèrent un meilleur relais de confiance sur le marché. La présence de leaders clairs en matière de satisfaction montre que Capgemini dispose déjà de pratiques reproductibles qu'il serait pertinent de généraliser, comme une gouvernance réactive, une planification conjointe plus lisible, une meilleure exécution événementielle ou des offres plus ciblées. L'étape suivante consiste à transformer ces réussites isolées en modèle opérationnel standard pour le pilotage du portefeuille. Tant que les meilleures relations restent des exceptions, la qualité du portefeuille restera inégale.\n\n`
 
-  markdown += "## Recommendations\n\n"
-  markdown += `1. **Protect the revenue core.** Launch quarterly executive reviews for the highest-revenue partners so commercial performance is matched with retention discipline and cross-sell planning.\n`
-  markdown += `2. **Segment by value and maturity.** Use category-level signals to separate broad-network partners from high-yield strategic accounts, then assign different cadences, KPIs, and engagement motions.\n`
-  markdown += `3. **Convert activity into pipeline.** Review offers and events together to determine where partner engagement is high but monetization remains low, especially where leads are generated without corresponding conversions.\n`
-  markdown += `4. **Scale satisfaction playbooks.** Document the operating habits behind the highest-satisfaction partnerships and apply them to lower-performing accounts in the same category.\n`
-  markdown += `5. **Track portfolio balance monthly.** Monitor partner count, active rate, revenue concentration, and satisfaction as one leadership dashboard so growth does not come at the expense of relationship quality.\n`
+  markdown += "## Recommandations\n\n"
+  markdown += `1. **Protéger le cœur de revenus.** Lancer des revues exécutives trimestrielles pour les partenaires les plus générateurs de chiffre d'affaires afin d'aligner la performance commerciale avec la discipline de rétention et la planification de ventes additionnelles.\n`
+  markdown += `2. **Segmenter selon la valeur et la maturité.** Utiliser les signaux au niveau des catégories pour distinguer les partenaires de réseau large des comptes stratégiques à fort rendement, puis leur attribuer des cadences, des KPI et des modes d'engagement différents.\n`
+  markdown += `3. **Transformer l'activité en pipeline.** Examiner ensemble les offres et les événements afin d'identifier les cas où l'engagement partenaire est élevé mais la monétisation reste faible, en particulier lorsque des leads sont générés sans conversions correspondantes.\n`
+  markdown += `4. **Déployer les meilleures pratiques de satisfaction.** Documenter les habitudes opérationnelles des partenariats les mieux notés et les appliquer aux comptes moins performants de la même catégorie.\n`
+  markdown += `5. **Suivre l'équilibre du portefeuille chaque mois.** Piloter le nombre de partenaires, le taux d'activité, la concentration du chiffre d'affaires et la satisfaction dans un même tableau de bord de direction afin que la croissance ne se fasse pas au détriment de la qualité relationnelle.\n`
 
   return {
-    title: title || "Partner Overview Report",
+    title: title || "Rapport d'aperçu du portefeuille partenaires",
     markdown,
     topic: "partner-overview",
     generatedAt: generatedAt.toISOString(),
@@ -264,36 +264,36 @@ export async function buildUniversityPartnershipsReport(title?: string): Promise
   const totalCdiConversions = universityLeaders.reduce((sum, row) => sum + normalizeAmount(row.cdiCount), 0)
   const leadingUniversity = universityLeaders[0]
   const dominantSpecialties = toWordList(
-    specializationRows.slice(0, 3).map((row) => row.specialization ?? "Undeclared specialization")
+    specializationRows.slice(0, 3).map((row) => row.specialization ?? "Spécialité non renseignée")
   )
 
-  let markdown = reportPreamble(title || "University Partnerships Report", "university-partnerships", generatedAt)
-  markdown += "## Executive Summary\n\n"
-  markdown += `Capgemini's university ecosystem currently includes **${formatInteger(summary?.totalUniversities)} academic partners**, with **${formatInteger(summary?.frameworkAgreements)} framework agreements** already formalized. These relationships represent access to approximately **${formatInteger(summary?.totalStudents)} students**, a recurring annual potential of **${formatInteger(summary?.totalInternsPerYear)} internships**, and **${formatInteger(summary?.totalHiresPerYear)} planned hires per year** based on partner-level declarations. The average conversion expectation to CDI sits at **${formatPercent(summary?.avgConversionToCdi)}**, which indicates that the university channel is not only a branding lever but a direct workforce pipeline.\n\n`
-  markdown += `The operational recruitment dataset confirms that the channel is active rather than theoretical. The top tracked universities alone account for **${formatInteger(totalRecruitments)} recruitment records** and **${formatInteger(totalCdiConversions)} CDI conversions**, while average satisfaction and performance remain high enough to justify continued investment. This matters because university partnerships can easily become ceremonial if they are measured only by event presence or signed agreements. In this case, the platform data shows concrete movement from campus engagement to recruitment output.\n\n`
-  markdown += `Thematically, the strongest recruiting demand is concentrated around **${dominantSpecialties}**, which gives the business a practical signal on where campus alignment is strongest today. This can inform event design, ambassador programs, internship capacity planning, and manager allocation. The presence of a clear university leader — currently **${leadingUniversity?.partnerName ?? "N/A"}** by tracked recruitment contribution — also creates a benchmark for what a mature academic partnership should look like in terms of conversion discipline, quality monitoring, and sponsorship return.\n\n`
+  let markdown = reportPreamble(title || "Rapport des partenariats universitaires", "university-partnerships", generatedAt)
+  markdown += "## Résumé exécutif\n\n"
+  markdown += `L'écosystème universitaire de Capgemini comprend actuellement **${formatInteger(summary?.totalUniversities)} partenaires académiques**, dont **${formatInteger(summary?.frameworkAgreements)} accords-cadres** déjà formalisés. Ces relations donnent accès à environ **${formatInteger(summary?.totalStudents)} étudiants**, à un potentiel annuel récurrent de **${formatInteger(summary?.totalInternsPerYear)} stages** et à **${formatInteger(summary?.totalHiresPerYear)} recrutements prévus par an** selon les déclarations des partenaires. Le taux moyen de conversion attendu vers le CDI s'établit à **${formatPercent(summary?.avgConversionToCdi)}**, ce qui montre que le canal universitaire n'est pas seulement un levier de marque, mais un véritable vivier de talents.\n\n`
+  markdown += `Le jeu de données opérationnel confirme que ce canal est bien actif et non théorique. Les universités les plus suivies cumulent à elles seules **${formatInteger(totalRecruitments)} enregistrements de recrutement** et **${formatInteger(totalCdiConversions)} conversions vers le CDI**, tandis que la satisfaction et la performance moyennes restent suffisamment élevées pour justifier la poursuite des investissements. C'est important, car les partenariats universitaires peuvent vite devenir purement symboliques s'ils ne sont évalués qu'à travers la présence à des événements ou la signature d'accords. Ici, les données de la plateforme montrent un passage concret de l'engagement campus vers des résultats de recrutement.\n\n`
+  markdown += `Sur le fond, la demande de recrutement la plus forte se concentre autour de **${dominantSpecialties}**, ce qui donne à l'entreprise un signal très utile sur les alignements campus les plus solides à date. Cela peut orienter la conception des événements, les programmes d'ambassadeurs, la planification des capacités de stage et l'allocation des managers. La présence d'un leader universitaire clairement identifié — actuellement **${leadingUniversity?.partnerName ?? "N/D"}** par contribution suivie au recrutement — fournit également un repère concret pour définir ce qu'un partenariat académique mature doit démontrer en matière de discipline de conversion, de suivi qualité et de retour sur sponsoring.\n\n`
 
-  markdown += "## Key Metrics\n\n"
+  markdown += "## Indicateurs clés\n\n"
   markdown += markdownTable(
-    ["Metric", "Value"],
+    ["Indicateur", "Valeur"],
     [
-      ["University partners", formatInteger(summary?.totalUniversities)],
-      ["Framework agreements", formatInteger(summary?.frameworkAgreements)],
-      ["Student population reached", formatInteger(summary?.totalStudents)],
-      ["Intern capacity per year", formatInteger(summary?.totalInternsPerYear)],
-      ["Hire capacity per year", formatInteger(summary?.totalHiresPerYear)],
-      ["Average CDI conversion target", formatPercent(summary?.avgConversionToCdi)],
-      ["Average sponsorship budget", formatCurrency(summary?.avgSponsorshipBudget)],
-      ["Average events per year", formatDecimal(summary?.avgEventsPerYear)],
-      ["Tracked recruitments", formatInteger(totalRecruitments)],
-      ["Tracked CDI conversions", formatInteger(totalCdiConversions)],
+      ["Partenaires universitaires", formatInteger(summary?.totalUniversities)],
+      ["Accords-cadres", formatInteger(summary?.frameworkAgreements)],
+      ["Population étudiante touchée", formatInteger(summary?.totalStudents)],
+      ["Capacité de stages par an", formatInteger(summary?.totalInternsPerYear)],
+      ["Capacité de recrutements par an", formatInteger(summary?.totalHiresPerYear)],
+      ["Taux moyen cible de conversion CDI", formatPercent(summary?.avgConversionToCdi)],
+      ["Budget moyen de sponsoring", formatCurrency(summary?.avgSponsorshipBudget)],
+      ["Événements moyens par an", formatDecimal(summary?.avgEventsPerYear)],
+      ["Recrutements suivis", formatInteger(totalRecruitments)],
+      ["Conversions CDI suivies", formatInteger(totalCdiConversions)],
     ]
   )
   markdown += "\n\n"
 
-  markdown += "## Leading University Partners\n\n"
+  markdown += "## Principaux partenaires universitaires\n\n"
   markdown += markdownTable(
-    ["University", "Institution Type", "Recruitments", "CDI", "Avg Performance", "Avg Satisfaction", "Conversion"],
+    ["Université", "Type d'établissement", "Recrutements", "CDI", "Performance moyenne", "Satisfaction moyenne", "Conversion"],
     universityLeaders.map((row) => [
       row.partnerName,
       sentenceCase(row.institutionType),
@@ -305,13 +305,13 @@ export async function buildUniversityPartnershipsReport(title?: string): Promise
     ])
   )
   markdown += "\n\n"
-  markdown += `The leading-university table shows where partnership maturity is already translating into measurable talent outcomes. Strong universities are not only those with a large student body; they are the ones where Capgemini is able to move candidates through placements, track performance, and convert the best profiles into longer-term contracts. The more balanced the mix between recruitment volume, CDI conversion, and satisfaction, the healthier the partnership. High volume without quality creates management overhead, while high quality without scale suggests untapped potential.\n\n`
+  markdown += `Le tableau des principales universités montre où la maturité du partenariat se traduit déjà en résultats talents mesurables. Les meilleures universités ne sont pas seulement celles qui comptent beaucoup d'étudiants, ce sont celles où Capgemini parvient à faire avancer les candidats dans le parcours, à suivre la performance et à convertir les meilleurs profils en contrats plus durables. Plus l'équilibre entre volume de recrutement, conversion CDI et satisfaction est solide, plus le partenariat est sain. Un volume élevé sans qualité crée une charge de gestion, tandis qu'une qualité élevée sans échelle révèle un potentiel encore sous-exploité.\n\n`
 
-  markdown += "## Talent Demand Patterns\n\n"
+  markdown += "## Tendances de la demande en talents\n\n"
   markdown += markdownTable(
-    ["Specialization", "Recruitments", "CDI", "Avg Performance"],
+    ["Spécialité", "Recrutements", "CDI", "Performance moyenne"],
     specializationRows.map((row) => [
-      row.specialization ?? "Undeclared",
+      row.specialization ?? "Non renseignée",
       formatInteger(row.count),
       formatInteger(row.cdiCount),
       formatDecimal(row.avgPerformance),
@@ -319,7 +319,7 @@ export async function buildUniversityPartnershipsReport(title?: string): Promise
   )
   markdown += "\n\n"
   markdown += markdownTable(
-    ["Recruitment Type", "Volume", "CDI", "Avg Satisfaction"],
+    ["Type de recrutement", "Volume", "CDI", "Satisfaction moyenne"],
     recruitmentTypeRows.map((row) => [
       sentenceCase(row.recruitmentType),
       formatInteger(row.count),
@@ -328,17 +328,17 @@ export async function buildUniversityPartnershipsReport(title?: string): Promise
     ])
   )
   markdown += "\n\n"
-  markdown += `These demand patterns are especially useful for planning the next academic cycle. If the platform is repeatedly converting the same specializations and recruitment types, Capgemini should formalize that signal into shared calendars with partner universities, focused employer-branding content, and manager-level workforce forecasts. Conversely, specializations with low conversion or weak performance may need better selection criteria, revised internship design, or tighter coordination between HR and technical teams. The value of this report is therefore not only descriptive; it indicates where the academic funnel is aligned and where it still leaks.\n\n`
+  markdown += `Ces tendances de demande sont particulièrement utiles pour préparer le prochain cycle académique. Si la plateforme convertit régulièrement les mêmes spécialités et les mêmes types de recrutement, Capgemini devrait formaliser ce signal dans des calendriers partagés avec les universités partenaires, des contenus de marque employeur ciblés et des prévisions de capacité au niveau des managers. À l'inverse, les spécialités à faible conversion ou à performance plus faible peuvent nécessiter des critères de sélection renforcés, une conception de stage revue ou une coordination plus étroite entre les équipes RH et techniques. La valeur de ce rapport n'est donc pas seulement descriptive, il montre aussi où le tunnel académique est aligné et où il fuit encore.\n\n`
 
-  markdown += "## Recommendations\n\n"
-  markdown += `1. **Deepen the top academic accounts.** Treat the best-performing universities as strategic talent pipelines with quarterly reviews, shared hiring plans, and earlier internship demand signals.\n`
-  markdown += `2. **Use specialties to shape go-to-campus activity.** Align events, workshops, and ambassador programs around the specializations already producing the strongest conversion and performance outcomes.\n`
-  markdown += `3. **Expand framework coverage selectively.** Universities without formal agreements but with visible recruitment contribution should be prioritized for structured partnership terms.\n`
-  markdown += `4. **Track quality alongside volume.** Keep performance, satisfaction, and CDI conversion on the same scorecard so academic partnerships are measured by talent quality, not only student reach.\n`
-  markdown += `5. **Link sponsorship to outcomes.** Compare sponsorship budgets with placement and conversion results to ensure campus investment is concentrated where Capgemini sees the strongest hiring return.\n`
+  markdown += "## Recommandations\n\n"
+  markdown += `1. **Approfondir les meilleurs comptes académiques.** Traiter les universités les plus performantes comme des viviers de talents stratégiques, avec des revues trimestrielles, des plans de recrutement partagés et des signaux de demande de stage plus précoces.\n`
+  markdown += `2. **Utiliser les spécialités pour orienter l'animation campus.** Aligner les événements, ateliers et programmes d'ambassadeurs autour des spécialités qui produisent déjà les meilleurs résultats de conversion et de performance.\n`
+  markdown += `3. **Étendre la couverture des accords de manière sélective.** Les universités sans accord formel mais présentant une contribution visible au recrutement doivent être priorisées pour des modalités de partenariat structurées.\n`
+  markdown += `4. **Suivre la qualité en même temps que le volume.** Conserver la performance, la satisfaction et la conversion CDI sur la même grille de lecture afin que les partenariats académiques soient évalués sur la qualité des talents et pas seulement sur la portée étudiante.\n`
+  markdown += `5. **Relier le sponsoring aux résultats.** Comparer les budgets de sponsoring avec les résultats de placement et de conversion afin que l'investissement campus soit concentré là où Capgemini obtient le meilleur retour de recrutement.\n`
 
   return {
-    title: title || "University Partnerships Report",
+    title: title || "Rapport des partenariats universitaires",
     markdown,
     topic: "university-partnerships",
     generatedAt: generatedAt.toISOString(),
@@ -410,33 +410,33 @@ export async function buildRevenueAnalysisReport(title?: string): Promise<Report
   const topThreeShare = totalRevenue > 0 ? (topThreeRevenue / totalRevenue) * 100 : 0
   const largestRevenueCategory = categoryRevenueRows[0]
 
-  let markdown = reportPreamble(title || "Revenue Analysis Report", "revenue-analysis", generatedAt)
-  markdown += "## Executive Summary\n\n"
-  markdown += `The current partnership portfolio reports **${formatCurrency(totalRevenue)} in annual revenue contribution** across all tracked partner categories. Revenue is not evenly distributed: the leading category is **${sentenceCase(largestRevenueCategory?.category)}**, and the top three partner accounts alone represent **${formatPercent(topThreeShare)}** of the total revenue base. This degree of concentration is commercially efficient when those relationships are healthy, but it also creates exposure if leadership attention, contract renewal planning, or satisfaction monitoring are weaker than the revenue profile warrants.\n\n`
-  markdown += `The revenue engine is also supported by multiple monetization layers beyond direct partner revenue declarations. The platform tracks **${formatInteger(offerSummary[0]?.totalOffers)} offers** worth **${formatCurrency(offerSummary[0]?.totalOfferValue)}**, partnership events that have already produced **${formatCurrency(eventRevenueSummary[0]?.totalEventRevenue)}** in revenue against **${formatCurrency(eventRevenueSummary[0]?.totalEventBudget)}** in budget, and **${formatInteger(vendorProjectSummary[0]?.totalProjects)} vendor projects** representing **${formatCurrency(vendorProjectSummary[0]?.totalProjectValue)}** in project value. This means the partnership portfolio should be interpreted as a blended commercial system combining direct account contribution, campaign-style offer monetization, event activation, and delivery-side project economics.\n\n`
-  markdown += `From a leadership perspective, the most important question is not simply where revenue exists today, but whether the pipeline is balanced enough for tomorrow. Healthy revenue growth requires three things at the same time: a protected top-account base, a mid-tier of scalable partners, and a clear operating mechanism for converting activity into future value. The current data suggests there is a strong top layer already in place, but also a case for stronger monetization discipline in events, offers, and vendor delivery relationships so the revenue model is more diversified.\n\n`
+  let markdown = reportPreamble(title || "Rapport d'analyse du chiffre d'affaires", "revenue-analysis", generatedAt)
+  markdown += "## Résumé exécutif\n\n"
+  markdown += `Le portefeuille partenarial actuel enregistre **${formatCurrency(totalRevenue)} de contribution annuelle au chiffre d'affaires** sur l'ensemble des catégories partenaires suivies. Le chiffre d'affaires n'est pas réparti de façon homogène : la catégorie dominante est **${sentenceCase(largestRevenueCategory?.category)}**, et les trois principaux comptes partenaires représentent à eux seuls **${formatPercent(topThreeShare)}** de la base totale de revenus. Ce niveau de concentration est commercialement efficace lorsque ces relations sont saines, mais il crée aussi une exposition si l'attention de la direction, la planification des renouvellements ou le suivi de satisfaction sont moins solides que ne le suggère le profil de revenus.\n\n`
+  markdown += `Le moteur de revenus s'appuie aussi sur plusieurs couches de monétisation au-delà des seules déclarations de chiffre d'affaires direct partenaire. La plateforme suit **${formatInteger(offerSummary[0]?.totalOffers)} offres** d'une valeur de **${formatCurrency(offerSummary[0]?.totalOfferValue)}**, des événements partenaires ayant déjà généré **${formatCurrency(eventRevenueSummary[0]?.totalEventRevenue)}** de revenus pour **${formatCurrency(eventRevenueSummary[0]?.totalEventBudget)}** de budget, ainsi que **${formatInteger(vendorProjectSummary[0]?.totalProjects)} projets fournisseurs** représentant **${formatCurrency(vendorProjectSummary[0]?.totalProjectValue)}** de valeur projet. Le portefeuille doit donc être interprété comme un système commercial combiné, associant contribution directe des comptes, monétisation des offres, activation événementielle et économie des projets côté livraison.\n\n`
+  markdown += `Du point de vue de la direction, la question centrale n'est pas seulement de savoir où se trouve le revenu aujourd'hui, mais si le pipeline est suffisamment équilibré pour demain. Une croissance saine du chiffre d'affaires exige trois éléments en même temps : une base de comptes majeurs protégée, un milieu de portefeuille de partenaires scalables et un mécanisme opérationnel clair pour transformer l'activité en valeur future. Les données actuelles montrent qu'une couche supérieure solide est déjà en place, mais aussi qu'il faut renforcer la discipline de monétisation sur les événements, les offres et les relations de livraison fournisseur afin de diversifier davantage le modèle de revenus.\n\n`
 
-  markdown += "## Key Metrics\n\n"
+  markdown += "## Indicateurs clés\n\n"
   markdown += markdownTable(
-    ["Metric", "Value"],
+    ["Indicateur", "Valeur"],
     [
-      ["Total annual partner revenue", formatCurrency(totalRevenue)],
-      ["Top-three revenue share", formatPercent(topThreeShare)],
-      ["Offers tracked / active", `${formatInteger(offerSummary[0]?.totalOffers)} / ${formatInteger(offerSummary[0]?.activeOffers)}`],
-      ["Offer value", formatCurrency(offerSummary[0]?.totalOfferValue)],
-      ["Offer usage count", formatInteger(offerSummary[0]?.totalUsage)],
-      ["Event revenue", formatCurrency(eventRevenueSummary[0]?.totalEventRevenue)],
-      ["Event budget", formatCurrency(eventRevenueSummary[0]?.totalEventBudget)],
-      ["Average event ROI", formatDecimal(eventRevenueSummary[0]?.avgRoi, 2)],
-      ["Vendor project value", formatCurrency(vendorProjectSummary[0]?.totalProjectValue)],
-      ["Vendor commission earned", formatCurrency(vendorProjectSummary[0]?.totalCommission)],
+      ["Chiffre d'affaires annuel total des partenaires", formatCurrency(totalRevenue)],
+      ["Part du chiffre d'affaires des trois premiers comptes", formatPercent(topThreeShare)],
+      ["Offres suivies / actives", `${formatInteger(offerSummary[0]?.totalOffers)} / ${formatInteger(offerSummary[0]?.activeOffers)}`],
+      ["Valeur des offres", formatCurrency(offerSummary[0]?.totalOfferValue)],
+      ["Nombre d'utilisations des offres", formatInteger(offerSummary[0]?.totalUsage)],
+      ["Revenu événementiel", formatCurrency(eventRevenueSummary[0]?.totalEventRevenue)],
+      ["Budget événementiel", formatCurrency(eventRevenueSummary[0]?.totalEventBudget)],
+      ["ROI moyen des événements", formatDecimal(eventRevenueSummary[0]?.avgRoi, 2)],
+      ["Valeur des projets fournisseurs", formatCurrency(vendorProjectSummary[0]?.totalProjectValue)],
+      ["Commission fournisseur gagnée", formatCurrency(vendorProjectSummary[0]?.totalCommission)],
     ]
   )
   markdown += "\n\n"
 
-  markdown += "## Revenue by Category\n\n"
+  markdown += "## Chiffre d'affaires par catégorie\n\n"
   markdown += markdownTable(
-    ["Category", "Partners", "Total Revenue", "Average Revenue", "Avg Satisfaction"],
+    ["Catégorie", "Partenaires", "Revenu total", "Revenu moyen", "Satisfaction moyenne"],
     categoryRevenueRows.map((row) => [
       sentenceCase(row.category),
       formatInteger(row.partnerCount),
@@ -446,11 +446,11 @@ export async function buildRevenueAnalysisReport(title?: string): Promise<Report
     ])
   )
   markdown += "\n\n"
-  markdown += `This category view makes it easier to distinguish between scale and efficiency. Categories with high total revenue but lower average satisfaction may be commercially important but operationally fragile. Categories with smaller totals but stronger satisfaction can represent expansion opportunities if the account team builds more offers, events, or project motions around them. The right management action therefore depends on whether the category problem is concentration, under-penetration, or relationship quality.\n\n`
+  markdown += `Cette vue par catégorie facilite la distinction entre l'échelle et l'efficacité. Les catégories à fort revenu total mais à satisfaction moyenne plus faible peuvent être commercialement importantes tout en restant opérationnellement fragiles. Les catégories aux totaux plus modestes mais à la satisfaction plus forte peuvent représenter des opportunités d'expansion si l'équipe de compte construit davantage d'offres, d'événements ou de projets autour d'elles. La bonne action de pilotage dépend donc de savoir si le problème de la catégorie est la concentration, la sous-penetration ou la qualité relationnelle.\n\n`
 
-  markdown += "## Top Revenue Accounts\n\n"
+  markdown += "## Principaux comptes à fort chiffre d'affaires\n\n"
   markdown += markdownTable(
-    ["Partner", "Category", "Revenue", "Budget", "Satisfaction"],
+    ["Partenaire", "Catégorie", "Revenu", "Budget", "Satisfaction"],
     topRevenueRows.map((row) => [
       row.name,
       sentenceCase(row.category),
@@ -460,30 +460,30 @@ export async function buildRevenueAnalysisReport(title?: string): Promise<Report
     ])
   )
   markdown += "\n\n"
-  markdown += `The top revenue accounts should be managed as a defended growth zone. In practical terms, that means clear executive sponsorship, visible renewal milestones, and deliberate cross-sell planning. Revenue-rich accounts with strong satisfaction are the best place to expand wallet share. Revenue-rich accounts with weaker satisfaction are a warning sign: the current numbers may still look good, but future revenue could be at risk if operational issues, delayed follow-up, or reduced engagement are left unresolved.\n\n`
+  markdown += `Les comptes les plus générateurs de revenus doivent être gérés comme une zone de croissance à défendre. Concrètement, cela implique un parrainage exécutif clair, des jalons de renouvellement visibles et une planification volontaire de ventes additionnelles. Les comptes fortement rémunérateurs et très satisfaisants sont les meilleurs candidats pour augmenter la part de portefeuille. À l'inverse, des comptes riches en revenus mais moins satisfaisants constituent un signal d'alerte : les chiffres actuels peuvent encore sembler bons, mais le revenu futur pourrait être exposé si les problèmes opérationnels, les retards de suivi ou la baisse d'engagement restent sans réponse.\n\n`
 
-  markdown += "## Data Warehouse Validation Snapshot\n\n"
+  markdown += "## Instantané de validation de l'entrepôt de données\n\n"
   markdown += markdownTable(
-    ["Partner", "Category", "DW Revenue", "DW Satisfaction"],
+    ["Partenaire", "Catégorie", "CA DW", "Satisfaction DW"],
     dwTopRevenue.rows.map((row) => [
-      String(row.name ?? "N/A"),
+      String(row.name ?? "N/D"),
       sentenceCase(typeof row.partner_category === "string" ? row.partner_category : null),
       formatCurrency(typeof row.annual_revenue_generated === "number" ? row.annual_revenue_generated : String(row.annual_revenue_generated ?? 0)),
       formatDecimal(typeof row.satisfaction_score === "number" ? row.satisfaction_score : String(row.satisfaction_score ?? 0)),
     ])
   )
   markdown += "\n\n"
-  markdown += `The data warehouse snapshot serves as a secondary signal that the highest-value accounts are also visible in the BI model, which is important for cross-checking planning assumptions. Alignment between the operational database and BI revenue rankings increases trust in strategic reporting. When the same partners dominate both views, leadership can use them confidently for planning, while any divergence should trigger a data quality review or a deeper look at timing differences between operational updates and warehouse refreshes.\n\n`
+  markdown += `L'instantané de l'entrepôt de données sert de signal complémentaire indiquant que les comptes à plus forte valeur sont également visibles dans le modèle BI, ce qui est essentiel pour recouper les hypothèses de pilotage. L'alignement entre la base opérationnelle et le classement revenu du BI renforce la confiance dans le reporting stratégique. Lorsque les mêmes partenaires dominent les deux vues, la direction peut s'appuyer sur eux pour la planification en toute confiance, tandis que toute divergence doit déclencher une revue de la qualité des données ou une analyse plus poussée des décalages temporels entre les mises à jour opérationnelles et les rafraîchissements de l'entrepôt.\n\n`
 
-  markdown += "## Recommendations\n\n"
-  markdown += `1. **Reduce concentration risk.** Put quarterly retention and expansion plans in place for the top revenue accounts, especially where satisfaction is not proportionate to commercial contribution.\n`
-  markdown += `2. **Scale the middle tier.** Identify medium-revenue partners with strong satisfaction and use offers, events, and account planning to move them into the top-commercial cohort.\n`
-  markdown += `3. **Treat events and offers as monetization channels.** Review low-ROI activities and reallocate budget toward programs that generate measurable conversions and revenue.\n`
-  markdown += `4. **Link delivery and revenue reporting.** Use vendor project value, commission, and satisfaction together to evaluate which supplier relationships deserve deeper strategic investment.\n`
-  markdown += `5. **Institutionalize revenue reviews.** Combine operational and warehouse signals monthly so revenue, satisfaction, and concentration can be managed as one leadership conversation.\n`
+  markdown += "## Recommandations\n\n"
+  markdown += `1. **Réduire le risque de concentration.** Mettre en place des plans trimestriels de rétention et d'expansion pour les principaux comptes générateurs de revenus, en particulier lorsque la satisfaction n'est pas proportionnelle à la contribution commerciale.\n`
+  markdown += `2. **Faire monter le milieu de portefeuille.** Identifier les partenaires à revenu intermédiaire disposant d'une forte satisfaction et utiliser les offres, les événements et la planification des comptes pour les faire basculer dans le groupe des comptes les plus commerciaux.\n`
+  markdown += `3. **Traiter les événements et les offres comme des canaux de monétisation.** Examiner les activités à faible ROI et réallouer le budget vers les programmes qui génèrent des conversions et des revenus mesurables.\n`
+  markdown += `4. **Relier la livraison au reporting de revenus.** Utiliser ensemble la valeur des projets fournisseurs, la commission et la satisfaction pour évaluer quelles relations fournisseurs méritent un investissement stratégique plus profond.\n`
+  markdown += `5. **Institutionnaliser les revues de revenus.** Combiner chaque mois les signaux opérationnels et ceux de l'entrepôt afin que le revenu, la satisfaction et la concentration soient pilotés dans une seule conversation de direction.\n`
 
   return {
-    title: title || "Revenue Analysis Report",
+    title: title || "Rapport d'analyse du chiffre d'affaires",
     markdown,
     topic: "revenue-analysis",
     generatedAt: generatedAt.toISOString(),
@@ -635,30 +635,30 @@ export async function buildChurnRiskReport(title?: string): Promise<ReportPayloa
       }, new Map<string, number>())
   ).sort((left, right) => right[1] - left[1])
 
-  let markdown = reportPreamble(title || "Churn Risk Report", "churn-risk", generatedAt)
-  markdown += "## Executive Summary\n\n"
-  markdown += `The partnership base currently contains **${formatInteger(rankedProfiles.length)} analyzed partners**, with **${formatInteger(highRiskCount)} high-risk relationships**, **${formatInteger(mediumRiskCount)} medium-risk relationships**, and **${formatInteger(lowRiskCount)} low-risk relationships** according to interaction recency, satisfaction trend, status volatility, and engagement depth. The average portfolio risk score is **${formatDecimal(averageRisk)} / 100**, which means the overall relationship landscape is manageable but not risk-free. The most urgent issue is not the number of partners in the database, but the subset of relationships showing simultaneous signs of inactivity and weakening sentiment.\n\n`
-  markdown += `In practice, churn rarely happens because of one signal alone. It usually appears when multiple weak indicators stack together: long gaps since the last event or meeting, a visible drop in satisfaction, repeated status changes toward suspended or uncertain states, and a low cadence of recent interactions. The current data reflects exactly that pattern in the upper end of the risk ranking. This is a positive sign for the model because it highlights actionable relationship-management gaps rather than random statistical noise.\n\n`
-  markdown += `The report should therefore be used as a leadership operating tool, not just an analytical snapshot. High-risk accounts need rapid intervention. Medium-risk accounts need structured re-engagement before they deteriorate further. Low-risk accounts should not be ignored either; they represent the stable base that can absorb growth initiatives, pilot offers, and cross-category collaboration. The objective is not merely to avoid churn, but to maintain a balanced portfolio where commercial expansion does not outpace relationship health.\n\n`
+  let markdown = reportPreamble(title || "Rapport des risques de résiliation", "churn-risk", generatedAt)
+  markdown += "## Résumé exécutif\n\n"
+  markdown += `La base partenaires compte actuellement **${formatInteger(rankedProfiles.length)} partenaires analysés**, dont **${formatInteger(highRiskCount)} relations à haut risque**, **${formatInteger(mediumRiskCount)} relations à risque moyen** et **${formatInteger(lowRiskCount)} relations à faible risque** selon la récence des interactions, l'évolution de la satisfaction, la volatilité des statuts et la profondeur d'engagement. Le score moyen de risque du portefeuille est de **${formatDecimal(averageRisk)} / 100**, ce qui signifie que l'ensemble de la relation est maîtrisable, mais pas sans risque. Le point le plus urgent n'est pas le nombre de partenaires dans la base, mais le sous-ensemble de relations qui présentent simultanément des signes d'inactivité et d'affaiblissement du sentiment.\n\n`
+  markdown += `En pratique, la résiliation ne survient presque jamais à cause d'un seul signal. Elle apparaît généralement lorsque plusieurs indicateurs faibles se cumulent : de longs intervalles depuis le dernier événement ou rendez-vous, une baisse visible de la satisfaction, des changements répétés de statut vers des états suspendus ou incertains, et une faible cadence d'interactions récentes. Les données actuelles reflètent exactement ce schéma dans la partie haute du classement des risques. C'est un bon signal pour le modèle, car il met en évidence des écarts d'animation relationnelle sur lesquels on peut agir, plutôt qu'un simple bruit statistique.\n\n`
+  markdown += `Ce rapport doit donc être utilisé comme un outil de pilotage managérial, et pas seulement comme un instantané analytique. Les comptes à haut risque nécessitent une intervention rapide. Les comptes à risque moyen doivent faire l'objet d'une réactivation structurée avant une dégradation supplémentaire. Les comptes à faible risque ne doivent pas être ignorés pour autant, ils représentent la base stable capable d'absorber des initiatives de croissance, des offres pilotes et des collaborations transverses. L'objectif n'est pas seulement d'éviter les résiliations, mais de maintenir un portefeuille équilibré où l'expansion commerciale ne devance pas la santé relationnelle.\n\n`
 
-  markdown += "## Key Metrics\n\n"
+  markdown += "## Indicateurs clés\n\n"
   markdown += markdownTable(
-    ["Metric", "Value"],
+    ["Indicateur", "Valeur"],
     [
-      ["Partners analyzed", formatInteger(rankedProfiles.length)],
-      ["Average risk score", formatDecimal(averageRisk)],
-      ["High-risk partners", formatInteger(highRiskCount)],
-      ["Medium-risk partners", formatInteger(mediumRiskCount)],
-      ["Low-risk partners", formatInteger(lowRiskCount)],
-      ["Highest-risk partner", topRiskPartners[0]?.partnerName ?? "N/A"],
-      ["Highest-risk category", highRiskByCategory[0]?.[0] ?? "N/A"],
+      ["Partenaires analysés", formatInteger(rankedProfiles.length)],
+      ["Score moyen de risque", formatDecimal(averageRisk)],
+      ["Partenaires à haut risque", formatInteger(highRiskCount)],
+      ["Partenaires à risque moyen", formatInteger(mediumRiskCount)],
+      ["Partenaires à faible risque", formatInteger(lowRiskCount)],
+      ["Partenaire le plus à risque", topRiskPartners[0]?.partnerName ?? "N/D"],
+      ["Catégorie la plus à risque", highRiskByCategory[0]?.[0] ?? "N/D"],
     ]
   )
   markdown += "\n\n"
 
-  markdown += "## Highest-Risk Partners\n\n"
+  markdown += "## Partenaires à plus fort risque\n\n"
   markdown += markdownTable(
-    ["Partner", "Category", "Risk", "Days Since Interaction", "Satisfaction", "Drop", "Status Warnings", "Interactions"],
+    ["Partenaire", "Catégorie", "Risque", "Jours depuis la dernière interaction", "Satisfaction", "Baisse", "Avertissements de statut", "Interactions"],
     topRiskPartners.map((row) => [
       row.partnerName,
       sentenceCase(row.category),
@@ -671,25 +671,25 @@ export async function buildChurnRiskReport(title?: string): Promise<ReportPayloa
     ])
   )
   markdown += "\n\n"
-  markdown += `The partners in this table require hands-on ownership rather than passive monitoring. Accounts with high risk and long inactivity windows should move to an immediate contact plan led by the business owner. Accounts with moderate inactivity but strong satisfaction decline may need service recovery rather than sales outreach. The real value of the ranking is that it helps distinguish which retention motion is appropriate: reactivation, escalation, executive sponsorship, or operational correction.\n\n`
+  markdown += `Les partenaires de ce tableau requièrent un pilotage actif plutôt qu'une simple surveillance passive. Les comptes à haut risque et aux longues périodes d'inactivité doivent passer immédiatement dans un plan de contact piloté par le responsable business. Les comptes présentant une inactivité modérée mais une forte baisse de satisfaction peuvent nécessiter une remise en qualité de service plutôt qu'une simple relance commerciale. La vraie valeur du classement est d'aider à distinguer la bonne action de rétention, qu'il s'agisse de réactivation, d'escalade, de parrainage exécutif ou de correction opérationnelle.\n\n`
 
-  markdown += "## High-Risk Concentration by Category\n\n"
+  markdown += "## Concentration du risque élevé par catégorie\n\n"
   markdown += markdownTable(
-    ["Category", "High-Risk Partners"],
+    ["Catégorie", "Partenaires à risque élevé"],
     highRiskByCategory.map(([category, count]) => [category, formatInteger(count)])
   )
   markdown += "\n\n"
-  markdown += `Category concentration matters because churn is often systemic. If one category dominates the high-risk list, the issue may be structural: poor cadence, unclear ownership, weak service differentiation, or a category-specific value proposition that is no longer resonating. If risk is distributed evenly instead, the problem is more likely process-related across the entire portfolio. This category view therefore helps leadership decide whether to deploy targeted interventions or a broader relationship-governance reset.\n\n`
+  markdown += `La concentration par catégorie compte, car la résiliation est souvent systémique. Si une catégorie domine la liste des risques élevés, le problème peut être structurel : cadence insuffisante, responsabilité peu claire, faible différenciation du service ou proposition de valeur de catégorie qui ne résonne plus. Si le risque est réparti de manière homogène, le problème est plus probablement lié aux processus sur l'ensemble du portefeuille. Cette vue par catégorie aide donc la direction à choisir entre des interventions ciblées ou une remise à plat plus large de la gouvernance relationnelle.\n\n`
 
-  markdown += "## Recommendations\n\n"
-  markdown += `1. **Intervene within seven days for the top-risk cohort.** Assign owners and schedule executive or operational recovery touchpoints immediately for the highest-risk partners.\n`
-  markdown += `2. **Separate inactivity from dissatisfaction.** Use the risk-driver pattern to decide whether each account needs re-engagement, service remediation, or commercial renegotiation.\n`
-  markdown += `3. **Review unstable statuses in leadership meetings.** Repeated status degradation should trigger escalation because it often precedes churn before revenue visibly declines.\n`
-  markdown += `4. **Create a medium-risk nurture cadence.** Monthly check-ins, lighter-touch events, or offer reviews can keep medium-risk accounts from sliding into the critical zone.\n`
-  markdown += `5. **Embed churn review into portfolio governance.** Risk should be reviewed alongside revenue and satisfaction so account decisions are proactive rather than reactive.\n`
+  markdown += "## Recommandations\n\n"
+  markdown += `1. **Intervenir sous sept jours pour le groupe le plus risqué.** Désigner les responsables et planifier immédiatement des points de récupération exécutifs ou opérationnels pour les partenaires les plus exposés.\n`
+  markdown += `2. **Distinguer l'inactivité de l'insatisfaction.** Utiliser le profil des facteurs de risque pour décider si chaque compte a besoin d'une réactivation, d'une remise en qualité de service ou d'une renégociation commerciale.\n`
+  markdown += `3. **Examiner les statuts instables en comité de direction.** Une dégradation répétée du statut doit déclencher une escalade, car elle précède souvent la résiliation avant même que le chiffre d'affaires ne baisse visiblement.\n`
+  markdown += `4. **Créer une cadence d'animation pour le risque moyen.** Des points mensuels, des événements plus légers ou des revues d'offres peuvent empêcher les comptes à risque moyen de glisser vers la zone critique.\n`
+  markdown += `5. **Intégrer la revue du risque dans la gouvernance du portefeuille.** Le risque doit être examiné en même temps que le revenu et la satisfaction afin que les décisions de compte soient proactives plutôt que réactives.\n`
 
   return {
-    title: title || "Churn Risk Report",
+    title: title || "Rapport des risques de résiliation",
     markdown,
     topic: "churn-risk",
     generatedAt: generatedAt.toISOString(),
@@ -762,29 +762,29 @@ export async function buildRecruitmentPerformanceReport(title?: string): Promise
     ? (normalizeAmount(summary?.totalCdi) / normalizeAmount(summary?.totalRecruitments)) * 100
     : 0
 
-  let markdown = reportPreamble(title || "Recruitment Performance Report", "recruitment-performance", generatedAt)
-  markdown += "## Executive Summary\n\n"
-  markdown += `The recruitment pipeline sourced through university partnerships currently includes **${formatInteger(summary?.totalRecruitments)} tracked recruitment records**, of which **${formatInteger(summary?.totalCdi)} have converted to CDI**. That translates into an observed conversion rate of **${formatPercent(conversionRate)}**, supported by an average performance score of **${formatDecimal(summary?.avgPerformance)}** and average satisfaction of **${formatDecimal(summary?.avgSatisfaction)}**. These are strong signals that the recruitment funnel is producing not just volume, but a meaningful level of hiring quality and candidate experience.\n\n`
-  markdown += `The next level of analysis is operational: which universities feed the best hires, which recruitment types convert most efficiently, and which teams absorb the largest share of incoming talent. That matters because recruitment performance can look positive in aggregate while still hiding avoidable inefficiencies. For example, some channels may generate many placements but weaker CDI conversion, while others create fewer hires but much stronger long-term fit. The best hiring strategy is therefore one that optimizes quality and retention, not only throughput.\n\n`
-  markdown += `The dataset also provides a bridge between HR planning and partnership management. Because the source universities, assigned teams, specializations, and conversion outcomes are all visible, the platform can move beyond anecdotal campus preferences and toward evidence-based workforce sourcing. This is especially useful for prioritizing future events, internship quotas, manager preparation, and budget allocation for the academic pipeline.\n\n`
+  let markdown = reportPreamble(title || "Rapport de performance du recrutement", "recruitment-performance", generatedAt)
+  markdown += "## Résumé exécutif\n\n"
+  markdown += `Le vivier de recrutement issu des partenariats universitaires comprend actuellement **${formatInteger(summary?.totalRecruitments)} enregistrements de recrutement suivis**, dont **${formatInteger(summary?.totalCdi)} ont été convertis en CDI**. Cela correspond à un taux de conversion observé de **${formatPercent(conversionRate)}**, soutenu par un score de performance moyen de **${formatDecimal(summary?.avgPerformance)}** et une satisfaction moyenne de **${formatDecimal(summary?.avgSatisfaction)}**. Ce sont des signaux forts montrant que le tunnel de recrutement produit non seulement du volume, mais aussi un niveau significatif de qualité d'embauche et d'expérience candidat.\n\n`
+  markdown += `Le niveau d'analyse suivant est opérationnel : quelles universités alimentent les meilleures embauches, quels types de recrutement convertissent le plus efficacement et quelles équipes absorbent la plus grande part des talents entrants ? C'est important, car une performance de recrutement peut sembler positive en agrégé tout en masquant des inefficiences évitables. Par exemple, certains canaux peuvent générer beaucoup de placements mais une conversion CDI plus faible, tandis que d'autres créent moins d'embauches mais un bien meilleur ajustement à long terme. La meilleure stratégie de recrutement est donc celle qui optimise la qualité et la rétention, pas seulement le débit.\n\n`
+  markdown += `Le jeu de données crée aussi un pont entre la planification RH et la gestion des partenariats. Comme les universités sources, les équipes affectées, les spécialités et les résultats de conversion sont tous visibles, la plateforme peut dépasser les préférences campus anecdotiques pour aller vers un sourcing des talents fondé sur les preuves. C'est particulièrement utile pour prioriser les futurs événements, les quotas de stage, la préparation des managers et l'allocation budgétaire du vivier académique.\n\n`
 
-  markdown += "## Key Metrics\n\n"
+  markdown += "## Indicateurs clés\n\n"
   markdown += markdownTable(
-    ["Metric", "Value"],
+    ["Indicateur", "Valeur"],
     [
-      ["Tracked recruitments", formatInteger(summary?.totalRecruitments)],
-      ["CDI conversions", formatInteger(summary?.totalCdi)],
-      ["Observed CDI conversion rate", formatPercent(conversionRate)],
-      ["Average performance score", formatDecimal(summary?.avgPerformance)],
-      ["Average satisfaction score", formatDecimal(summary?.avgSatisfaction)],
-      ["Average contract duration (months)", formatDecimal(summary?.avgDuration)],
+      ["Recrutements suivis", formatInteger(summary?.totalRecruitments)],
+      ["Conversions CDI", formatInteger(summary?.totalCdi)],
+      ["Taux observé de conversion CDI", formatPercent(conversionRate)],
+      ["Score de performance moyen", formatDecimal(summary?.avgPerformance)],
+      ["Score de satisfaction moyen", formatDecimal(summary?.avgSatisfaction)],
+      ["Durée moyenne du contrat (mois)", formatDecimal(summary?.avgDuration)],
     ]
   )
   markdown += "\n\n"
 
-  markdown += "## Top Source Universities\n\n"
+  markdown += "## Principales universités d'origine\n\n"
   markdown += markdownTable(
-    ["University", "Recruitments", "CDI", "Avg Performance", "Avg Satisfaction"],
+    ["Université", "Recrutements", "CDI", "Performance moyenne", "Satisfaction moyenne"],
     universityRows.map((row) => [
       row.partnerName,
       formatInteger(row.recruitments),
@@ -794,11 +794,11 @@ export async function buildRecruitmentPerformanceReport(title?: string): Promise
     ])
   )
   markdown += "\n\n"
-  markdown += `University performance should be read as a mix of scale and fit. A strong source university is one that consistently delivers candidates who perform well, integrate successfully into teams, and convert into long-term hires at an acceptable rate. Universities that generate volume without quality should be coached differently from universities that produce a smaller number of highly successful placements. This distinction helps HR teams focus their campus strategy and helps partnership managers justify deeper academic engagement where results are strongest.\n\n`
+  markdown += `La performance d'une université doit être lue comme un mélange d'échelle et d'adéquation. Une bonne université source est celle qui fournit régulièrement des candidats qui performent bien, s'intègrent avec succès dans les équipes et se transforment en recrutements durables à un rythme acceptable. Les universités qui génèrent du volume sans qualité doivent être accompagnées différemment de celles qui produisent un plus petit nombre de placements très réussis. Cette distinction aide les équipes RH à concentrer leur stratégie campus et permet aux responsables partenariats de justifier un engagement académique plus profond là où les résultats sont les meilleurs.\n\n`
 
-  markdown += "## Recruitment Mix\n\n"
+  markdown += "## Mix de recrutement\n\n"
   markdown += markdownTable(
-    ["Recruitment Type", "Volume", "CDI", "Avg Performance", "Avg Satisfaction"],
+    ["Type de recrutement", "Volume", "CDI", "Performance moyenne", "Satisfaction moyenne"],
     typeRows.map((row) => [
       sentenceCase(row.recruitmentType),
       formatInteger(row.count),
@@ -809,38 +809,38 @@ export async function buildRecruitmentPerformanceReport(title?: string): Promise
   )
   markdown += "\n\n"
   markdown += markdownTable(
-    ["Assigned Team", "Recruitments", "CDI"],
+    ["Équipe affectée", "Recrutements", "CDI"],
     teamRows.map((row) => [
-      row.assignedTeam ?? "Unassigned",
+      row.assignedTeam ?? "Non affectée",
       formatInteger(row.count),
       formatInteger(row.cdiCount),
     ])
   )
   markdown += "\n\n"
-  markdown += `This mix view shows how the recruitment engine is being consumed internally. If a few teams receive most candidates, they may require stronger onboarding capacity, clearer mentoring structures, or better forecasting to preserve candidate experience. If certain recruitment types show lower CDI outcomes, HR may want to revisit the selection process, scope of assignments, or transition pathways from early-stage contract to permanent role. The operational lesson is that recruitment performance belongs jointly to sourcing quality and receiving-team readiness.\n\n`
+  markdown += `Cette vue du mix montre comment le moteur de recrutement est consommé en interne. Si quelques équipes reçoivent l'essentiel des candidats, elles peuvent avoir besoin d'une capacité d'onboarding plus forte, de structures de mentorat plus lisibles ou de prévisions plus fiables pour préserver l'expérience candidat. Si certains types de recrutement affichent des résultats CDI plus faibles, les RH peuvent vouloir revoir le processus de sélection, le périmètre des missions ou les parcours de transition entre contrat initial et poste permanent. La leçon opérationnelle est que la performance du recrutement dépend à la fois de la qualité du sourcing et de la préparation des équipes réceptrices.\n\n`
 
-  markdown += "## Skill Alignment\n\n"
+  markdown += "## Alignement des compétences\n\n"
   markdown += markdownTable(
-    ["Specialization", "Volume", "Avg Performance", "Avg Satisfaction"],
+    ["Spécialité", "Volume", "Performance moyenne", "Satisfaction moyenne"],
     specializationRows.map((row) => [
-      row.specialization ?? "Undeclared",
+      row.specialization ?? "Non renseignée",
       formatInteger(row.count),
       formatDecimal(row.avgPerformance),
       formatDecimal(row.avgSatisfaction),
     ])
   )
   markdown += "\n\n"
-  markdown += `Specialization patterns show where campus supply and Capgemini demand are best aligned. High-volume, high-performance specializations should receive more proactive campus programming and manager-level forecasting, because they already represent validated talent pools. Lower-performing specializations may need better screening, revised role matching, or a narrower target list of partner schools. This section is especially valuable for converting raw hiring data into targeted academic partnership strategy.\n\n`
+  markdown += `Les patterns de spécialisation montrent où l'offre campus et la demande de Capgemini sont les mieux alignées. Les spécialités à fort volume et à forte performance doivent recevoir une programmation campus plus proactive et des prévisions au niveau des managers, car elles représentent déjà des viviers de talents validés. Les spécialités moins performantes peuvent nécessiter un meilleur filtrage, un alignement des rôles revu ou une liste plus resserrée d'écoles partenaires cibles. Cette section est particulièrement utile pour transformer des données de recrutement brutes en stratégie de partenariat académique ciblée.\n\n`
 
-  markdown += "## Recommendations\n\n"
-  markdown += `1. **Prioritize quality-producing universities.** Increase engagement with institutions that combine strong recruitment volume, performance, and CDI conversion.\n`
-  markdown += `2. **Tune the recruitment mix.** Review recruitment types with weaker long-term conversion and refine the pathway from internship or alternance to CDI.\n`
-  markdown += `3. **Coordinate with hiring teams earlier.** Use team-level intake patterns to forecast manager demand and avoid last-minute placement friction.\n`
-  markdown += `4. **Focus on validated skill pools.** Direct campus events, branding, and academic collaboration toward the specializations already showing strong performance outcomes.\n`
-  markdown += `5. **Track recruitment performance monthly.** Keep conversion, satisfaction, and performance visible in the same dashboard so growth in volume does not reduce hiring quality.\n`
+  markdown += "## Recommandations\n\n"
+  markdown += `1. **Prioriser les universités qui produisent de la qualité.** Renforcer l'engagement avec les établissements qui combinent fort volume de recrutement, bonne performance et conversion CDI.\n`
+  markdown += `2. **Ajuster le mix de recrutement.** Examiner les types de recrutement dont la conversion long terme est plus faible et affiner le parcours du stage ou de l'alternance vers le CDI.\n`
+  markdown += `3. **Coordonner plus tôt avec les équipes de recrutement.** Utiliser les patterns d'arrivée au niveau des équipes pour anticiper la demande des managers et éviter les frictions de placement de dernière minute.\n`
+  markdown += `4. **Se concentrer sur les viviers de compétences validés.** Diriger les événements campus, la marque employeur et la collaboration académique vers les spécialités qui affichent déjà les meilleurs résultats de performance.\n`
+  markdown += `5. **Suivre la performance du recrutement chaque mois.** Conserver la conversion, la satisfaction et la performance dans un même tableau de bord afin que la croissance du volume ne dégrade pas la qualité de l'embauche.\n`
 
   return {
-    title: title || "Recruitment Performance Report",
+    title: title || "Rapport de performance du recrutement",
     markdown,
     topic: "recruitment-performance",
     generatedAt: generatedAt.toISOString(),
@@ -915,33 +915,33 @@ export async function buildEventImpactReport(title?: string): Promise<ReportPayl
     ? (normalizeAmount(summary?.totalRevenue) / normalizeAmount(summary?.totalBudget)) * 100
     : 0
 
-  let markdown = reportPreamble(title || "Event Impact Report", "event-impact", generatedAt)
-  markdown += "## Executive Summary\n\n"
-  markdown += `Partnership events remain one of the most visible activation channels in the portfolio. The platform currently records **${formatInteger(summary?.totalEvents)} events**, bringing together **${formatInteger(summary?.totalParticipants)} participants**, generating **${formatInteger(summary?.totalLeads)} leads**, and converting **${formatInteger(summary?.totalConversions)} of those leads** into downstream outcomes. Financially, the event layer represents **${formatCurrency(summary?.totalRevenue)} in event-linked revenue** against **${formatCurrency(summary?.totalBudget)} in event spend**, while participant satisfaction averages **${formatDecimal(summary?.avgSatisfaction)} / 100**.\n\n`
-  markdown += `Those results indicate the event engine is doing more than brand visibility. It is contributing measurable pipeline and commercial value, with a lead-to-conversion rate of **${formatPercent(conversionRate)}** and a revenue-to-budget ratio of **${formatPercent(revenueToBudget)}**. That said, event programs should still be managed carefully: high attendance does not automatically mean high business impact, and attractive revenue totals can hide weak efficiency if ROI is inconsistent across event types or partner categories.\n\n`
-  markdown += `The most useful leadership question is therefore: which event formats create the best combination of visibility, pipeline, and economics? The tables below answer that by breaking impact down by event type, by category, and by individual event leaders. This allows Capgemini to decide where to scale, where to redesign, and where to reduce spend if the commercial return is no longer compelling.\n\n`
+  let markdown = reportPreamble(title || "Rapport d'impact des événements", "event-impact", generatedAt)
+  markdown += "## Résumé exécutif\n\n"
+  markdown += `Les événements partenaires restent l'un des canaux d'activation les plus visibles du portefeuille. La plateforme en recense actuellement **${formatInteger(summary?.totalEvents)}**, réunissant **${formatInteger(summary?.totalParticipants)} participants**, générant **${formatInteger(summary?.totalLeads)} leads** et transformant **${formatInteger(summary?.totalConversions)} de ces leads** en résultats en aval. Sur le plan financier, la couche événementielle représente **${formatCurrency(summary?.totalRevenue)} de revenus liés aux événements** pour **${formatCurrency(summary?.totalBudget)} de dépenses événementielles**, tandis que la satisfaction moyenne des participants s'établit à **${formatDecimal(summary?.avgSatisfaction)} / 100**.\n\n`
+  markdown += `Ces résultats montrent que le moteur événementiel ne sert pas seulement la visibilité de la marque. Il contribue de manière mesurable au pipeline et à la valeur commerciale, avec un taux de conversion lead-vers-conversion de **${formatPercent(conversionRate)}** et un ratio revenu-sur-budget de **${formatPercent(revenueToBudget)}**. Cela dit, les programmes événementiels doivent rester pilotés avec rigueur : une forte participation ne signifie pas automatiquement un fort impact business, et des revenus attractifs peuvent masquer une efficacité faible si le ROI varie fortement selon les types d'événements ou les catégories de partenaires.\n\n`
+  markdown += `La vraie question pour la direction est donc la suivante : quels formats d'événements créent la meilleure combinaison entre visibilité, pipeline et économie ? Les tableaux ci-dessous y répondent en détaillant l'impact par type d'événement, par catégorie et par événements individuels les plus performants. Cela permet à Capgemini de décider où amplifier, où repenser et où réduire les dépenses si le retour commercial n'est plus convaincant.\n\n`
 
-  markdown += "## Key Metrics\n\n"
+  markdown += "## Indicateurs clés\n\n"
   markdown += markdownTable(
-    ["Metric", "Value"],
+    ["Indicateur", "Valeur"],
     [
-      ["Tracked events", formatInteger(summary?.totalEvents)],
+      ["Événements suivis", formatInteger(summary?.totalEvents)],
       ["Participants", formatInteger(summary?.totalParticipants)],
-      ["Leads generated", formatInteger(summary?.totalLeads)],
+      ["Leads générés", formatInteger(summary?.totalLeads)],
       ["Conversions", formatInteger(summary?.totalConversions)],
-      ["Lead-to-conversion rate", formatPercent(conversionRate)],
-      ["Event budget", formatCurrency(summary?.totalBudget)],
-      ["Event revenue", formatCurrency(summary?.totalRevenue)],
-      ["Revenue-to-budget ratio", formatPercent(revenueToBudget)],
-      ["Average event satisfaction", formatDecimal(summary?.avgSatisfaction)],
-      ["Average event ROI", formatDecimal(summary?.avgRoi, 2)],
+      ["Taux lead-vers-conversion", formatPercent(conversionRate)],
+      ["Budget événementiel", formatCurrency(summary?.totalBudget)],
+      ["Revenus événementiels", formatCurrency(summary?.totalRevenue)],
+      ["Ratio revenu-sur-budget", formatPercent(revenueToBudget)],
+      ["Satisfaction moyenne des événements", formatDecimal(summary?.avgSatisfaction)],
+      ["ROI moyen des événements", formatDecimal(summary?.avgRoi, 2)],
     ]
   )
   markdown += "\n\n"
 
-  markdown += "## Event Performance by Type\n\n"
+  markdown += "## Performance des événements par type\n\n"
   markdown += markdownTable(
-    ["Event Type", "Events", "Participants", "Leads", "Conversions", "Revenue", "Avg ROI"],
+    ["Type d'événement", "Événements", "Participants", "Leads", "Conversions", "Revenu", "ROI moyen"],
     eventTypeRows.map((row) => [
       sentenceCase(row.eventType),
       formatInteger(row.count),
@@ -953,11 +953,11 @@ export async function buildEventImpactReport(title?: string): Promise<ReportPayl
     ])
   )
   markdown += "\n\n"
-  markdown += `Different event types create different kinds of value. Some formats are better at awareness and participation, while others are better at lead capture or revenue creation. The practical implication is that event planning should use a portfolio approach: awareness-oriented events can still be justified, but they should not consume the same budget logic as conversion-oriented programs. The strongest event strategy is one that clearly distinguishes branding, demand generation, recruitment activation, and relationship maintenance.\n\n`
+  markdown += `Les différents types d'événements créent des formes de valeur différentes. Certains formats sont plus efficaces pour la notoriété et la participation, tandis que d'autres le sont davantage pour la capture de leads ou la génération de revenus. L'implication pratique est que la planification événementielle doit adopter une logique de portefeuille : les événements orientés visibilité peuvent rester justifiés, mais ils ne doivent pas obéir à la même logique budgétaire que les programmes orientés conversion. La meilleure stratégie événementielle est celle qui distingue clairement le branding, la génération de demande, l'activation recrutement et le maintien relationnel.\n\n`
 
-  markdown += "## Top Performing Events\n\n"
+  markdown += "## Événements les plus performants\n\n"
   markdown += markdownTable(
-    ["Event", "Partner", "Type", "Date", "Leads", "Conversions", "Revenue", "ROI", "Satisfaction"],
+    ["Événement", "Partenaire", "Type", "Date", "Leads", "Conversions", "Revenu", "ROI", "Satisfaction"],
     topEvents.map((row) => [
       row.eventName,
       row.partnerName,
@@ -971,11 +971,11 @@ export async function buildEventImpactReport(title?: string): Promise<ReportPayl
     ])
   )
   markdown += "\n\n"
-  markdown += `Top-performing events should be treated as repeatable operating models, not one-off successes. If a small set of events repeatedly combine strong conversion, revenue, and participant satisfaction, they should become templates for future planning. The underlying drivers may include partner fit, target audience clarity, event content quality, or better post-event follow-up. Replicating those mechanics is usually more valuable than simply increasing the total number of events.\n\n`
+  markdown += `Les événements les plus performants doivent être traités comme des modèles opérationnels reproductibles et non comme des succès isolés. Si un petit nombre d'événements combine de manière répétée forte conversion, revenu élevé et bonne satisfaction des participants, ils doivent devenir des références pour la planification future. Les facteurs sous-jacents peuvent inclure l'adéquation partenaire, la clarté de la cible, la qualité du contenu ou un meilleur suivi post-événement. Reproduire ces mécanismes vaut généralement plus que simplement augmenter le nombre total d'événements.\n\n`
 
-  markdown += "## Event Contribution by Partner Category\n\n"
+  markdown += "## Contribution des événements par catégorie de partenaire\n\n"
   markdown += markdownTable(
-    ["Category", "Events", "Revenue", "Leads", "Conversions"],
+    ["Catégorie", "Événements", "Revenu", "Leads", "Conversions"],
     categoryRows.map((row) => [
       sentenceCase(row.category),
       formatInteger(row.eventCount),
@@ -985,17 +985,17 @@ export async function buildEventImpactReport(title?: string): Promise<ReportPayl
     ])
   )
   markdown += "\n\n"
-  markdown += `Category-level event contribution shows whether the event engine is balanced or over-dependent on one partner segment. If one category dominates revenue while another dominates participation, Capgemini should decide intentionally whether that mix reflects strategy or simply historical habit. This distinction helps budget owners decide where to scale proven formats and where to redesign event models that are visible but commercially weak.\n\n`
+  markdown += `La contribution événementielle au niveau des catégories montre si le moteur événementiel est équilibré ou trop dépendant d'un seul segment partenaire. Si une catégorie domine les revenus tandis qu'une autre domine la participation, Capgemini doit décider volontairement si ce mix reflète une stratégie ou simplement une habitude historique. Cette distinction aide les responsables budgétaires à choisir où amplifier les formats éprouvés et où repenser les modèles d'événements visibles mais commercialement faibles.\n\n`
 
-  markdown += "## Recommendations\n\n"
-  markdown += `1. **Double down on high-return formats.** Replicate the event structures that already combine revenue, conversions, and strong participant satisfaction.\n`
-  markdown += `2. **Separate awareness KPIs from commercial KPIs.** Avoid judging brand-building events and revenue-driving events by the same success criteria.\n`
-  markdown += `3. **Tighten post-event follow-up.** Events with strong lead generation but weaker conversion need better handoff into account, HR, or campaign workflows.\n`
-  markdown += `4. **Review category allocation.** Compare event spend and outcomes by partner category to ensure resources align with strategic goals, not just historical calendars.\n`
-  markdown += `5. **Institutionalize event ROI reviews.** Add monthly event-performance checkpoints so future budgets are guided by evidence instead of attendance alone.\n`
+  markdown += "## Recommandations\n\n"
+  markdown += `1. **Renforcer les formats à fort retour.** Reproduire les structures d'événements qui combinent déjà revenus, conversions et forte satisfaction des participants.\n`
+  markdown += `2. **Séparer les KPI de notoriété des KPI commerciaux.** Éviter d'évaluer les événements de marque et les événements générateurs de revenus avec les mêmes critères de succès.\n`
+  markdown += `3. **Resserrer le suivi post-événement.** Les événements qui génèrent beaucoup de leads mais convertissent moins ont besoin d'une meilleure transmission vers les workflows compte, RH ou campagne.\n`
+  markdown += `4. **Revoir l'allocation par catégorie.** Comparer les dépenses et les résultats des événements par catégorie partenaire pour s'assurer que les ressources sont alignées avec les objectifs stratégiques, et pas seulement avec l'historique des calendriers.\n`
+  markdown += `5. **Institutionnaliser les revues de ROI événementiel.** Ajouter des points de contrôle mensuels sur la performance événementielle afin que les futurs budgets soient guidés par les preuves plutôt que par la seule présence.\n`
 
   return {
-    title: title || "Event Impact Report",
+    title: title || "Rapport d'impact des événements",
     markdown,
     topic: "event-impact",
     generatedAt: generatedAt.toISOString(),
