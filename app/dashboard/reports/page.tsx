@@ -5,7 +5,6 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import html2pdf from "html2pdf.js"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   ArrowLeft01Icon,
@@ -189,18 +188,43 @@ export default function ReportsPage() {
 
     setIsExporting(true)
 
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/gi, "-") || "rapport"
+
     try {
-      await html2pdf()
-        .set({
-          margin: [14, 14, 14, 14],
-          filename: `${title.toLowerCase().replace(/[^a-z0-9]+/gi, "-") || "rapport"}.pdf`,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, backgroundColor: "#ffffff" },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ["css", "legacy"] },
+      // html2canvas-pro resolves the app's oklch() theme tokens that classic
+      // html2canvas stalls on; jsPDF paginates the rendered canvas onto A4.
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import("html2canvas-pro"),
+        import("jspdf"),
+      ])
+      const node = printRef.current
+      const render = async () => {
+        const canvas = await html2canvas(node, {
+          scale: 2,
+          backgroundColor: "#ffffff",
+          windowWidth: 800,
+          logging: false,
+          useCORS: true,
         })
-        .from(printRef.current)
-        .save()
+        const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" })
+        const margin = 10
+        const usableWidth = pdf.internal.pageSize.getWidth() - margin * 2
+        const usableHeight = pdf.internal.pageSize.getHeight() - margin * 2
+        const imageHeight = (canvas.height * usableWidth) / canvas.width
+        const imageData = canvas.toDataURL("image/jpeg", 0.95)
+        pdf.addImage(imageData, "JPEG", margin, margin, usableWidth, imageHeight)
+        let heightRemaining = imageHeight - usableHeight
+        while (heightRemaining > 0) {
+          pdf.addPage()
+          pdf.addImage(imageData, "JPEG", margin, margin - (imageHeight - heightRemaining), usableWidth, imageHeight)
+          heightRemaining -= usableHeight
+        }
+        pdf.save(`${slug}.pdf`)
+      }
+      const guard = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("pdf-timeout")), 45000),
+      )
+      await Promise.race([render(), guard])
 
       toast.success("PDF téléchargé", {
         description: "Votre rapport a été exporté en PDF.",
