@@ -1,9 +1,24 @@
+const fs = require("fs");
+const path = require("path");
 const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
 
-const pool = new Pool({
-  connectionString: "postgresql://postgres:kenza123@localhost:5432/test_partnership_database"
-});
+function loadDotEnv() {
+  const content = fs.readFileSync(path.join(process.cwd(), ".env"), "utf8");
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const idx = line.indexOf("=");
+    if (idx === -1) continue;
+    const key = line.slice(0, idx).trim();
+    let value = line.slice(idx + 1).trim().replace(/^["']|["']$/g, "");
+    if (!process.env[key]) process.env[key] = value;
+  }
+}
+
+loadDotEnv();
+if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is missing from .env");
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 const partners = [
   { id: 21, name: "BIAT", cat: "customer" },
