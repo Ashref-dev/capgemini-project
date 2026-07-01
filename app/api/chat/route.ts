@@ -1,8 +1,8 @@
 import * as aiSdk from "ai"; import { consumeStream, convertToModelMessages, type UIMessage } from "ai"
-import { createOpenRouter } from "@openrouter/ai-sdk-provider"; import { and, eq, sql } from "drizzle-orm"
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible"; import { and, eq, sql } from "drizzle-orm"
 import { NextRequest, NextResponse } from "next/server"
 
-import { OPENROUTER_MODEL_ID } from "@/lib/server/agent/config"; import { buildMethodologyPrompt, selectMethodologies } from "@/lib/server/agent/methodologies"
+import { AGENT_MODEL_ID, NVIDIA_BASE_URL } from "@/lib/server/agent/config"; import { buildMethodologyPrompt, selectMethodologies } from "@/lib/server/agent/methodologies"
 import { extractResponseText, extractTextFromParts, extractTextFromUIMessage, markPartsAborted } from "@/lib/server/agent/message-utils"; import { formatOpenRouterError, getOpenRouterStatusCode } from "@/lib/server/agent/openrouter-errors"
 import { ensureThreadForUser, persistAssistantResponse, persistIncomingMessages } from "@/lib/server/agent/persistence"; import { loadSystemPrompt } from "@/lib/server/agent/prompt"; import { SYSTEM_PROMPT } from "@/lib/server/agent/system-prompt"
 import { tools } from "@/lib/server/agent/tools"; import { isRecord } from "@/lib/server/agent/utils"; import { getSessionUser } from "@/lib/server/auth/session"; import { db } from "@/lib/server/db/config"; import { chatMessages, chatThreads } from "@/lib/server/db/schema"
@@ -10,7 +10,7 @@ import { tools } from "@/lib/server/agent/tools"; import { isRecord } from "@/li
 // Effectively unlimited agentic budget; per-tool timeouts and bounded queries prevent hangs.
 const MAX_AGENT_STEPS = 1000
 
-const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_KEY! })
+const nvidia = createOpenAICompatible({ name: "nvidia", baseURL: NVIDIA_BASE_URL, apiKey: process.env.NVIDIA_API_KEY! })
 // LangSmith observability (tracing via wrapAISDK + provider options) was removed
 // intentionally. To re-add it in the future, wrap `aiSdk` with LangSmith's
 // `wrapAISDK` here and attach `createLangSmithProviderOptions` to streamText.
@@ -117,8 +117,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
   }
 
-  if (!process.env.OPENROUTER_KEY) {
-    return NextResponse.json({ error: "OPENROUTER_KEY is not configured" }, { status: 500 })
+  if (!process.env.NVIDIA_API_KEY) {
+    return NextResponse.json({ error: "NVIDIA_API_KEY is not configured" }, { status: 500 })
   }
 
   try {
@@ -187,7 +187,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = aiSdk.streamText({
-      model: openrouter.chat(OPENROUTER_MODEL_ID),
+      model: nvidia.chatModel(AGENT_MODEL_ID),
       system: finalSystemPrompt,
       messages: modelMessages,
       tools,

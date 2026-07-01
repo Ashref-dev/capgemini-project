@@ -1,6 +1,6 @@
 import { APICallError } from "ai"
 
-import { OPENROUTER_MODEL_ID } from "./config"
+import { AGENT_MODEL_ID } from "./config"
 import { getErrorMessage, isRecord } from "./utils"
 
 export function getOpenRouterStatusCode(error: unknown): number | undefined {
@@ -103,28 +103,28 @@ export function formatOpenRouterError(error: unknown) {
     getErrorMessage(error)
 
   if (statusCode === 401 || statusCode === 403) {
-    return `${failureLabel} for ${OPENROUTER_MODEL_ID} (${statusCode}). Check OPENROUTER_KEY and provider access. ${providerMessage}`
+    return `${failureLabel} for ${AGENT_MODEL_ID} (${statusCode}). Check NVIDIA_API_KEY and provider access. ${providerMessage}`
   }
 
   if (statusCode === 404) {
-    return `${failureLabel} for ${OPENROUTER_MODEL_ID} (404). The model may be unavailable or the model ID may be wrong. ${providerMessage}`
+    return `${failureLabel} for ${AGENT_MODEL_ID} (404). The model may be unavailable or the model ID may be wrong. ${providerMessage}`
   }
 
   if (statusCode === 408) {
-    return `${failureLabel} for ${OPENROUTER_MODEL_ID} (408). The provider took too long to respond. Please retry. ${providerMessage}`
+    return `${failureLabel} for ${AGENT_MODEL_ID} (408). The provider took too long to respond. Please retry. ${providerMessage}`
   }
 
   if (statusCode === 429) {
-    return `${failureLabel} for ${OPENROUTER_MODEL_ID} (429). Please wait a moment and retry. ${providerMessage}`
+    return `${failureLabel} for ${AGENT_MODEL_ID} (429). Please wait a moment and retry. ${providerMessage}`
   }
 
   if (statusCode != null && statusCode >= 500) {
-    return `${failureLabel} for ${OPENROUTER_MODEL_ID} (${statusCode}). OpenRouter or the upstream provider is having trouble. Try again later. ${providerMessage}`
+    return `${failureLabel} for ${AGENT_MODEL_ID} (${statusCode}). The upstream provider is having trouble. Try again later. ${providerMessage}`
   }
 
   if (statusCode != null) {
-    return `${failureLabel} for ${OPENROUTER_MODEL_ID} (${statusCode}). ${providerMessage}`
+    return `${failureLabel} for ${AGENT_MODEL_ID} (${statusCode}). ${providerMessage}`
   }
 
-  return `${failureLabel} for ${OPENROUTER_MODEL_ID}. ${providerMessage}`
+  return `${failureLabel} for ${AGENT_MODEL_ID}. ${providerMessage}`
 }
