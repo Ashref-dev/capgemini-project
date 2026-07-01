@@ -26,16 +26,25 @@ import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   AlertCircleIcon,
-  ArrowUpRight01Icon,
   Building06Icon,
+  ChartLineData02Icon,
   CheckmarkCircle02Icon,
   Delete01Icon,
   Edit02Icon,
+  EyeIcon,
   FileAttachmentIcon,
   MessageMultiple02Icon,
+  MoreHorizontalIcon,
   PauseCircleIcon,
   Refresh01Icon,
 } from "@hugeicons/core-free-icons"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { CapgeminiTable, CapgeminiTableColumn, StatusBadge } from "@/components/ui/capgemini-table"
 import { AddButton } from "@/components/ui/add-button"
 import { formatPartnerCategory, formatPartnerStatus, formatPartnershipLevel } from "@/lib/format"
@@ -214,52 +223,93 @@ export default function PartnersPage() {
       render: p => <span className="text-xs text-muted-foreground">{p.email || "—"}</span>,
     },
     {
-      key: "actions", label: "Actions", weight: 2.4,
-      render: p => (
-        <div className="flex flex-wrap justify-end gap-1.5" onClick={e => e.stopPropagation()}>
-          <Link href={`/dashboard/partners/${p.id}/communications`}>
-            <Button variant="outline" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs">
-              <HugeiconsIcon icon={MessageMultiple02Icon} className="size-3.5" />
-              Communications
-              <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3" />
+      key: "actions", label: "Actions", weight: 1.6,
+      render: p => {
+        const isInactive = p.partnershipStatus?.trim() === "inactif"
+        return (
+          <div className="flex items-center justify-end gap-1.5" onClick={e => e.stopPropagation()}>
+            <Button
+              variant="default"
+              size="sm"
+              className="h-8 cursor-pointer gap-1.5 px-3 text-xs"
+              onClick={() => setSelectedPartner(p)}
+            >
+              <HugeiconsIcon icon={EyeIcon} className="size-3.5" />
+              Détails
             </Button>
-          </Link>
-          <Link href={`/dashboard/partners/${p.id}/documents`}>
-            <Button variant="outline" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs">
-              <HugeiconsIcon icon={FileAttachmentIcon} className="size-3.5" />
-              Documents
-              <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3" />
-            </Button>
-          </Link>
-          {isAdmin && (
-            <>
-              <Link href={`/dashboard/partners/${p.id}/edit`}>
-                <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs">
-                  <HugeiconsIcon icon={Edit02Icon} className="size-3.5" />
-                  Modifier
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Plus d'actions"
+                  className="size-8 cursor-pointer text-muted-foreground hover:text-foreground focus-visible:ring-ring"
+                >
+                  <HugeiconsIcon icon={MoreHorizontalIcon} className="size-4" />
                 </Button>
-              </Link>
-              {p.partnershipStatus?.trim() !== "inactif" ? (
-                <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs text-orange-600 hover:text-orange-700" onClick={() => { setStatusModal({ open: true, partner: p, action: "suspend" }); setStatusReason("") }}>
-                  <HugeiconsIcon icon={PauseCircleIcon} className="size-3.5" />
-                  Suspendre
-                </Button>
-              ) : (
-                <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs text-emerald-600 hover:text-emerald-700" onClick={() => { setStatusModal({ open: true, partner: p, action: "reactivate" }); setStatusReason("") }}>
-                  <HugeiconsIcon icon={Refresh01Icon} className="size-3.5" />
-                  Réactiver
-                </Button>
-              )}
-              <Button variant="ghost" size="sm" className="h-8 cursor-pointer gap-1.5 px-2.5 text-xs text-red-600 hover:text-red-700" onClick={() => handleDelete(p.id, p.name)}>
-                <HugeiconsIcon icon={Delete01Icon} className="size-3.5" />
-                Supprimer
-              </Button>
-            </>
-          )}
-        </div>
-      ),
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem asChild>
+                  <Link href={`/dashboard/partners/${p.id}/scoring`} className="cursor-pointer">
+                    <HugeiconsIcon icon={ChartLineData02Icon} className="size-4" />
+                    Voir le scoring
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/dashboard/partners/${p.id}/communications`} className="cursor-pointer">
+                    <HugeiconsIcon icon={MessageMultiple02Icon} className="size-4" />
+                    Communications
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/dashboard/partners/${p.id}/documents`} className="cursor-pointer">
+                    <HugeiconsIcon icon={FileAttachmentIcon} className="size-4" />
+                    Documents
+                  </Link>
+                </DropdownMenuItem>
+                {isAdmin && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/dashboard/partners/${p.id}/edit`} className="cursor-pointer">
+                        <HugeiconsIcon icon={Edit02Icon} className="size-4" />
+                        Modifier
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {isInactive ? (
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onSelect={() => { setStatusModal({ open: true, partner: p, action: "reactivate" }); setStatusReason("") }}
+                      >
+                        <HugeiconsIcon icon={Refresh01Icon} className="size-4" />
+                        Réactiver
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onSelect={() => { setStatusModal({ open: true, partner: p, action: "suspend" }); setStatusReason("") }}
+                      >
+                        <HugeiconsIcon icon={PauseCircleIcon} className="size-4" />
+                        Suspendre
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem
+                      variant="destructive"
+                      className="cursor-pointer"
+                      onSelect={() => handleDelete(p.id, p.name)}
+                    >
+                      <HugeiconsIcon icon={Delete01Icon} className="size-4" />
+                      Supprimer
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )
+      },
     },
-  ], [isAdmin, setStatusModal, setStatusReason, handleDelete])
+  ], [isAdmin, setStatusModal, setStatusReason, handleDelete, setSelectedPartner])
 
   const getRowGradient = useCallback((p: Partner) => {
     const s = p.partnershipStatus?.trim() || ""
@@ -382,6 +432,12 @@ export default function PartnersPage() {
               </div>
 
               <div className="sticky bottom-0 flex flex-wrap gap-2 border-t border-border bg-card px-6 py-4">
+                <Button asChild className="cursor-pointer">
+                  <Link href={`/dashboard/partners/${selectedPartner.id}/scoring`}>
+                    <HugeiconsIcon icon={ChartLineData02Icon} className="size-4" />
+                    Voir le scoring
+                  </Link>
+                </Button>
                 <Button asChild variant="outline" className="cursor-pointer">
                   <Link href={`/dashboard/partners/${selectedPartner.id}/communications`}>
                     <HugeiconsIcon icon={MessageMultiple02Icon} className="size-4" />

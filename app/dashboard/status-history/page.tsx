@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, type ReactNode } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { toast } from "@/components/ui/toast"
-import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/components/ui/capgemini-table"
+import { CapgeminiTable, CapgeminiTableColumn, StatusBadge } from "@/components/ui/capgemini-table"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Clock01Icon } from "@hugeicons/core-free-icons"
 import { SparklesText } from "@/components/ui/sparkles-text"
@@ -40,10 +41,20 @@ function statusGradient(s: string): string {
   }
 }
 
+function DetailRow({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="border-b border-border py-3">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="mt-1 text-sm font-medium text-foreground">{value}</dd>
+    </div>
+  )
+}
+
 export default function StatusHistoryPage() {
   const { user } = useAuth()
   const [history, setHistory] = useState<StatusHistory[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedItem, setSelectedItem] = useState<StatusHistory | null>(null)
 
   const fetchHistory = useCallback(async () => {
     try {
@@ -114,21 +125,56 @@ export default function StatusHistoryPage() {
         emptyMessage="Aucun historique disponible"
         keyExtractor={h => h.id}
         getRowGradient={h => statusGradient(h.newStatus)}
-        renderDetail={(h, onClose) => (
-          <DetailPanel onClose={onClose} title={`Changement #${h.id}`}>
-            <div className="grid grid-cols-2 gap-3">
-              <DetailCard label="Partenaire" value={h.partner?.name || `#${h.partnerId}`} />
-              <DetailCard label="Date" value={new Date(h.changedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })} />
-                <DetailCard label="Ancien statut" value={h.oldStatus ? <StatusBadge status={statusVariant(h.oldStatus)} label={formatPartnerStatus(h.oldStatus)} /> : "—"} />
-                <DetailCard label="Nouveau statut" value={<StatusBadge status={statusVariant(h.newStatus)} label={formatPartnerStatus(h.newStatus)} />} />
-              <DetailCard label="Modifié par" value={h.changedBy || "—"} />
-            </div>
-            {h.changeReason && (
-              <DetailCard label="Raison du changement" value={<p className="text-sm text-foreground leading-relaxed">{h.changeReason}</p>} />
-            )}
-          </DetailPanel>
-        )}
+        onRowClick={setSelectedItem}
       />
+
+      {/* Detail drawer */}
+      <Sheet open={selectedItem !== null} onOpenChange={(open) => { if (!open) setSelectedItem(null) }}>
+        <SheetContent side="right" className="flex w-full flex-col overflow-y-auto p-0 sm:max-w-xl">
+          {selectedItem && (
+            <>
+              <SheetHeader className="border-b border-border px-6 py-5 text-left">
+                <SheetTitle>{selectedItem.partner?.name || `Partenaire #${selectedItem.partnerId}`}</SheetTitle>
+                <SheetDescription asChild>
+                  <span className="flex flex-wrap items-center gap-2">
+                    {selectedItem.oldStatus ? (
+                      <StatusBadge status={statusVariant(selectedItem.oldStatus)} label={formatPartnerStatus(selectedItem.oldStatus)} />
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                    <span aria-hidden="true">→</span>
+                    <StatusBadge status={statusVariant(selectedItem.newStatus)} label={formatPartnerStatus(selectedItem.newStatus)} />
+                  </span>
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="flex-1 px-6 py-5">
+                <dl className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-6">
+                  <DetailRow label="Partenaire" value={selectedItem.partner?.name || `#${selectedItem.partnerId}`} />
+                  <DetailRow
+                    label="Date"
+                    value={new Date(selectedItem.changedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  />
+                  <DetailRow
+                    label="Ancien statut"
+                    value={selectedItem.oldStatus ? <StatusBadge status={statusVariant(selectedItem.oldStatus)} label={formatPartnerStatus(selectedItem.oldStatus)} /> : "—"}
+                  />
+                  <DetailRow
+                    label="Nouveau statut"
+                    value={<StatusBadge status={statusVariant(selectedItem.newStatus)} label={formatPartnerStatus(selectedItem.newStatus)} />}
+                  />
+                  <DetailRow label="Modifié par" value={selectedItem.changedBy || "—"} />
+                  {selectedItem.changeReason && (
+                    <div className="sm:col-span-2">
+                      <DetailRow label="Raison du changement" value={<span className="leading-relaxed">{selectedItem.changeReason}</span>} />
+                    </div>
+                  )}
+                </dl>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

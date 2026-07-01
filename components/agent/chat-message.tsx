@@ -15,11 +15,11 @@ import { InteractiveTable } from "./interactive-table"
 import { LineChart } from "./line-chart"
 import { MethodologyHeader } from "./methodology-header"
 import { PieChart } from "./pie-chart"
-import { ReportPreview } from "./report-preview"
+import { ReportPreview, type ReportChart } from "./report-preview"
 import { ToolCallCard } from "./tool-call-card"
 import { ToolCallStack } from "./tool-call-stack"
 import { groupToolParts } from "./tool-grouping"
-import { cn, isInternalDashboardHref } from "@/lib/utils"
+import { cn, isInternalDashboardHref, isNavigableHref, stripNonNavigableLinks } from "@/lib/utils"
 
 export { isInternalDashboardHref } from "@/lib/utils"
 
@@ -241,7 +241,8 @@ function getPartKey(part: unknown, messageId: string, fallback: string) {
 function renderToolResult(
   toolName: string,
   payload: unknown,
-  onSuggestionClick?: (text: string) => void
+  onSuggestionClick?: (text: string) => void,
+  reportCharts?: ReportChart[]
 ) {
   switch (toolName) {
     case "createBarChart":
@@ -253,7 +254,7 @@ function renderToolResult(
     case "createTable":
       return isInteractiveTablePayload(payload) ? <InteractiveTable {...payload} /> : null
     case "generateReport":
-      return isReportPreviewPayload(payload) ? <ReportPreview {...payload} /> : null
+      return isReportPreviewPayload(payload) ? <ReportPreview {...payload} charts={reportCharts} /> : null
     case "executeCode":
     case "runCode":
     case "createCodeResult":
@@ -265,9 +266,9 @@ function renderToolResult(
       // inline duplicate so the HUD is the single canonical plan surface.
       return null
     case "askClarification":
-      return isClarificationPayload(payload) ? (
-        <ClarificationPrompt {...payload} onSelect={onSuggestionClick} />
-      ) : null
+      // Owned by the pinned clarification bar above the composer (single
+      // canonical surface), so suppress the inline duplicate.
+      return null
     default:
       return null
   }
@@ -298,8 +299,8 @@ const markdownComponents = {
     <ol className={cn("ml-4 list-decimal space-y-1", className)} {...props} />
   ),
   a: ({ className, href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
-    if (typeof href !== "string" || href.length === 0) {
-      return <span className={cn(linkClassName, className)}>{children}</span>
+    if (!isNavigableHref(href)) {
+      return <span className={cn("font-medium text-muted-foreground", className)}>{children}</span>
     }
 
     if (isInternalDashboardHref(href)) {
@@ -424,6 +425,23 @@ export function ChatMessage({ message, isStreaming, onSuggestionClick }: ChatMes
   // early return so the hook order is stable across renders.
   const segments = React.useMemo(() => groupToolParts(message.parts), [message.parts])
 
+  const reportCharts = React.useMemo<ReportChart[]>(() => {
+    const collected: ReportChart[] = []
+    for (const part of message.parts) {
+      const info = getToolPartInfo(part)
+      if (!info || info.status !== "success") continue
+      const payload = info.output ?? info.input
+      if (info.toolName === "createBarChart" && isBarChartPayload(payload)) {
+        collected.push({ kind: "bar", payload })
+      } else if (info.toolName === "createLineChart" && isLineChartPayload(payload)) {
+        collected.push({ kind: "line", payload })
+      } else if (info.toolName === "createPieChart" && isPieChartPayload(payload)) {
+        collected.push({ kind: "pie", payload })
+      }
+    }
+    return collected
+  }, [message.parts])
+
   if (isUser) {
     return (
       <div className="ml-auto max-w-[85%] sm:max-w-[78%]">
@@ -459,8 +477,12 @@ export function ChatMessage({ message, isStreaming, onSuggestionClick }: ChatMes
         if (part.type === "text") {
           return (
             <div key={partKey} className="text-sm leading-6 text-foreground">
-              <Streamdown components={markdownComponents} animated={Boolean(isStreaming)}>
-                {part.text}
+              <Streamdown
+                components={markdownComponents}
+                animated={Boolean(isStreaming)}
+                linkSafety={{ enabled: false }}
+              >
+                {stripNonNavigableLinks(part.text)}
               </Streamdown>
             </div>
           )
@@ -481,6 +503,7 @@ export function ChatMessage({ message, isStreaming, onSuggestionClick }: ChatMes
             toolInfo.toolName,
             toolInfo.output ?? toolInfo.input,
             onSuggestionClick,
+            reportCharts,
           )
 
           if (renderedTool) {

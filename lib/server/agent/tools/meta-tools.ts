@@ -60,7 +60,7 @@ export const createPlan = tool({
 
 export const askClarification = tool({
   description:
-    "Ask ONE targeted clarification when essential information is missing or ambiguous (date range, partner identity, currency, scope, comparison universe, period type). After calling this tool, STOP — wait for the user reply before doing any more work.",
+    "Ask ONE targeted clarification when essential information is genuinely missing or ambiguous (date range, currency, scope, comparison universe, period type). NEVER use this to ask whether a named entity exists or to confirm its identity — call queryPartners (fuzzy search) and searchDocuments FIRST, and only consider an entity missing after a real search returns zero matches. After calling this tool, STOP — wait for the user reply before doing any more work.",
   inputSchema: z.object({
     question: z.string().min(5).describe("The single clarification question, plain language."),
     reason: z

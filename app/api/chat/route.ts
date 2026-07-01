@@ -1,6 +1,6 @@
 import * as aiSdk from "ai"; import { consumeStream, convertToModelMessages, type UIMessage } from "ai"
 import { createOpenRouter } from "@openrouter/ai-sdk-provider"; import { and, eq, sql } from "drizzle-orm"
-import { Client as LangSmithClient } from "langsmith"; import { createLangSmithProviderOptions, wrapAISDK } from "langsmith/experimental/vercel"; import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
 import { OPENROUTER_MODEL_ID } from "@/lib/server/agent/config"; import { buildMethodologyPrompt, selectMethodologies } from "@/lib/server/agent/methodologies"
 import { extractResponseText, extractTextFromParts, extractTextFromUIMessage, markPartsAborted } from "@/lib/server/agent/message-utils"; import { formatOpenRouterError, getOpenRouterStatusCode } from "@/lib/server/agent/openrouter-errors"
@@ -11,13 +11,9 @@ import { tools } from "@/lib/server/agent/tools"; import { isRecord } from "@/li
 const MAX_AGENT_STEPS = 1000
 
 const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_KEY! })
-const langsmithEnabled = process.env.LANGSMITH_TRACING === "true" && !!process.env.LANGSMITH_API_KEY
-const lsClient = langsmithEnabled ? new LangSmithClient() : null
-const { streamText: instrumentedStreamText } = langsmithEnabled
-  ? wrapAISDK(aiSdk, { client: lsClient ?? undefined })
-  : { streamText: aiSdk.streamText }
-
-let warnedLangSmithMissingKey = false
+// LangSmith observability (tracing via wrapAISDK + provider options) was removed
+// intentionally. To re-add it in the future, wrap `aiSdk` with LangSmith's
+// `wrapAISDK` here and attach `createLangSmithProviderOptions` to streamText.
 
 type PersistedAssistantPart = {
   type: string
@@ -29,13 +25,6 @@ type PersistedAssistantPart = {
   output?: unknown
   errorText?: string
   partial?: boolean
-}
-
-function warnIfLangSmithPartiallyConfigured() {
-  if (process.env.LANGSMITH_TRACING === "true" && !process.env.LANGSMITH_API_KEY && !warnedLangSmithMissingKey) {
-    console.warn("[langsmith] LANGSMITH_API_KEY missing — tracing disabled")
-    warnedLangSmithMissingKey = true
-  }
 }
 
 function getStringField(record: Record<string, unknown>, field: string) {
@@ -85,9 +74,44 @@ function mergePartialTextWithStepParts(text: string, parts: readonly PersistedAs
   return [...parts.filter((part) => part.type !== "text"), { type: "text", text, partial: true }]
 }
 
-export async function POST(req: NextRequest) {
-  warnIfLangSmithPartiallyConfigured()
+function toolStatePriority(state: string | undefined): number {
+  if (state === "output-available" || state === "output-error") return 2
+  if (state === "input-available") return 1
+  return 0
+}
 
+// Key tool parts by toolCallId so a tool-result upgrades its tool-call in
+// place: dedupes the call while preserving text/tool order for interleaving.
+function mergeAssistantParts(
+  existing: readonly PersistedAssistantPart[],
+  incoming: readonly PersistedAssistantPart[]
+): PersistedAssistantPart[] {
+  const merged: PersistedAssistantPart[] = [...existing]
+  const indexByToolCallId = new Map<string, number>()
+  merged.forEach((part, index) => {
+    if (typeof part.toolCallId === "string") indexByToolCallId.set(part.toolCallId, index)
+  })
+
+  for (const part of incoming) {
+    if (typeof part.toolCallId === "string" && indexByToolCallId.has(part.toolCallId)) {
+      const index = indexByToolCallId.get(part.toolCallId)!
+      const current = merged[index]
+      if (toolStatePriority(part.state) >= toolStatePriority(current.state)) {
+        merged[index] = { ...current, ...part, input: part.input ?? current.input }
+      }
+      continue
+    }
+
+    if (typeof part.toolCallId === "string") {
+      indexByToolCallId.set(part.toolCallId, merged.length)
+    }
+    merged.push(part)
+  }
+
+  return merged
+}
+
+export async function POST(req: NextRequest) {
   const user = await getSessionUser(req)
   if (!user) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
@@ -119,7 +143,7 @@ export async function POST(req: NextRequest) {
     }))
 
     const modelMessages = await convertToModelMessages(uiMessages, { tools })
-    const { text: baseSystemPrompt, version: promptVersion } = await loadSystemPrompt(SYSTEM_PROMPT)
+    const { text: baseSystemPrompt } = await loadSystemPrompt(SYSTEM_PROMPT)
     const latestUserMessage = incomingMessages
       .slice()
       .reverse()
@@ -135,21 +159,6 @@ export async function POST(req: NextRequest) {
         matchedMethodologies.map((methodology) => methodology.id).join(", ")
       )
     }
-
-    const providerOptions = langsmithEnabled
-      ? {
-          langsmith: createLangSmithProviderOptions<typeof aiSdk.streamText>({
-            name: "intelliconnect-chat",
-            metadata: {
-              thread_id: String(threadId),
-              user_id: String(user.sub),
-              user_type: user.userType,
-              prompt_version: promptVersion,
-            },
-            tags: [`thread:${threadId}`, `user:${user.sub}`],
-          }),
-        }
-      : undefined
 
     let assistantMessageId: string | null = null
     let accumulatedText = ""
@@ -177,12 +186,11 @@ export async function POST(req: NextRequest) {
         })
     }
 
-    const result = instrumentedStreamText({
+    const result = aiSdk.streamText({
       model: openrouter.chat(OPENROUTER_MODEL_ID),
       system: finalSystemPrompt,
       messages: modelMessages,
       tools,
-      providerOptions,
       abortSignal: req.signal,
       stopWhen: ({ steps }) => steps.length >= MAX_AGENT_STEPS,
       onChunk: async ({ chunk }) => {
@@ -204,7 +212,7 @@ export async function POST(req: NextRequest) {
       onStepFinish: async (event) => {
         try {
           const stepParts = event.content.map(toPersistedAssistantPart).filter((part): part is PersistedAssistantPart => part !== null)
-          accumulatedParts = [...accumulatedParts, ...stepParts]
+          accumulatedParts = mergeAssistantParts(accumulatedParts, stepParts)
           const stepContent = extractTextFromParts(accumulatedParts) || accumulatedText || event.text
           accumulatedText = stepContent || accumulatedText
           await upsertAssistantMessage(accumulatedText, accumulatedParts)
@@ -227,19 +235,16 @@ export async function POST(req: NextRequest) {
       },
       onFinish: async (event) => {
         try {
-          const responseMessages = event.response.messages.map((message) => ({
-            role: message.role,
-            content: extractResponseText(message.content),
-            parts: Array.isArray(message.content) ? message.content : null,
-          }))
-          const assistantResponseMessages = responseMessages.filter((message) => message.role === "assistant")
-          const finalAssistantMessage = assistantResponseMessages[assistantResponseMessages.length - 1]
-          const finalParts = finalAssistantMessage?.parts ?? [{ type: "text", text: accumulatedText }]
-          const finalContent = extractTextFromParts(finalParts) || finalAssistantMessage?.content || accumulatedText
           const eventRecord: unknown = event
           const isAborted = isRecord(eventRecord) && typeof eventRecord.isAborted === "boolean" ? eventRecord.isAborted : false
 
           if (assistantMessageId) {
+            // Keep accumulatedParts: model response messages carry only raw
+            // tool-call parts, so persisting those dropped charts on reload.
+            const finalParts =
+              accumulatedParts.length > 0 ? accumulatedParts : [{ type: "text", text: accumulatedText }]
+            const finalContent = extractTextFromParts(finalParts) || accumulatedText
+
             await db
               .update(chatMessages)
               .set({
@@ -247,10 +252,12 @@ export async function POST(req: NextRequest) {
                 parts: markPartsAborted(finalParts, isAborted),
               })
               .where(and(eq(chatMessages.threadId, threadId), eq(chatMessages.messageId, assistantMessageId)))
-
-            const nonAssistantMessages = responseMessages.filter((message) => message.role === "tool")
-            await persistAssistantResponse(threadId, nonAssistantMessages)
           } else {
+            const responseMessages = event.response.messages.map((message) => ({
+              role: message.role,
+              content: extractResponseText(message.content),
+              parts: Array.isArray(message.content) ? message.content : null,
+            }))
             await persistAssistantResponse(threadId, responseMessages)
           }
 

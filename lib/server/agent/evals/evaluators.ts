@@ -1,4 +1,4 @@
-import type { EvaluationResult } from "langsmith/evaluation"
+export type EvaluationResult = { key: string; score: number | boolean; comment?: string }
 
 export function correctnessEvaluator(args: {
   outputs: { answer: string; tools: string[] }

@@ -23,6 +23,7 @@ import {
 
 interface PlanHudProps {
   plan: PlanModel | null
+  isStreaming: boolean
 }
 
 /**
@@ -62,7 +63,7 @@ const stepIconMap: Record<
 const FOCUS_RING =
   "outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1 focus-visible:ring-offset-card"
 
-export function PlanHud({ plan }: PlanHudProps) {
+export function PlanHud({ plan, isStreaming }: PlanHudProps) {
   const reduceMotion = useReducedMotion()
   const [state, setState] = React.useState<HudState>({ kind: "collapsed" })
 
@@ -70,9 +71,16 @@ export function PlanHud({ plan }: PlanHudProps) {
     return null
   }
 
-  const { step, index, total, completed, done } = selectCurrentStep(plan)
+  const current = selectCurrentStep(plan)
+  const { step, index, total } = current
+  // The agent emits the plan once and rarely re-marks steps complete, so once the
+  // turn stops streaming we settle the HUD to "done" instead of leaving a step
+  // spinning forever. While streaming we honor the agent's reported progress.
+  const settled = !isStreaming
+  const done = current.done || settled
+  const completed = settled ? total : current.completed
   const progress = total > 0 ? (completed / total) * 100 : 0
-  const currentStatus: StepStatus = step?.status ?? "pending"
+  const currentStatus: StepStatus = settled ? "completed" : step?.status ?? "pending"
 
   // Reveal animation tuned for floating overlay; suppressed under reduced motion.
   const collapseTransition = reduceMotion
@@ -239,14 +247,15 @@ export function PlanHud({ plan }: PlanHudProps) {
           >
             <ol className="max-h-[18rem] space-y-0.5 overflow-y-auto p-2">
               {plan.steps.map((planStep: PlanStep) => {
-                const meta = stepIconMap[planStep.status]
+                const displayStatus: StepStatus = settled ? "completed" : planStep.status
+                const meta = stepIconMap[displayStatus]
                 const Icon = meta.icon
                 return (
                   <li
                     key={planStep.id}
                     className={cn(
                       "flex items-start gap-2.5 rounded-md px-2 py-1.5 transition-colors",
-                      planStep.status === "in_progress" && "bg-primary/5"
+                      displayStatus === "in_progress" && "bg-primary/5"
                     )}
                   >
                     <span
@@ -266,12 +275,12 @@ export function PlanHud({ plan }: PlanHudProps) {
                       <p
                         className={cn(
                           "text-[13px] leading-snug",
-                          planStep.status === "completed" &&
+                          displayStatus === "completed" &&
                             "text-muted-foreground line-through",
-                          planStep.status === "in_progress" &&
+                          displayStatus === "in_progress" &&
                             "font-medium text-foreground",
-                          planStep.status === "pending" && "text-foreground/80",
-                          planStep.status === "blocked" &&
+                          displayStatus === "pending" && "text-foreground/80",
+                          displayStatus === "blocked" &&
                             "text-destructive"
                         )}
                       >

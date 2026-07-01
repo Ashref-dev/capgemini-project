@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, MotionConfig } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   ArrowLeft01Icon,
@@ -17,12 +17,12 @@ import {
   FileAttachmentIcon,
   AlertCircleIcon,
   Loading03Icon,
+  DashboardSquare01Icon,
 } from "@hugeicons/core-free-icons"
 
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/toast"
-import { cn } from "@/lib/utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   ProjectStatusBadge,
@@ -105,10 +105,11 @@ export default function ProjectDetailPage() {
   }, [fetchAll])
 
   React.useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("tab") === tab) return
     params.set("tab", tab)
     router.replace(`?${params.toString()}`, { scroll: false })
-  }, [tab, router, searchParams])
+  }, [tab, router])
 
   const handleSaved = (saved: Project) => {
     setData((prev) => (prev ? { ...prev, project: { ...prev.project, ...saved } } : prev))
@@ -165,7 +166,16 @@ export default function ProjectDetailPage() {
   const p = data.project
   const counts = data.counts
 
+  const TAB_META: { key: TabKey; label: string; icon: typeof DashboardSquare01Icon; count?: number }[] = [
+    { key: "overview", label: "Aperçu", icon: DashboardSquare01Icon },
+    { key: "milestones", label: "Jalons", icon: CheckmarkCircle02Icon, count: counts.milestones },
+    { key: "tasks", label: "Tâches", icon: CheckmarkSquare01Icon, count: counts.tasks },
+    { key: "team", label: "Équipe", icon: UserMultiple02Icon, count: counts.allocations },
+    { key: "documents", label: "Documents", icon: FileAttachmentIcon, count: counts.documents },
+  ]
+
   return (
+    <MotionConfig reducedMotion="user">
     <div className="space-y-6">
       <nav className="flex items-center gap-2 text-xs text-muted-foreground">
         <Link href="/dashboard" className="hover:text-foreground">
@@ -247,7 +257,7 @@ export default function ProjectDetailPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setConfirmDelete(true)}
-                className="text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                className="text-destructive hover:bg-destructive/10"
               >
                 <HugeiconsIcon icon={Delete02Icon} className="mr-1.5 h-3.5 w-3.5" />
                 Supprimer
@@ -270,74 +280,32 @@ export default function ProjectDetailPage() {
               initial={{ width: 0 }}
               animate={{ width: `${p.percentComplete}%` }}
               transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
-              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-emerald-500"
+              className="h-full rounded-full bg-gradient-to-r from-primary to-success"
             />
           </div>
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[
-          { key: "milestones" as TabKey, label: "Jalons", value: counts.milestones, icon: CheckmarkCircle02Icon, tint: "text-blue-600" },
-          { key: "tasks" as TabKey, label: "Tâches", value: counts.tasks, icon: CheckmarkSquare01Icon, tint: "text-amber-600" },
-          { key: "team" as TabKey, label: "Équipe", value: counts.allocations, icon: UserMultiple02Icon, tint: "text-emerald-600" },
-          { key: "documents" as TabKey, label: "Documents", value: counts.documents, icon: FileAttachmentIcon, tint: "text-slate-500" },
-        ].map((stat, i) => (
-          <motion.button
-            type="button"
-            key={stat.key}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.05 + i * 0.04 }}
-            onClick={() => setTab(stat.key)}
-            className={cn(
-              "group rounded-2xl border border-border/60 bg-card p-4 text-left shadow-sm transition-all hover:shadow-md",
-              tab === stat.key && "ring-2 ring-primary/40",
-            )}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {stat.label}
-              </span>
-              <HugeiconsIcon icon={stat.icon} className={cn("h-4 w-4", stat.tint)} />
-            </div>
-            <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{stat.value}</p>
-          </motion.button>
-        ))}
-      </div>
-
-      <section className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-foreground">Roadmap des jalons</h2>
-        </div>
-        <ProjectGantt
-          milestones={milestones}
-          startDate={p.startDate}
-          endDate={p.endDate}
-          onMilestoneClick={() => setTab("milestones")}
-        />
-      </section>
-
       <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="w-full">
-        <TabsList className="h-10 w-full justify-start gap-1 bg-muted/40 p-1">
-          <TabsTrigger value="overview" className="text-xs">
-            Aperçu
-          </TabsTrigger>
-          <TabsTrigger value="milestones" className="text-xs">
-            Jalons
-          </TabsTrigger>
-          <TabsTrigger value="tasks" className="text-xs">
-            Tâches
-          </TabsTrigger>
-          <TabsTrigger value="team" className="text-xs">
-            Équipe
-          </TabsTrigger>
-          <TabsTrigger value="documents" className="text-xs">
-            Documents
-          </TabsTrigger>
+        <TabsList className="flex h-auto w-full flex-nowrap justify-start gap-1.5 overflow-x-auto rounded-2xl border border-border/60 bg-card p-1.5 shadow-sm">
+          {TAB_META.map((t) => (
+            <TabsTrigger
+              key={t.key}
+              value={t.key}
+              className="group flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm sm:flex-1 sm:justify-center"
+            >
+              <HugeiconsIcon icon={t.icon} className="h-4 w-4 shrink-0" />
+              <span>{t.label}</span>
+              {typeof t.count === "number" && (
+                <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground group-data-[state=active]:bg-primary-foreground/20 group-data-[state=active]:text-primary-foreground">
+                  {t.count}
+                </span>
+              )}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <div className="pt-4">
+        <div className="pt-6">
           <AnimatePresence mode="wait">
             <motion.div
               key={tab}
@@ -346,48 +314,79 @@ export default function ProjectDetailPage() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <TabsContent value="overview">
-                <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
-                  <h3 className="text-sm font-semibold text-foreground">Aperçu rapide</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Sélectionnez un onglet pour explorer les jalons, tâches, équipe ou documents.
-                  </p>
-                  <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
-                      <p className="text-xs uppercase tracking-wider text-muted-foreground">Statut</p>
-                      <p className="mt-1 text-sm font-medium text-foreground">
+              <TabsContent value="overview" className="mt-0">
+                <div className="space-y-6">
+                  <section className="space-y-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h3 className="text-sm font-semibold text-foreground">Roadmap des jalons</h3>
+                        <p className="text-xs text-muted-foreground">
+                          Chronologie des phases — terminées, en cours, en retard et à venir.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground">
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-success" />
+                          Terminé
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-primary" />
+                          En cours
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-warning" />
+                          En retard
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-muted-foreground/40" />
+                          À venir
+                        </span>
+                      </div>
+                    </div>
+                    <ProjectGantt
+                      milestones={milestones}
+                      startDate={p.startDate}
+                      endDate={p.endDate}
+                      onMilestoneClick={() => setTab("milestones")}
+                    />
+                  </section>
+
+                  <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                    <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Statut</p>
+                      <div className="mt-2">
                         <ProjectStatusBadge status={p.status} />
-                      </p>
+                      </div>
                     </div>
-                    <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
-                      <p className="text-xs uppercase tracking-wider text-muted-foreground">Santé</p>
-                      <p className="mt-1 text-sm font-medium text-foreground">
+                    <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Santé</p>
+                      <div className="mt-2">
                         <ProjectHealthDot health={p.health} withLabel />
-                      </p>
+                      </div>
                     </div>
-                    <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
-                      <p className="text-xs uppercase tracking-wider text-muted-foreground">Priorité</p>
-                      <p className="mt-1 text-sm font-medium text-foreground">
+                    <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Priorité</p>
+                      <div className="mt-2">
                         <ProjectPriorityBadge priority={p.priority} />
-                      </p>
+                      </div>
                     </div>
-                    <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
-                      <p className="text-xs uppercase tracking-wider text-muted-foreground">Budget</p>
-                      <p className="mt-1 text-sm font-medium text-foreground">{formatBudget(p.budget, p.currency)}</p>
+                    <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Budget</p>
+                      <p className="mt-2 text-sm font-semibold text-foreground">{formatBudget(p.budget, p.currency)}</p>
                     </div>
                   </div>
                 </div>
               </TabsContent>
-              <TabsContent value="milestones">
+              <TabsContent value="milestones" className="mt-0">
                 <MilestonesTab projectId={projectId} isAdmin={isAdmin} onChange={() => void fetchAll()} />
               </TabsContent>
-              <TabsContent value="tasks">
+              <TabsContent value="tasks" className="mt-0">
                 <TasksTab projectId={projectId} isAdmin={isAdmin} onChange={() => void fetchAll()} />
               </TabsContent>
-              <TabsContent value="team">
+              <TabsContent value="team" className="mt-0">
                 <TeamTab projectId={projectId} isAdmin={isAdmin} onChange={() => void fetchAll()} />
               </TabsContent>
-              <TabsContent value="documents">
+              <TabsContent value="documents" className="mt-0">
                 <DocumentsTab projectId={projectId} isAdmin={isAdmin} onChange={() => void fetchAll()} />
               </TabsContent>
             </motion.div>
@@ -419,7 +418,7 @@ export default function ProjectDetailPage() {
               className="w-full max-w-md rounded-2xl border border-border/60 bg-card p-6 shadow-2xl"
             >
               <div className="mb-3 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
                   <HugeiconsIcon icon={AlertCircleIcon} className="h-5 w-5" />
                 </div>
                 <div>
@@ -439,7 +438,7 @@ export default function ProjectDetailPage() {
                   type="button"
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="gap-2 bg-red-600 text-white hover:bg-red-700"
+                  className="gap-2 bg-destructive text-white hover:bg-destructive/90"
                 >
                   {deleting ? (
                     <>
@@ -456,5 +455,6 @@ export default function ProjectDetailPage() {
         )}
       </AnimatePresence>
     </div>
+    </MotionConfig>
   )
 }

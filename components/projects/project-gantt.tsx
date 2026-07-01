@@ -22,11 +22,30 @@ interface ProjectGanttProps {
   className?: string
 }
 
-const STATUS_BAR: Record<GanttMilestone["status"], string> = {
-  pending: "fill-blue-500/30 stroke-blue-500/70",
-  in_progress: "fill-blue-500/70 stroke-blue-600",
-  done: "fill-emerald-500/70 stroke-emerald-600",
-  missed: "fill-red-500/70 stroke-red-600",
+const STATUS_LABELS: Record<GanttMilestone["status"], string> = {
+  pending: "À venir",
+  in_progress: "En cours",
+  done: "Terminé",
+  missed: "Manqué",
+}
+
+function barClass(m: GanttMilestone, today: number): string {
+  const due = parseISO(m.dueDate)
+  const isLate = due !== null && due < today
+  switch (m.status) {
+    case "done":
+      return "fill-success/70 stroke-success"
+    case "missed":
+      return "fill-destructive/70 stroke-destructive"
+    case "in_progress":
+      return isLate ? "fill-warning/75 stroke-warning" : "fill-primary/70 stroke-primary"
+    case "pending":
+      return isLate
+        ? "fill-warning/60 stroke-warning"
+        : "fill-muted-foreground/25 stroke-muted-foreground/50"
+    default:
+      return "fill-muted-foreground/25 stroke-muted-foreground/50"
+  }
 }
 
 const ROW_HEIGHT = 44
@@ -197,12 +216,12 @@ export function ProjectGantt({ milestones, startDate, endDate, onMilestoneClick,
                 rx={6}
                 ry={6}
                 strokeWidth={1.25}
-                className={cn(STATUS_BAR[m.status], "transition-transform")}
+                className={cn(barClass(m, today), "transition-transform")}
                 style={{ transform: isHover ? "translateY(-1px)" : undefined, transformOrigin: "center" }}
               />
               {m.status === "done" && (
                 <g transform={`translate(${x2 - 18}, ${y + (ROW_HEIGHT - 16) / 2 - 6})`}>
-                  <circle cx={6} cy={6} r={7} className="fill-emerald-600" />
+                  <circle cx={6} cy={6} r={7} className="fill-success" />
                   <foreignObject x={0} y={0} width={12} height={12}>
                     <div className="flex h-3 w-3 items-center justify-center text-white">
                       <HugeiconsIcon icon={Tick02Icon} className="h-3 w-3" />
@@ -212,7 +231,7 @@ export function ProjectGantt({ milestones, startDate, endDate, onMilestoneClick,
               )}
               {m.status === "missed" && (
                 <g transform={`translate(${x2 - 18}, ${y + (ROW_HEIGHT - 16) / 2 - 6})`}>
-                  <circle cx={6} cy={6} r={7} className="fill-red-600" />
+                  <circle cx={6} cy={6} r={7} className="fill-destructive" />
                   <foreignObject x={0} y={0} width={12} height={12}>
                     <div className="flex h-3 w-3 items-center justify-center text-white">
                       <HugeiconsIcon icon={AlertCircleIcon} className="h-3 w-3" />
@@ -232,12 +251,12 @@ export function ProjectGantt({ milestones, startDate, endDate, onMilestoneClick,
               x2={todayX}
               y2={totalHeight - PADDING_BOTTOM}
               stroke="currentColor"
-              className="text-red-500"
+              className="text-foreground"
               strokeWidth={1.5}
               strokeDasharray="4 3"
             />
-            <rect x={todayX - 26} y={HEADER_HEIGHT - 22} width={52} height={16} rx={8} className="fill-red-500" />
-            <text x={todayX} y={HEADER_HEIGHT - 11} textAnchor="middle" className="fill-white text-[10px] font-semibold">
+            <rect x={todayX - 26} y={HEADER_HEIGHT - 22} width={52} height={16} rx={8} className="fill-foreground" />
+            <text x={todayX} y={HEADER_HEIGHT - 11} textAnchor="middle" className="fill-background text-[10px] font-semibold">
               Aujourd&apos;hui
             </text>
           </g>
@@ -255,7 +274,7 @@ export function ProjectGantt({ milestones, startDate, endDate, onMilestoneClick,
               {due ? `Échéance : ${formatLongDate(due)}` : "Sans date"}
             </p>
             <p className="mt-1 text-muted-foreground">
-              Statut : <span className="font-medium text-foreground">{m.status}</span>
+              Statut : <span className="font-medium text-foreground">{STATUS_LABELS[m.status]}</span>
             </p>
           </div>
         )

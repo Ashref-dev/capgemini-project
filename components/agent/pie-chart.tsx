@@ -65,7 +65,7 @@ function hasChartCenter(value: unknown): value is { cx: number; cy: number } {
   )
 }
 
-export function PieChart({ data, title, description, unit }: PieChartProps) {
+function PieChartComponent({ data, title, description, unit }: PieChartProps) {
   const preparedData = React.useMemo(() => {
     const usedKeys = new Set<string>()
 
@@ -129,6 +129,7 @@ export function PieChart({ data, title, description, unit }: PieChartProps) {
                 outerRadius={96}
                 paddingAngle={3}
                 strokeWidth={4}
+                isAnimationActive={false}
               >
                 {preparedData.map((item) => (
                   <Cell key={item.key} fill={item.fill} />
@@ -172,8 +173,21 @@ export function PieChart({ data, title, description, unit }: PieChartProps) {
           <div className="flex min-h-[320px] items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 px-6 text-center text-sm text-muted-foreground">
             Aucune donnée disponible pour cette requête.
           </div>
-        )}
+         )}
       </CardContent>
     </Card>
   )
 }
+
+// Streaming rebuilds `data` on every token; memoize on serialized content so the
+// chart re-renders only when its values change, not on every parent re-render.
+function arePropsEqual(prev: PieChartProps, next: PieChartProps): boolean {
+  return (
+    prev.title === next.title &&
+    prev.description === next.description &&
+    prev.unit === next.unit &&
+    JSON.stringify(prev.data) === JSON.stringify(next.data)
+  )
+}
+
+export const PieChart = React.memo(PieChartComponent, arePropsEqual)

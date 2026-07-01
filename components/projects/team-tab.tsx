@@ -100,11 +100,11 @@ export function TeamTab({ projectId, isAdmin, onChange }: TeamTabProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold text-foreground">Équipe projet</h3>
-          <p className="text-xs text-muted-foreground">
-            {items.length} membre{items.length > 1 ? "s" : ""}
-          </p>
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground">
+            {items.length}
+          </span>
         </div>
         {isAdmin && (
           <Button
@@ -113,13 +113,16 @@ export function TeamTab({ projectId, isAdmin, onChange }: TeamTabProps) {
               setEditing(null)
               setFormOpen(true)
             }}
-            className="gap-1.5 bg-blue-600 text-white hover:bg-blue-700"
+            className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
             Ajouter un membre
           </Button>
         )}
       </div>
+      <p className="-mt-2 text-xs text-muted-foreground">
+        Collaborateurs Capgemini affectés au projet et leur taux d&apos;implication (ETP).
+      </p>
 
       {loading ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -132,12 +135,29 @@ export function TeamTab({ projectId, isAdmin, onChange }: TeamTabProps) {
           {error}
         </div>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border/60 px-6 py-12 text-center">
-          <HugeiconsIcon icon={UserMultiple02Icon} className="h-7 w-7 text-muted-foreground" />
-          <p className="text-sm font-medium text-foreground">Aucun membre alloué</p>
-          <p className="text-xs text-muted-foreground">
-            Ajoutez les contributeurs et leur pourcentage d&apos;implication.
-          </p>
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border/60 bg-muted/20 px-6 py-14 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
+            <HugeiconsIcon icon={UserMultiple02Icon} className="h-6 w-6" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-foreground">Aucun membre assigné à ce projet.</p>
+            <p className="mx-auto max-w-xs text-xs text-muted-foreground">
+              Affectez des collaborateurs Capgemini et définissez leur taux d&apos;implication.
+            </p>
+          </div>
+          {isAdmin && (
+            <Button
+              size="sm"
+              onClick={() => {
+                setEditing(null)
+                setFormOpen(true)
+              }}
+              className="mt-1 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
+              Assigner un membre
+            </Button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -159,15 +179,18 @@ export function TeamTab({ projectId, isAdmin, onChange }: TeamTabProps) {
                     <p className="truncate text-sm font-semibold text-foreground">
                       {a.employeeName ?? `#${a.employeeId}`}
                     </p>
-                    <p className="truncate text-xs text-muted-foreground">{a.employeeEmail ?? "—"}</p>
-                    <p className="mt-1 truncate text-xs text-muted-foreground">
-                      {a.role ?? "—"}{" "}
-                      {a.employeeRole && (
-                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">
-                          · {a.employeeRole}
-                        </span>
-                      )}
+                    <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary ring-1 ring-primary/20">
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                      Interne · Capgemini
+                    </span>
+                    <p className="mt-1 truncate text-xs font-medium text-foreground">
+                      {a.role ?? "Rôle non défini"}
                     </p>
+                    {a.employeeRole && (
+                      <p className="truncate text-[10px] uppercase tracking-wider text-muted-foreground/70">
+                        {a.employeeRole}
+                      </p>
+                    )}
                   </div>
                   {isAdmin && (
                     <div className="flex shrink-0 flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -186,7 +209,7 @@ export function TeamTab({ projectId, isAdmin, onChange }: TeamTabProps) {
                         type="button"
                         aria-label="Retirer"
                         onClick={() => setConfirmId(a.id)}
-                        className="rounded-lg p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
+                        className="rounded-lg p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                       >
                         <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5" />
                       </button>
@@ -195,7 +218,7 @@ export function TeamTab({ projectId, isAdmin, onChange }: TeamTabProps) {
                 </div>
                 <div className="mt-3 space-y-1.5">
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                    <span>Implication</span>
+                    <span>Implication (ETP)</span>
                     <span className="font-semibold tabular-nums text-foreground">{a.ftePercent}%</span>
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-muted">
@@ -203,7 +226,7 @@ export function TeamTab({ projectId, isAdmin, onChange }: TeamTabProps) {
                       initial={{ width: 0 }}
                       animate={{ width: `${Math.max(0, Math.min(100, a.ftePercent))}%` }}
                       transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
-                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-emerald-500"
+                      className="h-full rounded-full bg-primary"
                     />
                   </div>
                   {(a.startDate || a.endDate) && (
@@ -432,7 +455,7 @@ function ConfirmDelete({
                 setBusy(false)
               }
             }}
-            className="bg-red-600 text-white hover:bg-red-700"
+            className="bg-destructive text-white hover:bg-destructive/90"
           >
             Retirer
           </Button>

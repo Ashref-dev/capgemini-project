@@ -147,7 +147,7 @@ export function DocumentsTab({ projectId, isAdmin, onChange }: DocumentsTabProps
               size="sm"
               onClick={() => inputRef.current?.click()}
               disabled={uploading}
-              className="gap-1.5 bg-blue-600 text-white hover:bg-blue-700"
+              className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
             >
               <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
               Téléverser
@@ -190,7 +190,7 @@ export function DocumentsTab({ projectId, isAdmin, onChange }: DocumentsTabProps
                   initial={false}
                   animate={{ width: `${progress}%` }}
                   transition={{ duration: 0.2 }}
-                  className="h-full rounded-full bg-blue-500"
+                  className="h-full rounded-full bg-primary"
                 />
               </div>
             </div>
@@ -257,7 +257,7 @@ export function DocumentsTab({ projectId, isAdmin, onChange }: DocumentsTabProps
                     type="button"
                     aria-label="Supprimer"
                     onClick={() => void handleDelete(d.id)}
-                    className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 group-hover:opacity-100 dark:hover:bg-red-950/40"
+                    className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
                   >
                     <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4" />
                   </button>

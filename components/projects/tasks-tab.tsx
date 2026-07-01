@@ -6,6 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import {
   PlusSignIcon,
   CheckmarkSquare01Icon,
+  CheckmarkCircle02Icon,
   Edit01Icon,
   Delete02Icon,
   AlertCircleIcon,
@@ -33,10 +34,10 @@ export type Task = {
 }
 
 const COLUMNS: { key: Task["status"]; label: string; tint: string }[] = [
-  { key: "todo", label: "À faire", tint: "border-blue-500/40 bg-blue-50/50 dark:bg-blue-950/30" },
-  { key: "doing", label: "En cours", tint: "border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/30" },
-  { key: "done", label: "Terminé", tint: "border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-950/30" },
-  { key: "blocked", label: "Bloqué", tint: "border-red-500/40 bg-red-50/50 dark:bg-red-950/30" },
+  { key: "todo", label: "À faire", tint: "border-border/60 bg-muted/40" },
+  { key: "doing", label: "En cours", tint: "border-primary/30 bg-primary/5" },
+  { key: "done", label: "Terminé", tint: "border-success/30 bg-success/5" },
+  { key: "blocked", label: "Bloqué", tint: "border-destructive/30 bg-destructive/5" },
 ]
 
 function initials(name: string | null | undefined): string {
@@ -128,11 +129,11 @@ export function TasksTab({ projectId, isAdmin, onChange }: TasksTabProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold text-foreground">Tableau des tâches</h3>
-          <p className="text-xs text-muted-foreground">
-            {tasks.length} tâche{tasks.length > 1 ? "s" : ""}
-          </p>
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground">
+            {tasks.length}
+          </span>
         </div>
         {isAdmin && (
           <Button
@@ -142,13 +143,16 @@ export function TasksTab({ projectId, isAdmin, onChange }: TasksTabProps) {
               setDefaultStatus("todo")
               setFormOpen(true)
             }}
-            className="gap-1.5 bg-blue-600 text-white hover:bg-blue-700"
+            className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
             Nouvelle tâche
           </Button>
         )}
       </div>
+      <p className="-mt-2 text-xs text-muted-foreground">
+        Une tâche est un ticket actionnable rattaché à un jalon — avec un assigné et un statut.
+      </p>
 
       {error && (
         <div className="rounded-xl border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
@@ -225,13 +229,14 @@ export function TasksTab({ projectId, isAdmin, onChange }: TasksTabProps) {
                                   </span>
                                 )}
                                 {t.milestoneName && (
-                                  <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary ring-1 ring-primary/15">
+                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-2.5 w-2.5" />
                                     {t.milestoneName}
                                   </span>
                                 )}
                               </div>
                               {t.blockerText && (
-                                <div className="mt-2 flex items-start gap-1.5 rounded-md bg-red-100/60 px-2 py-1 text-[10px] text-red-700 dark:bg-red-950/40 dark:text-red-300">
+                                <div className="mt-2 flex items-start gap-1.5 rounded-md bg-destructive/10 px-2 py-1 text-[10px] text-destructive">
                                   <HugeiconsIcon icon={AlertCircleIcon} className="mt-0.5 h-3 w-3 shrink-0" />
                                   {t.blockerText}
                                 </div>
@@ -272,7 +277,7 @@ export function TasksTab({ projectId, isAdmin, onChange }: TasksTabProps) {
                                   type="button"
                                   aria-label="Supprimer"
                                   onClick={() => setConfirmId(t.id)}
-                                  className="rounded-md p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
+                                  className="rounded-md p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                                 >
                                   <HugeiconsIcon icon={Delete02Icon} className="h-3 w-3" />
                                 </button>
@@ -509,7 +514,7 @@ function ConfirmDelete({
                 setBusy(false)
               }
             }}
-            className="bg-red-600 text-white hover:bg-red-700"
+            className="bg-destructive text-white hover:bg-destructive/90"
           >
             Supprimer
           </Button>

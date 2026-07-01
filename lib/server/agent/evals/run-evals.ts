@@ -1,8 +1,5 @@
-import { Client, type Example, type Run } from "langsmith"
-import { evaluate, type EvaluationResult, type EvaluatorT } from "langsmith/evaluation"
-
 import { EVAL_DATASET, type EvalCase } from "./dataset"
-import { citationEvaluator, correctnessEvaluator, toolUsageEvaluator } from "./evaluators"
+import { citationEvaluator, correctnessEvaluator, toolUsageEvaluator, type EvaluationResult } from "./evaluators"
 
 const BASE_URL = process.env.EVAL_BASE_URL ?? "http://localhost:3000"
 const ADMIN_EMAIL = process.env.EVAL_USER_EMAIL ?? "karim.mejri@capgemini.com"
@@ -21,13 +18,6 @@ type EvalRunResult = {
   output: AgentRunOutput
   evaluations: EvaluationResult[]
   error?: string
-}
-type LangSmithEvaluatorArgs = {
-  run: Run
-  example: Example
-  inputs: Record<string, unknown>
-  outputs: Record<string, unknown>
-  referenceOutputs?: Record<string, unknown>
 }
 
 async function login(): Promise<string> {
@@ -174,7 +164,7 @@ function buildFailureEvaluations(): EvaluationResult[] {
   ]
 }
 
-function numericScore(score: EvaluationResult["score"]): number {
+function numericScore(score: EvaluationResult["score"] | undefined): number {
   if (typeof score === "number") {
     return score
   }
@@ -196,45 +186,6 @@ function averageEvaluationScore(evaluations: EvaluationResult[]): number {
 
 function getEvaluationScore(evaluations: EvaluationResult[], key: string): number {
   return numericScore(evaluations.find((evaluation) => evaluation.key === key)?.score)
-}
-
-function asStringArray(value: unknown): string[] | undefined {
-  if (!Array.isArray(value)) {
-    return undefined
-  }
-
-  const strings = value.filter((item): item is string => typeof item === "string")
-  return strings.length === value.length ? strings : undefined
-}
-
-function coerceAgentRunOutput(outputs: Record<string, unknown>): AgentRunOutput {
-  return {
-    answer: typeof outputs.answer === "string" ? outputs.answer : "",
-    tools: asStringArray(outputs.tools) ?? [],
-  }
-}
-
-function coerceReferenceOutputs(referenceOutputs: Record<string, unknown> | undefined): EvalCase["expected"] {
-  if (!referenceOutputs) {
-    return {}
-  }
-
-  return {
-    contains: asStringArray(referenceOutputs.contains),
-    tools: asStringArray(referenceOutputs.tools),
-    citation: typeof referenceOutputs.citation === "boolean" ? referenceOutputs.citation : undefined,
-  }
-}
-
-function createLangSmithExamples(): Example[] {
-  return EVAL_DATASET.map((evalCase) => ({
-    id: crypto.randomUUID(),
-    created_at: new Date().toISOString(),
-    dataset_id: "local-intelliconnect-evals",
-    inputs: evalCase.input,
-    outputs: evalCase.expected,
-    runs: [],
-  }))
 }
 
 function printSummary(results: EvalRunResult[]): number {
@@ -267,53 +218,9 @@ function printSummary(results: EvalRunResult[]): number {
   return passRate
 }
 
-async function pushToLangSmith(results: EvalRunResult[]): Promise<void> {
-  if (!process.env.LANGSMITH_API_KEY || process.env.LANGSMITH_TRACING !== "true") {
-    return
-  }
-
-  try {
-    const client = new Client()
-    console.log("\n[evals] Pushing results to LangSmith…")
-    const langSmithCorrectnessEvaluator = ((args: LangSmithEvaluatorArgs) =>
-      correctnessEvaluator({
-        outputs: coerceAgentRunOutput(args.outputs),
-        referenceOutputs: coerceReferenceOutputs(args.referenceOutputs),
-      })) satisfies EvaluatorT
-    const langSmithToolUsageEvaluator = ((args: LangSmithEvaluatorArgs) =>
-      toolUsageEvaluator({
-        outputs: coerceAgentRunOutput(args.outputs),
-        referenceOutputs: coerceReferenceOutputs(args.referenceOutputs),
-      })) satisfies EvaluatorT
-    const langSmithCitationEvaluator = ((args: LangSmithEvaluatorArgs) =>
-      citationEvaluator({
-        outputs: coerceAgentRunOutput(args.outputs),
-        referenceOutputs: coerceReferenceOutputs(args.referenceOutputs),
-      })) satisfies EvaluatorT
-    const langSmithEvaluators: EvaluatorT[] = [
-      langSmithCorrectnessEvaluator,
-      langSmithToolUsageEvaluator,
-      langSmithCitationEvaluator,
-    ]
-
-    await evaluate(
-      (inputs: { question: string }): Record<string, unknown> => {
-        const result = results.find((candidate) => candidate.case.input.question === inputs.question)
-        return result ? result.output : { answer: "", tools: [] }
-      },
-      {
-        data: createLangSmithExamples(),
-        evaluators: langSmithEvaluators,
-        experimentPrefix: "intelliconnect-evals",
-        client,
-      },
-    )
-    console.log("[evals] LangSmith push complete")
-  } catch (error) {
-    console.warn("[evals] LangSmith push failed:", error instanceof Error ? error.message : String(error))
-  }
-}
-
+// LangSmith experiment upload was removed intentionally. To re-add it in the
+// future, push these local results to a LangSmith dataset/experiment here via
+// the `langsmith` Client + `evaluate` from `langsmith/evaluation`.
 async function main(): Promise<void> {
   console.log(`\n[evals] Starting eval run against ${BASE_URL}`)
   console.log(`[evals] Dataset: ${EVAL_DATASET.length} cases`)
@@ -348,7 +255,6 @@ async function main(): Promise<void> {
   }
 
   const passRate = printSummary(results)
-  await pushToLangSmith(results)
   process.exit(passRate >= PASS_RATE_THRESHOLD ? 0 : 1)
 }
 

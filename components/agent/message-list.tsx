@@ -38,9 +38,15 @@ export function MessageList({
   const [atBottom, setAtBottom] = React.useState(true)
 
   const lastMessage = messages.at(-1)
+  const lastPart = lastMessage?.parts.at(-1)
+  const isStreamingText = lastPart?.type === "text" && lastPart.text.trim().length > 0
+  // Keep the "thinking" indicator alive between and after tool calls so the agent
+  // never looks idle mid-run. Hide it only while text is the actively growing tail,
+  // since that text already signals progress.
   const awaitingAssistant =
     pendingUserText !== null ||
-    (isStreaming && (!lastMessage || lastMessage.role === "user" || !hasRenderableContent(lastMessage)))
+    (isStreaming &&
+      (!lastMessage || lastMessage.role === "user" || !hasRenderableContent(lastMessage) || !isStreamingText))
 
   const scrollToBottom = React.useCallback((behavior: ScrollBehavior = "smooth") => {
     const node = scrollRef.current

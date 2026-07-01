@@ -104,7 +104,7 @@ function formatAxisTick(value: number | string) {
   })
 }
 
-export function BarChart({ data, title, description, yAxisLabel }: BarChartProps) {
+function BarChartComponent({ data, title, description, yAxisLabel }: BarChartProps) {
   const seriesDefinitions = React.useMemo(() => buildSeriesDefinitions(data), [data])
 
   const seriesKeyMap = React.useMemo(
@@ -190,6 +190,7 @@ export function BarChart({ data, title, description, yAxisLabel }: BarChartProps
                   fill={`var(--color-${entry.key})`}
                   radius={[6, 6, 0, 0]}
                   maxBarSize={48}
+                  isAnimationActive={false}
                 />
               ))}
             </RechartsBarChart>
@@ -199,7 +200,20 @@ export function BarChart({ data, title, description, yAxisLabel }: BarChartProps
             Aucune donnée disponible pour cette requête.
           </div>
         )}
-      </CardContent>
+       </CardContent>
     </Card>
   )
 }
+
+// Streaming rebuilds `data` on every token; memoize on serialized content so the
+// chart re-renders only when its values change, not on every parent re-render.
+function arePropsEqual(prev: BarChartProps, next: BarChartProps): boolean {
+  return (
+    prev.title === next.title &&
+    prev.description === next.description &&
+    prev.yAxisLabel === next.yAxisLabel &&
+    JSON.stringify(prev.data) === JSON.stringify(next.data)
+  )
+}
+
+export const BarChart = React.memo(BarChartComponent, arePropsEqual)

@@ -7,17 +7,42 @@ import remarkGfm from "remark-gfm"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Copy01Icon, Download04Icon, FileAttachmentIcon, ViewIcon } from "@hugeicons/core-free-icons"
 
+import { BarChart } from "@/components/agent/bar-chart"
+import { LineChart } from "@/components/agent/line-chart"
+import { PieChart } from "@/components/agent/pie-chart"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "@/components/ui/toast"
 import { cn, isInternalDashboardHref } from "@/lib/utils"
 
+export type ReportChart =
+  | { kind: "bar"; payload: React.ComponentProps<typeof BarChart> }
+  | { kind: "line"; payload: React.ComponentProps<typeof LineChart> }
+  | { kind: "pie"; payload: React.ComponentProps<typeof PieChart> }
+
 interface ReportPreviewProps {
   title: string
   markdown: string
   topic: string
   generatedAt: string
+  charts?: ReportChart[]
+}
+
+// Light theme-token values forced onto the off-screen print node so exported
+// charts stay light-on-white even when the app is in dark mode.
+const PRINT_LIGHT_TOKENS: React.CSSProperties = {
+  ["--background" as string]: "#ffffff",
+  ["--foreground" as string]: "#001a3a",
+  ["--card" as string]: "#ffffff",
+  ["--card-foreground" as string]: "#001a3a",
+  ["--muted-foreground" as string]: "#5f7182",
+  ["--border" as string]: "#d9e5ec",
+  ["--chart-1" as string]: "#0070ad",
+  ["--chart-2" as string]: "#00a3e0",
+  ["--chart-3" as string]: "#003b5c",
+  ["--chart-4" as string]: "#5f7182",
+  ["--chart-5" as string]: "#7cc8e8",
 }
 
 // Literal hex required: html2canvas cannot resolve CSS vars / oklch() in the
@@ -87,7 +112,7 @@ const previewComponents = {
   ),
 }
 
-export function ReportPreview({ title, markdown, topic, generatedAt }: ReportPreviewProps) {
+export function ReportPreview({ title, markdown, topic, generatedAt, charts = [] }: ReportPreviewProps) {
   const previewText = React.useMemo(() => markdown.slice(0, 400).trim(), [markdown])
   const encodedMarkdown = React.useMemo(() => encodeMarkdown(markdown), [markdown])
   const [isExporting, setIsExporting] = React.useState(false)
@@ -125,30 +150,61 @@ export function ReportPreview({ title, markdown, topic, generatedAt }: ReportPre
       ])
       const node = printRef.current
       const render = async () => {
-        const canvas = await html2canvas(node, {
-          scale: 2,
-          backgroundColor: "#ffffff",
-          windowWidth: 800,
-          logging: false,
-          useCORS: true,
-        })
         const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" })
-        const margin = 10
+        const margin = 12
         const usableWidth = pdf.internal.pageSize.getWidth() - margin * 2
         const usableHeight = pdf.internal.pageSize.getHeight() - margin * 2
-        const imageHeight = (canvas.height * usableWidth) / canvas.width
-        const imageData = canvas.toDataURL("image/jpeg", 0.95)
-        pdf.addImage(imageData, "JPEG", margin, margin, usableWidth, imageHeight)
-        let heightRemaining = imageHeight - usableHeight
-        while (heightRemaining > 0) {
-          pdf.addPage()
-          pdf.addImage(imageData, "JPEG", margin, margin - (imageHeight - heightRemaining), usableWidth, imageHeight)
-          heightRemaining -= usableHeight
+        const blocks = Array.from(node.querySelectorAll<HTMLElement>(":scope > *"))
+        let cursorY = margin
+        let hasContent = false
+
+        for (const block of blocks) {
+          if (block.offsetHeight === 0) continue
+          const canvas = await html2canvas(block, {
+            scale: 2,
+            backgroundColor: "#ffffff",
+            windowWidth: 800,
+            logging: false,
+            useCORS: true,
+          })
+          const blockHeight = (canvas.height * usableWidth) / canvas.width
+          const imageData = canvas.toDataURL("image/jpeg", 0.95)
+
+          if (blockHeight <= usableHeight) {
+            // Keep the whole block intact: move to a fresh page when it would
+            // otherwise straddle the bottom margin.
+            if (hasContent && cursorY + blockHeight > margin + usableHeight) {
+              pdf.addPage()
+              cursorY = margin
+            }
+            pdf.addImage(imageData, "JPEG", margin, cursorY, usableWidth, blockHeight)
+            cursorY += blockHeight + 4
+            hasContent = true
+            continue
+          }
+
+          // Block taller than a page (large table): start it on a clean page and
+          // slice only this oversized block across pages via a shifted origin.
+          if (hasContent) {
+            pdf.addPage()
+            cursorY = margin
+          }
+          let consumed = 0
+          while (consumed < blockHeight) {
+            pdf.addImage(imageData, "JPEG", margin, margin - consumed, usableWidth, blockHeight)
+            consumed += usableHeight
+            if (consumed < blockHeight) {
+              pdf.addPage()
+            }
+          }
+          cursorY = margin
+          hasContent = true
         }
+
         pdf.save(`${slug}.pdf`)
       }
       const guard = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("pdf-timeout")), 45000),
+        setTimeout(() => reject(new Error("pdf-timeout")), 60000),
       )
       await Promise.race([render(), guard])
       toast.success("PDF téléchargé", { description: `${slug}.pdf enregistré.` })
@@ -174,6 +230,7 @@ export function ReportPreview({ title, markdown, topic, generatedAt }: ReportPre
           fontFamily: "Georgia, 'Times New Roman', serif",
           color: "#0f172a",
           lineHeight: 1.75,
+          ...PRINT_LIGHT_TOKENS,
         }}
       >
         <div style={{ marginBottom: 32, paddingBottom: 16, borderBottom: `2px solid ${BRAND_PRINT.primary}` }}>
@@ -234,6 +291,24 @@ export function ReportPreview({ title, markdown, topic, generatedAt }: ReportPre
         >
           {markdown}
         </Markdown>
+        {charts.length > 0 ? (
+          <>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: "20px 0 10px", paddingBottom: 6, borderBottom: "1px solid #e2e8f0" }}>
+              Visualisations
+            </h2>
+            {charts.map((chart, index) => (
+              <div key={index} style={{ margin: "16px 0", breakInside: "avoid" }}>
+                {chart.kind === "bar" ? (
+                  <BarChart {...chart.payload} />
+                ) : chart.kind === "line" ? (
+                  <LineChart {...chart.payload} />
+                ) : (
+                  <PieChart {...chart.payload} />
+                )}
+              </div>
+            ))}
+          </>
+        ) : null}
       </div>
 
       <Card className="border-border bg-card shadow-sm">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,13 +18,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   Building06Icon,
   CallIcon,
   Delete01Icon,
   Edit02Icon,
+  FilterHorizontalIcon,
   Mail01Icon,
+  RefreshIcon,
+  StarIcon,
   UserMultiple02Icon,
 } from "@hugeicons/core-free-icons"
 import { AddButton } from "@/components/ui/add-button"
@@ -58,6 +68,9 @@ export default function ContactsPage() {
   })
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [partnerFilter, setPartnerFilter] = useState("all")
+  const [primaryOnly, setPrimaryOnly] = useState(false)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [editingContact, setEditingContact] = useState<Contact | null>(null)
   const [deleteContact, setDeleteContact] = useState<Contact | null>(null)
@@ -111,6 +124,21 @@ export default function ContactsPage() {
   }, [])
 
   useEffect(() => { fetchContacts() }, [fetchContacts])
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  const distinctPartners = useMemo(() => {
+    const byId = new Map<number, string>()
+    for (const c of contacts) {
+      if (c.partner?.id != null) byId.set(c.partner.id, c.partner.name)
+    }
+    return Array.from(byId, ([id, name]) => ({ id, name })).sort((a, b) =>
+      a.name.localeCompare(b.name, "fr")
+    )
+  }, [contacts])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -172,12 +200,23 @@ export default function ContactsPage() {
 
   if (!user) return null
 
+  const hasActiveFilters = partnerFilter !== "all" || primaryOnly || search.trim() !== ""
+
+  const resetFilters = () => {
+    setSearch("")
+    setPartnerFilter("all")
+    setPrimaryOnly(false)
+  }
+
   const filtered = contacts.filter(c => {
-    const q = search.toLowerCase()
-    return !q ||
+    const q = debouncedSearch.trim().toLowerCase()
+    const matchesSearch = !q ||
       `${c.firstName} ${c.lastName}`.toLowerCase().includes(q) ||
       (c.email || "").toLowerCase().includes(q) ||
       (c.partner?.name || "").toLowerCase().includes(q)
+    const matchesPartner = partnerFilter === "all" || String(c.partnerId) === partnerFilter
+    const matchesPrimary = !primaryOnly || c.isPrimary === true
+    return matchesSearch && matchesPartner && matchesPrimary
   })
 
   const columns: CapgeminiTableColumn<Contact>[] = [
@@ -249,22 +288,68 @@ export default function ContactsPage() {
         </form>
       )}
 
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <Input
+          placeholder="Rechercher un contact..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          aria-label="Rechercher un contact"
+          className="h-8 w-full text-sm sm:w-64"
+        />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <HugeiconsIcon icon={FilterHorizontalIcon} className="size-4 shrink-0" />
+          <span className="hidden sm:inline">Filtres</span>
+          {hasActiveFilters && <span className="size-1.5 rounded-full bg-primary" aria-hidden />}
+        </div>
+        <Select value={partnerFilter} onValueChange={setPartnerFilter}>
+          <SelectTrigger size="sm" aria-label="Filtrer par partenaire" className="w-full sm:w-56">
+            <SelectValue placeholder="Tous les partenaires" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les partenaires</SelectItem>
+            {distinctPartners.map(p => (
+              <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button
+          type="button"
+          variant={primaryOnly ? "default" : "outline"}
+          size="sm"
+          aria-pressed={primaryOnly}
+          onClick={() => setPrimaryOnly(value => !value)}
+          className="h-8 gap-1.5"
+        >
+          <HugeiconsIcon icon={StarIcon} className="size-4" />
+          Principaux uniquement
+        </Button>
+        {hasActiveFilters && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={resetFilters}
+            className="h-8 gap-1.5"
+          >
+            <HugeiconsIcon icon={RefreshIcon} className="size-4" />
+            Réinitialiser
+          </Button>
+        )}
+      </div>
+
       <CapgeminiTable<Contact>
         title="Liste des contacts"
         subtitle="Cliquez sur une ligne pour ouvrir les détails sans perdre votre position."
         data={filtered}
         columns={columns}
         loading={loading}
-        emptyMessage="Aucun contact trouvé"
+        emptyMessage={hasActiveFilters ? "Aucun contact ne correspond à ces filtres." : "Aucun contact trouvé"}
         keyExtractor={c => c.id}
         onRowClick={setSelectedContact}
         headerActions={
-          <Input
-            placeholder="Rechercher un contact..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="h-8 w-full text-sm sm:w-56"
-          />
+          <span className="text-xs font-medium text-muted-foreground">
+            {filtered.length} résultat{filtered.length > 1 ? "s" : ""}
+          </span>
         }
       />
 

@@ -104,7 +104,7 @@ function formatAxisTick(value: number | string) {
   })
 }
 
-export function LineChart({ data, title, description, yAxisLabel }: LineChartProps) {
+function LineChartComponent({ data, title, description, yAxisLabel }: LineChartProps) {
   const seriesDefinitions = React.useMemo(() => buildSeriesDefinitions(data), [data])
 
   const seriesKeyMap = React.useMemo(
@@ -192,6 +192,7 @@ export function LineChart({ data, title, description, yAxisLabel }: LineChartPro
                   strokeWidth={2.5}
                   dot={false}
                   activeDot={{ r: 5 }}
+                  isAnimationActive={false}
                 />
               ))}
             </RechartsLineChart>
@@ -205,3 +206,16 @@ export function LineChart({ data, title, description, yAxisLabel }: LineChartPro
     </Card>
   )
 }
+
+// Streaming rebuilds `data` on every token; memoize on serialized content so the
+// chart re-renders only when its values change, not on every parent re-render.
+function arePropsEqual(prev: LineChartProps, next: LineChartProps): boolean {
+  return (
+    prev.title === next.title &&
+    prev.description === next.description &&
+    prev.yAxisLabel === next.yAxisLabel &&
+    JSON.stringify(prev.data) === JSON.stringify(next.data)
+  )
+}
+
+export const LineChart = React.memo(LineChartComponent, arePropsEqual)

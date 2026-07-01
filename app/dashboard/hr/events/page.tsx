@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, type ReactNode } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { motion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Calendar03Icon, Delete01Icon } from "@hugeicons/core-free-icons"
-import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/components/ui/capgemini-table"
+import { Calendar03Icon, Delete01Icon, Delete02Icon } from "@hugeicons/core-free-icons"
+import { CapgeminiTable, CapgeminiTableColumn, StatusBadge } from "@/components/ui/capgemini-table"
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { SparklesText } from "@/components/ui/sparkles-text"
 import { GradientStatCard } from "@/components/ui/gradient-stat-card"
 import { AddButton } from "@/components/ui/add-button"
@@ -33,6 +34,15 @@ interface Event {
   partner?: { id: number; name: string }
 }
 
+function DetailRow({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="border-b border-border py-3">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="mt-1 text-sm font-medium text-foreground">{value}</dd>
+    </div>
+  )
+}
+
 export default function HREventsPage() {
   const { user } = useAuth()
   const [events, setEvents] = useState<Event[]>([])
@@ -41,6 +51,7 @@ export default function HREventsPage() {
   const [statusFilter, setStatusFilter] = useState("")
   const [showForm, setShowForm] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
   const [form, setForm] = useState({
     partnerId: "",
@@ -335,23 +346,69 @@ export default function HREventsPage() {
           const s = evt.eventStatus || ""
           return s === "termine" ? "from-emerald-500/8 to-transparent" : s === "en_cours" ? "from-amber-500/8 to-transparent" : s === "annule" ? "from-red-500/8 to-transparent" : "from-blue-500/8 to-transparent"
         }}
-        renderDetail={(evt, onClose) => (
-          <DetailPanel onClose={onClose} title={evt.eventName}>
-            <div className="grid grid-cols-2 gap-3">
-              <DetailCard label="Partenaire" value={evt.partner?.name || "—"} />
-              <DetailCard label="Type" value={evt.eventType ? formatEventType(evt.eventType) : "—"} />
-              <DetailCard label="Date" value={new Date(evt.eventDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} />
-              <DetailCard label="Lieu" value={evt.eventLocation || "—"} />
-              <DetailCard label="Participants" value={evt.numParticipants?.toString() || "—"} />
-              <DetailCard label="Participants Capgemini" value={evt.numCapgeminiAttendees?.toString() || "—"} />
-              <DetailCard label="Budget" value={evt.eventBudget ? `${evt.eventBudget.toLocaleString()} TND` : "—"} />
-              <DetailCard label="Score satisfaction" value={evt.satisfactionScore != null ? `${evt.satisfactionScore}/10` : "—"} />
-              <DetailCard label="Statut" value={<StatusBadge status={evt.eventStatus === "termine" ? "success" : evt.eventStatus === "en_cours" ? "warning" : evt.eventStatus === "annule" ? "error" : "info"} label={formatEventStatus(evt.eventStatus)} />} />
-            </div>
-            {evt.notes && <DetailCard label="Notes" value={<p className="text-sm text-foreground leading-relaxed">{evt.notes}</p>} />}
-          </DetailPanel>
-        )}
+        onRowClick={setSelectedEvent}
       />
+
+      {/* Detail drawer */}
+      <Sheet open={selectedEvent !== null} onOpenChange={(open) => { if (!open) setSelectedEvent(null) }}>
+        <SheetContent side="right" className="flex w-full flex-col overflow-y-auto p-0 sm:max-w-xl">
+          {selectedEvent && (
+            <>
+              <SheetHeader className="border-b border-border px-6 py-5 text-left">
+                <SheetTitle>{selectedEvent.eventName}</SheetTitle>
+                <SheetDescription asChild>
+                  <span className="flex flex-wrap items-center gap-2">
+                    {selectedEvent.eventType && (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        {formatEventType(selectedEvent.eventType)}
+                      </span>
+                    )}
+                    <span>{selectedEvent.partner?.name || "Partenaire inconnu"}</span>
+                  </span>
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="flex-1 px-6 py-5">
+                <dl className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-6">
+                  <DetailRow label="Partenaire" value={selectedEvent.partner?.name || "—"} />
+                  <DetailRow label="Type" value={selectedEvent.eventType ? formatEventType(selectedEvent.eventType) : "—"} />
+                  <DetailRow label="Date" value={new Date(selectedEvent.eventDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} />
+                  <DetailRow label="Lieu" value={selectedEvent.eventLocation || "—"} />
+                  <DetailRow label="Participants" value={selectedEvent.numParticipants?.toString() || "—"} />
+                  <DetailRow label="Participants Capgemini" value={selectedEvent.numCapgeminiAttendees?.toString() || "—"} />
+                  <DetailRow label="Budget" value={selectedEvent.eventBudget ? `${selectedEvent.eventBudget.toLocaleString("fr-FR")} TND` : "—"} />
+                  <DetailRow label="Score satisfaction" value={selectedEvent.satisfactionScore != null ? `${selectedEvent.satisfactionScore}/10` : "—"} />
+                  <DetailRow
+                    label="Statut"
+                    value={<StatusBadge status={selectedEvent.eventStatus === "termine" ? "success" : selectedEvent.eventStatus === "en_cours" ? "warning" : selectedEvent.eventStatus === "annule" ? "error" : "info"} label={formatEventStatus(selectedEvent.eventStatus)} />}
+                  />
+                  {selectedEvent.notes && (
+                    <div className="sm:col-span-2">
+                      <DetailRow label="Notes" value={<span className="leading-relaxed">{selectedEvent.notes}</span>} />
+                    </div>
+                  )}
+                </dl>
+              </div>
+
+              <SheetFooter className="border-t border-border px-6 py-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => {
+                    const id = selectedEvent.id
+                    setSelectedEvent(null)
+                    void handleDelete(id)
+                  }}
+                >
+                  <HugeiconsIcon icon={Delete02Icon} className="size-4" />
+                  Supprimer
+                </Button>
+              </SheetFooter>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

@@ -112,7 +112,7 @@ All portals are responsive (desktop / tablet / mobile with a slide-over drawer),
 | Database | PostgreSQL |
 | ORM | Drizzle ORM |
 | Auth | JWT with httpOnly cookies, `jose`, `bcryptjs` |
-| AI | Vercel AI SDK v6, OpenRouter, optional Voyage embeddings and LangSmith tracing |
+| AI | Vercel AI SDK v6, OpenRouter, optional Voyage embeddings |
 | Email | Nodemailer with optional Gmail SMTP |
 | Theme | `next-themes` light and dark mode |
 | Toasts | Sonner through the local unified toast wrapper |
@@ -199,9 +199,6 @@ Optional:
 OPENROUTER_KEY=
 OPENROUTER_MODEL_ID=openrouter/owl-alpha
 VOYAGE_API_KEY=
-LANGSMITH_API_KEY=
-LANGSMITH_PROJECT=capgemini-intelliconnect
-LANGSMITH_TRACING=true
 GMAIL_USER=
 GMAIL_APP_PASSWORD=
 ```
@@ -435,26 +432,26 @@ Both score **90/100 (APPROUVER)** with all five dimensions populated, and both h
 ### 🏆 Mega showcase 1 — LangSmith (technology supplier)
 
 ```
-Génère le rapport exécutif stratégique du partenaire LangSmith (fournisseur technologique) pour Capgemini Tunisia. Déclare d'abord ta méthodologie et ton plan d'analyse, puis : (1) score les 5 dimensions stratégiques de LangSmith — graphique en barres et tableau détaillé ; (2) répartition de son activité (événements, réunions, projets) en camembert ; (3) évolution trimestrielle des KPIs (interactions, revenus, satisfaction) en courbes ; (4) évalue le risque de churn avec signaux d'alerte et plan de rétention sur 30 jours ; (5) analyse la santé de ses projets ; (6) cite les obligations contractuelles et les conditions de renouvellement depuis nos documents. Termine par un rapport PDF exportable et une section ## Sources avec liens profonds vers les fiches concernées.
+Génère le rapport exécutif stratégique du partenaire LangSmith (fournisseur technologique) pour Capgemini Tunisia. Déclare d'abord ta méthodologie et ton plan d'analyse, puis structure le rapport en sections claires : (1) score les 5 dimensions stratégiques de LangSmith — graphique en barres et tableau détaillé ; (2) répartition de son activité (événements, réunions, projets) en camembert ; (3) évolution trimestrielle des KPIs (interactions, revenus, satisfaction) en courbes ; (4) évalue le risque de churn avec signaux d'alerte et plan de rétention sur 30 jours ; (5) analyse la santé de ses projets ; (6) cite les obligations contractuelles et les conditions de renouvellement depuis nos documents. Pour chaque section, rédige l'analyse puis insère juste après la visualisation correspondante (au moins un graphique en barres, un camembert, une courbe et un tableau, chacun dans sa propre section — n'affiche jamais tous les graphiques en bloc au début). Termine par un rapport PDF exportable et une section ## Sources avec liens profonds vers les fiches concernées.
 ```
 
-Expected output: methodology header → plan → bar chart + table (5 dimensions) → pie chart (activity) → line chart (quarterly KPIs) → churn risk + retention table → project health → document citations → `generateReport` card with **Télécharger PDF** button and deep links to `/dashboard/partners/184/scoring`.
+Expected output: an interleaved report — methodology header → plan → **Section 1** scoring prose + bar chart + table (5 dimensions) → **Section 2** activity prose + pie chart → **Section 3** KPI prose + line chart → **Section 4** churn prose + retention table → project health → document citations → `## Sources` → `generateReport` card with **Télécharger PDF** and deep links to `/dashboard/partners/184/scoring`. Each visual sits inside the section it illustrates (one bar, one pie, one line, one table), never front-loaded as a block.
 
 ### 🏆 Mega showcase 2 — Polytech Intl (Tunisian engineering university)
 
 ```
-Génère le rapport exécutif stratégique du partenaire universitaire Polytechnique Internationale (Polytech Intl) pour Capgemini Tunisia. Déclare d'abord ta méthodologie et ton plan d'analyse, puis : (1) score les 5 dimensions stratégiques de Polytech Intl — graphique en barres et tableau détaillé ; (2) répartition de l'activité (événements, réunions, recrutements) en camembert ; (3) évolution trimestrielle des KPIs en courbes ; (4) analyse le pipeline de recrutement (stages, alternances, conversions CDI) avec un plan de rétention des talents ; (5) évalue le risque de churn du partenariat académique ; (6) cite les obligations de l'accord-cadre depuis nos documents. Termine par un rapport PDF exportable et une section ## Sources avec liens profonds vers les fiches concernées.
+Génère le rapport exécutif stratégique du partenaire universitaire Polytechnique Internationale (Polytech Intl) pour Capgemini Tunisia. Déclare d'abord ta méthodologie et ton plan d'analyse, puis structure le rapport en sections claires : (1) score les 5 dimensions stratégiques de Polytech Intl — graphique en barres et tableau détaillé ; (2) répartition de l'activité (événements, réunions, recrutements) en camembert ; (3) évolution trimestrielle des KPIs en courbes ; (4) analyse le pipeline de recrutement (stages, alternances, conversions CDI) avec un plan de rétention des talents ; (5) évalue le risque de churn du partenariat académique ; (6) cite les obligations de l'accord-cadre depuis nos documents. Pour chaque section, rédige l'analyse puis insère juste après la visualisation correspondante (au moins un graphique en barres, un camembert, une courbe et un tableau, chacun dans sa propre section — n'affiche jamais tous les graphiques en bloc au début). Termine par un rapport PDF exportable et une section ## Sources avec liens profonds.
 ```
 
-Expected output: methodology header → plan → bar chart + table (5 dimensions) → pie chart (activity) → line chart (quarterly KPIs) → recruitment pipeline + talent-retention table → academic churn risk → accord-cadre citations → `generateReport` card with **Télécharger PDF** button and deep links to `/dashboard/partners/187/scoring`. Polytech Intl is a real EUR-ACE-accredited Tunisian engineering school — ideal when the jury knows the institution.
+Expected output: an interleaved report — methodology header → plan → **Section 1** scoring prose + bar chart + table (5 dimensions) → **Section 2** activity prose + pie chart → **Section 3** KPI prose + line chart → **Section 4** recruitment-pipeline prose + talent-retention table → academic churn risk → accord-cadre citations → `## Sources` → `generateReport` card with **Télécharger PDF** and deep links to `/dashboard/partners/187/scoring`. Each visual sits inside its section (one bar, one pie, one line, one table), never front-loaded. Polytech Intl is a real EUR-ACE-accredited Tunisian engineering school — ideal when the jury knows the institution.
 
 ### Portefeuille global (vue d'ensemble)
 
 ```
-Génère le rapport exécutif complet du portefeuille partenaires Capgemini Tunisia : répartition par catégorie (camembert), top 5 partenaires par score stratégique (tableau + graphique en barres), top 3 à risque de churn avec plan de rétention, indicateurs budgétaires par catégorie, et recommandations stratégiques prioritaires. Finalise avec un rapport PDF exportable.
+Génère le rapport exécutif complet du portefeuille partenaires Capgemini Tunisia, structuré en sections claires : répartition par catégorie (camembert), top 5 partenaires par score stratégique (tableau + graphique en barres), évolution des indicateurs clés (courbes), top 3 à risque de churn avec plan de rétention, indicateurs budgétaires par catégorie, et recommandations stratégiques prioritaires. Pour chaque section, rédige l'analyse puis insère juste après la visualisation correspondante (au moins un graphique en barres, un camembert, une courbe et un tableau, chacun dans sa propre section — jamais tous les graphiques en bloc au début). Finalise avec un rapport PDF exportable.
 ```
 
-Expected output: pie chart → bar chart → table → churn risk bar chart → table → `generateReport` card with **Télécharger PDF** button.
+Expected output: an interleaved report — category-breakdown prose + pie chart → top-partners prose + table + bar chart → KPI-trend prose + line chart → churn-risk prose + bar chart + table → budget indicators → strategic recommendations → `generateReport` card with **Télécharger PDF**.
 
 ### Scoring comparatif (3 partenaires)
 

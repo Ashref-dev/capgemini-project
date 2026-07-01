@@ -40,10 +40,10 @@ const STATUS_OPTIONS = [
 ] as const
 
 const STATUS_TINTS: Record<Milestone["status"], string> = {
-  pending: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-  in_progress: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
-  done: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
-  missed: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+  pending: "bg-muted text-muted-foreground",
+  in_progress: "bg-primary/10 text-primary",
+  done: "bg-success/15 text-success",
+  missed: "bg-destructive/10 text-destructive",
 }
 
 function relativeDays(d: string | null): string | null {
@@ -116,11 +116,11 @@ export function MilestonesTab({ projectId, isAdmin, onChange }: MilestonesTabPro
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold text-foreground">Jalons du projet</h3>
-          <p className="text-xs text-muted-foreground">
-            {items.length} jalon{items.length > 1 ? "s" : ""}
-          </p>
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground">
+            {items.length}
+          </span>
         </div>
         {isAdmin && (
           <Button
@@ -129,13 +129,16 @@ export function MilestonesTab({ projectId, isAdmin, onChange }: MilestonesTabPro
               setEditing(null)
               setFormOpen(true)
             }}
-            className="gap-1.5 bg-blue-600 text-white hover:bg-blue-700"
+            className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
             Ajouter un jalon
           </Button>
         )}
       </div>
+      <p className="-mt-2 text-xs text-muted-foreground">
+        Un jalon est une étape datée de la feuille de route — il porte une échéance et un statut.
+      </p>
 
       {loading ? (
         <div className="space-y-2">
@@ -171,12 +174,12 @@ export function MilestonesTab({ projectId, isAdmin, onChange }: MilestonesTabPro
                     className={cn(
                       "absolute -left-[31px] top-2 flex h-5 w-5 items-center justify-center rounded-full border-2 border-background ring-2",
                       m.status === "done"
-                        ? "bg-emerald-500 ring-emerald-200 dark:ring-emerald-900/40"
+                        ? "bg-success ring-success/30"
                         : m.status === "missed"
-                        ? "bg-red-500 ring-red-200 dark:ring-red-900/40"
+                        ? "bg-destructive ring-destructive/30"
                         : m.status === "in_progress"
-                        ? "bg-amber-500 ring-amber-200 dark:ring-amber-900/40"
-                        : "bg-blue-500 ring-blue-200 dark:ring-blue-900/40",
+                        ? "bg-primary ring-primary/30"
+                        : "bg-muted-foreground/40 ring-border",
                     )}
                   >
                     {m.status === "done" && (
@@ -210,7 +213,7 @@ export function MilestonesTab({ projectId, isAdmin, onChange }: MilestonesTabPro
                           <p className="mt-2 text-sm text-muted-foreground">{m.description}</p>
                         )}
                         {m.blockers && (
-                          <div className="mt-2 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-300">
+                          <div className="mt-2 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
                             <HugeiconsIcon icon={AlertCircleIcon} className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                             <span>{m.blockers}</span>
                           </div>
@@ -233,7 +236,7 @@ export function MilestonesTab({ projectId, isAdmin, onChange }: MilestonesTabPro
                             type="button"
                             aria-label="Supprimer"
                             onClick={() => setConfirmId(m.id)}
-                            className="rounded-lg p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
+                            className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                           >
                             <HugeiconsIcon icon={Delete02Icon} className="h-3.5 w-3.5" />
                           </button>
@@ -466,7 +469,7 @@ function ConfirmModal({
         className="w-full max-w-md rounded-2xl border border-border/60 bg-card p-6 shadow-2xl"
       >
         <div className="mb-3 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
             <HugeiconsIcon icon={AlertCircleIcon} className="h-5 w-5" />
           </div>
           <div>
@@ -489,7 +492,7 @@ function ConfirmModal({
                 setBusy(false)
               }
             }}
-            className="gap-2 bg-red-600 text-white hover:bg-red-700"
+            className="gap-2 bg-destructive text-white hover:bg-destructive/90"
           >
             {busy && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
             Supprimer

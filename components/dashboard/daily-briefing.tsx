@@ -182,8 +182,7 @@ export function DailyBriefing() {
       </div>
 
       <p className="mt-3 text-[10px] uppercase tracking-wider text-muted-foreground/70">
-        Généré {new Date(data.generatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })} ·
-        IA déterministe (sans hallucinations)
+        Généré {new Date(data.generatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
       </p>
     </motion.section>
   )

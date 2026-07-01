@@ -236,9 +236,7 @@ export function Composer({
               <HugeiconsIcon icon={Cancel01Icon} className="h-3 w-3" />
               Effacer
             </button>
-          ) : (
-            <span className="text-[11px] text-muted-foreground/70">Données réelles · zéro hallucination</span>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

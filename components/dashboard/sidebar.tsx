@@ -14,7 +14,6 @@ import {
   ContactBookIcon,
   AnalyticsUpIcon,
   AiChat02Icon,
-  FileAttachmentIcon,
   Calendar03Icon,
   Briefcase01Icon,
   UserAdd01Icon,
@@ -62,7 +61,6 @@ const navGroups: NavGroup[] = [
     label: "IA & Outils",
     items: [
       { label: "AI Agent", href: "/dashboard/agent", icon: AiChat02Icon },
-      { label: "Reports", href: "/dashboard/reports", icon: FileAttachmentIcon },
     ],
   },
   {

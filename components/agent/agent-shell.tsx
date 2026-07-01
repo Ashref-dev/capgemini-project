@@ -7,6 +7,8 @@ import { Add01Icon, PanelLeftOpenIcon } from "@hugeicons/core-free-icons"
 
 import { useAgentChat } from "@/hooks/use-agent-chat"
 import { AgentHeader } from "./agent-header"
+import { ClarificationPrompt } from "./clarification-prompt"
+import { selectActiveClarification } from "./clarification-selector"
 import { Composer } from "./composer"
 import { EmptyAgentState } from "./empty-agent-state"
 import { MessageList } from "./message-list"
@@ -82,6 +84,10 @@ export function AgentShell({ userKey, userName, initialThreadId }: AgentShellPro
   )
 
   const plan = React.useMemo(() => selectLatestPlan(chat.messages), [chat.messages])
+  const clarification = React.useMemo(
+    () => selectActiveClarification(chat.messages),
+    [chat.messages],
+  )
 
   const handleSelect = React.useCallback(
     (id: number) => {
@@ -188,30 +194,47 @@ export function AgentShell({ userKey, userName, initialThreadId }: AgentShellPro
           onNewThread={handleNewThread}
         />
 
-        {plan ? (
-          <div className="z-20 shrink-0 border-b border-border/60 bg-background/80 px-3 py-2">
-            <PlanHud plan={plan} />
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          {plan ? (
+            <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-end px-3 sm:px-4">
+              <div className="pointer-events-auto">
+                <PlanHud plan={plan} isStreaming={chat.isStreaming} />
+              </div>
+            </div>
+          ) : null}
+
+          {chat.isThreadLoading ? (
+            <div className="flex-1 overflow-y-auto">
+              <MessageListSkeleton />
+            </div>
+          ) : showEmptyState ? (
+            <div className="flex-1 overflow-y-auto">
+              <EmptyAgentState userName={userName} />
+            </div>
+          ) : (
+            <MessageList
+              messages={chat.messages}
+              isStreaming={chat.isStreaming}
+              pendingUserText={chat.pendingUserText}
+              threadError={chat.threadError}
+              onRetry={chat.regenerate}
+              onSuggestionClick={handleSubmit}
+            />
+          )}
+        </div>
+
+        {clarification ? (
+          <div className="border-t border-border/60 bg-background px-3 py-3 sm:px-4">
+            <div className="mx-auto w-full max-w-[840px]">
+              <ClarificationPrompt
+                question={clarification.question}
+                reason={clarification.reason}
+                options={clarification.options}
+                onSelect={handleSubmit}
+              />
+            </div>
           </div>
         ) : null}
-
-        {chat.isThreadLoading ? (
-          <div className="flex-1 overflow-y-auto">
-            <MessageListSkeleton />
-          </div>
-        ) : showEmptyState ? (
-          <div className="flex-1 overflow-y-auto">
-            <EmptyAgentState userName={userName} />
-          </div>
-        ) : (
-          <MessageList
-            messages={chat.messages}
-            isStreaming={chat.isStreaming}
-            pendingUserText={chat.pendingUserText}
-            threadError={chat.threadError}
-            onRetry={chat.regenerate}
-            onSuggestionClick={handleSubmit}
-          />
-        )}
 
         <Composer
           value={chat.input}

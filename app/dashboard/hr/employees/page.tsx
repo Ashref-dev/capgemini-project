@@ -1,15 +1,15 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, type ReactNode } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/toast"
 import { Label } from "@/components/ui/label"
-import { motion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { UserGroupIcon, UserIcon, CheckmarkSquare01Icon, Money01Icon } from "@hugeicons/core-free-icons"
-import { CapgeminiTable, CapgeminiTableColumn, StatusBadge, DetailPanel, DetailCard } from "@/components/ui/capgemini-table"
+import { UserGroupIcon, UserIcon, CheckmarkSquare01Icon, Money01Icon, Edit02Icon } from "@hugeicons/core-free-icons"
+import { CapgeminiTable, CapgeminiTableColumn, StatusBadge } from "@/components/ui/capgemini-table"
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { SparklesText } from "@/components/ui/sparkles-text"
 import { GradientStatCard } from "@/components/ui/gradient-stat-card"
 
@@ -43,16 +43,31 @@ const roleColors: Record<string, string> = {
   rh: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
 }
 
+const formatSalary = (salary: number | null) =>
+  salary != null ? `${salary.toLocaleString("fr-FR")} TND` : "—"
+
+const formatDate = (date: string | null) =>
+  date ? new Date(date).toLocaleDateString("fr-FR") : "—"
+
+function DetailRow({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="border-b border-border py-3">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="mt-1 text-sm font-medium text-foreground">{value}</dd>
+    </div>
+  )
+}
+
 export default function HREmployeesPage() {
   const { user } = useAuth()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [roleFilter, setRoleFilter] = useState("")
-  const [editingId, setEditingId] = useState<number | null>(null)
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState<Partial<Employee>>({})
   const [saving, setSaving] = useState(false)
-  const closeDetailRef = useRef<(() => void) | null>(null)
 
   const fetchEmployees = useCallback(async () => {
     setLoading(true)
@@ -75,8 +90,14 @@ export default function HREmployeesPage() {
     fetchEmployees()
   }, [fetchEmployees])
 
+  const openDetail = (emp: Employee) => {
+    setSelectedEmployee(emp)
+    setIsEditing(false)
+    setEditForm({})
+  }
+
   const startEdit = (emp: Employee) => {
-    setEditingId(emp.id)
+    setIsEditing(true)
     setEditForm({
       salary: emp.salary,
       department: emp.department,
@@ -87,25 +108,31 @@ export default function HREmployeesPage() {
   }
 
   const cancelEdit = () => {
-    setEditingId(null)
+    setIsEditing(false)
     setEditForm({})
   }
 
-  const saveEdit = async (onClose?: () => void) => {
-    if (!editingId) return
+  const closeDetail = () => {
+    setSelectedEmployee(null)
+    setIsEditing(false)
+    setEditForm({})
+  }
+
+  const saveEdit = async () => {
+    if (!selectedEmployee) return
     setSaving(true)
     try {
       const res = await fetch("/api/hr/employees", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingId, ...editForm }),
+        body: JSON.stringify({ id: selectedEmployee.id, ...editForm }),
       })
       const data = await res.json()
       if (res.ok) {
         toast.success("Employé mis à jour", { description: "Les modifications ont été enregistrées." })
-        setEditingId(null)
+        setSelectedEmployee({ ...selectedEmployee, ...editForm })
+        setIsEditing(false)
         setEditForm({})
-        onClose?.()
         fetchEmployees()
       } else {
         toast.error("Erreur", { description: data.error })
@@ -219,7 +246,7 @@ export default function HREmployeesPage() {
             key: "salary", label: "Salaire", weight: 1.5,
             render: emp => (
               <span className={`text-sm font-medium ${emp.salary ? "text-foreground" : "text-muted-foreground"}`}>
-                {emp.salary ? `${emp.salary.toLocaleString()} TND` : "—"}
+                {formatSalary(emp.salary)}
               </span>
             ),
           },
@@ -240,22 +267,40 @@ export default function HREmployeesPage() {
         emptyMessage="Aucun employé trouvé"
         keyExtractor={emp => emp.id}
         getRowGradient={emp => emp.isActive ? "from-emerald-500/8 to-transparent" : "from-muted/20 to-transparent"}
-        renderDetail={(emp, onClose) => {
-          const isEditing = editingId === emp.id
-          return (
-            <DetailPanel
-              onClose={() => { if (isEditing) cancelEdit(); onClose(); }}
-              title={`${emp.firstName} ${emp.lastName}`}
-            >
-              {isEditing ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5 col-span-2">
+        onRowClick={openDetail}
+      />
+
+      {/* Detail / edit drawer */}
+      <Sheet open={selectedEmployee !== null} onOpenChange={(open) => { if (!open) closeDetail() }}>
+        <SheetContent side="right" className="flex w-full flex-col overflow-y-auto p-0 sm:max-w-xl">
+          {selectedEmployee && (
+            <>
+              <SheetHeader className="border-b border-border px-6 py-5 text-left">
+                <SheetTitle>
+                  {isEditing ? "Modifier l'employé" : `${selectedEmployee.firstName} ${selectedEmployee.lastName}`}
+                </SheetTitle>
+                <SheetDescription asChild>
+                  <span className="flex items-center gap-2">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${roleColors[selectedEmployee.role] || ""}`}>
+                      {roleLabels[selectedEmployee.role] || selectedEmployee.role}
+                    </span>
+                  </span>
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="flex-1 px-6 py-5">
+                {isEditing ? (
+                  <form
+                    id="employee-edit-form"
+                    onSubmit={(e) => { e.preventDefault(); saveEdit() }}
+                    className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+                  >
+                    <div className="space-y-1.5 sm:col-span-2">
                       <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Rôle</Label>
                       <select
-                        value={editForm.role ?? emp.role}
+                        value={editForm.role ?? selectedEmployee.role}
                         onChange={e => setEditForm({ ...editForm, role: e.target.value })}
-                        className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm"
+                        className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                       >
                         {Object.entries(roleLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                       </select>
@@ -280,41 +325,53 @@ export default function HREmployeesPage() {
                       <select
                         value={editForm.isActive ? "true" : "false"}
                         onChange={e => setEditForm({ ...editForm, isActive: e.target.value === "true" })}
-                        className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm"
+                        className="w-full h-9 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                       >
                         <option value="true">Actif</option>
                         <option value="false">Inactif</option>
                       </select>
                     </div>
-                  </div>
-                  <div className="flex gap-2 pt-2">
-                    <Button onClick={() => saveEdit(onClose)} disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white">
-                      <HugeiconsIcon icon={CheckmarkSquare01Icon} className="w-4 h-4 mr-2" />
-                      {saving ? "Enregistrement..." : "Sauvegarder"}
+                  </form>
+                ) : (
+                  <dl className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-6">
+                    <DetailRow label="Email" value={selectedEmployee.email} />
+                    <DetailRow label="Téléphone" value={selectedEmployee.phone || "—"} />
+                    <DetailRow label="Rôle" value={roleLabels[selectedEmployee.role] || selectedEmployee.role} />
+                    <DetailRow label="Département" value={selectedEmployee.department || "—"} />
+                    <DetailRow label="Salaire" value={formatSalary(selectedEmployee.salary)} />
+                    <DetailRow label="Date d'embauche" value={formatDate(selectedEmployee.hireDate)} />
+                    <DetailRow
+                      label="Statut"
+                      value={<StatusBadge status={selectedEmployee.isActive ? "success" : "neutral"} label={selectedEmployee.isActive ? "Actif" : "Inactif"} />}
+                    />
+                  </dl>
+                )}
+              </div>
+
+              <SheetFooter className="border-t border-border px-6 py-4">
+                {isEditing ? (
+                  <>
+                    <Button type="button" variant="ghost" onClick={cancelEdit} disabled={saving}>Annuler</Button>
+                    <Button type="submit" form="employee-edit-form" disabled={saving} className="gap-2">
+                      <HugeiconsIcon icon={CheckmarkSquare01Icon} className="size-4" />
+                      {saving ? "Enregistrement..." : "Enregistrer"}
                     </Button>
-                    <Button variant="ghost" onClick={cancelEdit}>Annuler</Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <DetailCard label="Email" value={emp.email} />
-                    <DetailCard label="Téléphone" value={emp.phone || "—"} />
-                    <DetailCard label="Rôle" value={roleLabels[emp.role] || emp.role} />
-                    <DetailCard label="Département" value={emp.department || "—"} />
-                    <DetailCard label="Salaire" value={emp.salary ? `${emp.salary.toLocaleString()} TND` : "—"} />
-                    <DetailCard label="Date embauche" value={emp.hireDate ? new Date(emp.hireDate).toLocaleDateString("fr-FR") : "—"} />
-                    <DetailCard label="Statut" value={<StatusBadge status={emp.isActive ? "success" : "neutral"} label={emp.isActive ? "Actif" : "Inactif"} />} />
-                  </div>
-                  <Button onClick={() => startEdit(emp)} className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Modifier cet employé
+                  </>
+                ) : (
+                  <Button
+                    type="button"
+                    className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={() => startEdit(selectedEmployee)}
+                  >
+                    <HugeiconsIcon icon={Edit02Icon} className="size-4" />
+                    Modifier
                   </Button>
-                </div>
-              )}
-            </DetailPanel>
-          )
-        }}
-      />
+                )}
+              </SheetFooter>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
