@@ -53,7 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col overflow-x-hidden">
         {/* ── Header ── */}
-        <header className="h-16 border-b border-[#0070AD]/10 dark:border-white/10 bg-white/95 dark:bg-[#000e24]/95 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-40">
+        <header className="h-16 border-b border-border bg-card/95 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-40">
           {/* Left: mobile menu + brand + app title */}
           <div className="flex items-center gap-3 min-w-0">
             <DashboardMobileSidebar userRole={user.role} />
@@ -74,10 +74,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <ThemeToggle />
             <Link
               href="/dashboard/notifications"
-              className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="relative flex h-9 w-9 items-center justify-center rounded-md border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               aria-label="Notifications"
             >
-              <HugeiconsIcon icon={Notification03Icon} className="w-4 h-4" />
+              <HugeiconsIcon icon={Notification03Icon} size={18} strokeWidth={2.2} />
             </Link>
             <UserMenu />
           </div>

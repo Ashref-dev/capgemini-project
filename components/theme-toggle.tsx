@@ -8,7 +8,7 @@ import {
   MoonIcon,
   ComputerIcon,
 } from "@hugeicons/core-free-icons";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const THEME_OPTIONS = [
@@ -29,6 +29,7 @@ export interface ThemeToggleProps {
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
+  const reduceMotion = useReducedMotion();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -36,47 +37,55 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
   }, []);
 
   if (!mounted) {
-    return <div className={cn("flex h-7 w-[84px]", className)} />;
+    return <div className={cn("h-9 w-[6.75rem]", className)} />;
   }
 
+  const pillTransition = reduceMotion
+    ? { duration: 0 }
+    : { type: "spring" as const, stiffness: 380, damping: 32 };
+
   return (
-    <motion.div
-      key="theme-toggle-mounted"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
+    <div
       className={cn(
-        "inline-flex items-center overflow-hidden rounded-md border bg-muted/80",
+        "inline-flex h-9 items-center gap-0.5 rounded-md border border-border bg-muted p-0.5",
         className
       )}
       role="radiogroup"
       aria-label="Choisir le thème"
     >
-      {THEME_OPTIONS.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          role="radio"
-          aria-checked={theme === option.value}
-          aria-label={`Thème ${option.label}`}
-          onClick={() => setTheme(option.value)}
-          className={cn(
-            "relative flex size-7 cursor-pointer items-center justify-center rounded-md transition-colors",
-            theme === option.value
-              ? "text-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {theme === option.value && (
-            <motion.div
-              layoutId="theme-option"
-              transition={{ type: "spring", bounce: 0.1, duration: 0.75 }}
-              className="absolute inset-0 rounded-md border border-muted-foreground/50"
+      {THEME_OPTIONS.map((option) => {
+        const active = theme === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            aria-label={`Thème ${option.label}`}
+            onClick={() => setTheme(option.value)}
+            className={cn(
+              "relative flex size-8 cursor-pointer items-center justify-center rounded-[5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+              active
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {active && (
+              <motion.span
+                layoutId="theme-active-pill"
+                transition={pillTransition}
+                className="absolute inset-0 rounded-[5px] bg-card shadow-sm ring-1 ring-border"
+              />
+            )}
+            <HugeiconsIcon
+              icon={option.icon}
+              size={16}
+              strokeWidth={2.2}
+              className="relative z-10"
             />
-          )}
-          <HugeiconsIcon icon={option.icon} className="size-3.5" />
-        </button>
-      ))}
-    </motion.div>
+          </button>
+        );
+      })}
+    </div>
   );
 }
