@@ -30,6 +30,7 @@ import {
   ChartLineData02Icon,
   CheckmarkCircle02Icon,
   Delete01Icon,
+  Discount01Icon,
   Edit02Icon,
   EyeIcon,
   FileAttachmentIcon,
@@ -267,6 +268,12 @@ export default function PartnersPage() {
                     Documents
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/dashboard/partners/${p.id}/offers`} className="cursor-pointer">
+                    <HugeiconsIcon icon={Discount01Icon} className="size-4" />
+                    Offres
+                  </Link>
+                </DropdownMenuItem>
                 {isAdmin && (
                   <>
                     <DropdownMenuItem asChild>
@@ -448,6 +455,12 @@ export default function PartnersPage() {
                   <Link href={`/dashboard/partners/${selectedPartner.id}/documents`}>
                     <HugeiconsIcon icon={FileAttachmentIcon} className="size-4" />
                     Documents
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="cursor-pointer">
+                  <Link href={`/dashboard/partners/${selectedPartner.id}/offers`}>
+                    <HugeiconsIcon icon={Discount01Icon} className="size-4" />
+                    Offres
                   </Link>
                 </Button>
                 {isAdmin && (

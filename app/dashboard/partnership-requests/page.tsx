@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
+import { motion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { GradientStatCard } from "@/components/ui/gradient-stat-card"
 import {
@@ -520,42 +520,14 @@ export default function PartnershipRequestsPage() {
 }
 
 function RequestCard({ children, index }: { children: React.ReactNode; index: number }) {
-  const mouseX = useMotionValue(0)
-  const mouseY = useMotionValue(0)
-  const springConfig = { damping: 15, stiffness: 150 }
-  const springX = useSpring(mouseX, springConfig)
-  const springY = useSpring(mouseY, springConfig)
-  const rotateX = useTransform(springY, [-0.5, 0.5], ["10.5deg", "-10.5deg"])
-  const rotateY = useTransform(springX, [-0.5, 0.5], ["-10.5deg", "10.5deg"])
-
-  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-    const rect = e.currentTarget.getBoundingClientRect()
-    mouseX.set((e.clientX - rect.left) / rect.width - 0.5)
-    mouseY.set((e.clientY - rect.top) / rect.height - 0.5)
-  }
-
-  function handleMouseLeave() {
-    mouseX.set(0)
-    mouseY.set(0)
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.03 }}
-      style={{ perspective: "1000px" }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
     >
-      <motion.div
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        className="overflow-hidden rounded-2xl border border-primary/20 bg-card shadow-sm dark:border-border"
-      >
-        <div style={{ transform: "translateZ(30px)", transformStyle: "preserve-3d" }}>
-          {children}
-        </div>
-      </motion.div>
+      {children}
     </motion.div>
   )
 }

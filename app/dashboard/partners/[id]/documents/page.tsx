@@ -6,11 +6,11 @@ import { motion, AnimatePresence } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   FileAttachmentIcon,
-  Upload04Icon,
   Download04Icon,
   Delete02Icon,
   ArrowLeft01Icon,
   Search01Icon,
+  ViewIcon,
 } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,6 +19,10 @@ import { Spinner } from "@/components/ui/spinner"
 import { toast } from "@/components/ui/toast"
 import { AddButton } from "@/components/ui/add-button"
 import { FileCard, extToFormat } from "@/components/ui/file-card"
+import {
+  DocumentPreviewDialog,
+  type PreviewDocument,
+} from "@/components/partner/document-preview-dialog"
 import { useAuth } from "@/hooks/use-auth"
 import Link from "next/link"
 
@@ -47,6 +51,12 @@ function getExt(name: string): string {
   return name.split(".").pop()?.toLowerCase() || "code"
 }
 
+/** Removes a leading `[demo:...]` marker from a description for display only. */
+function cleanDescription(description: string | null): string {
+  if (!description) return ""
+  return description.replace(/^\s*\[demo:[^\]]*\]\s*/i, "").trim()
+}
+
 const container = {
   hidden: {},
   show: { transition: { staggerChildren: 0.06 } },
@@ -69,6 +79,9 @@ export default function PartnerDocumentsPage() {
   const [search, setSearch] = useState("")
   const [description, setDescription] = useState("")
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewDoc, setPreviewDoc] = useState<PreviewDocument | null>(null)
+  const [previewDescription, setPreviewDescription] = useState("")
+  const [previewOpen, setPreviewOpen] = useState(false)
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -139,8 +152,14 @@ export default function PartnerDocumentsPage() {
     }
   }
 
-  const handleDownload = (doc: Document) => {
+  const handleDownload = (doc: Pick<Document, "id">) => {
     window.open(`/api/documents/download?id=${doc.id}`, "_blank")
+  }
+
+  const handlePreview = (doc: Document) => {
+    setPreviewDoc({ id: doc.id, originalName: doc.originalName, fileType: doc.fileType })
+    setPreviewDescription(cleanDescription(doc.description))
+    setPreviewOpen(true)
   }
 
   const isAdmin = user?.role === "admin" || user?.role === "manager"
@@ -265,6 +284,7 @@ export default function PartnerDocumentsPage() {
         >
           {filtered.map((doc) => {
             const format = extToFormat(getExt(doc.originalName))
+            const cleanedDescription = cleanDescription(doc.description)
             return (
               <motion.div key={doc.id} variants={item}>
                 <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col gap-4">
@@ -276,8 +296,8 @@ export default function PartnerDocumentsPage() {
                       <p className="font-semibold text-sm text-foreground truncate" title={doc.originalName}>
                         {doc.originalName}
                       </p>
-                      {doc.description && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{doc.description}</p>
+                      {cleanedDescription && (
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{cleanedDescription}</p>
                       )}
                     </div>
                   </div>
@@ -300,6 +320,15 @@ export default function PartnerDocumentsPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => handlePreview(doc)}
+                    >
+                      <HugeiconsIcon icon={ViewIcon} className="w-4 h-4 mr-2" />
+                      Aperçu
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
@@ -326,6 +355,14 @@ export default function PartnerDocumentsPage() {
           })}
         </motion.div>
       )}
+
+      <DocumentPreviewDialog
+        document={previewDoc}
+        description={previewDescription}
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        onDownload={handleDownload}
+      />
     </div>
   )
 }

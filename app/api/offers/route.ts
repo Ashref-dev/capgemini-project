@@ -90,3 +90,51 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Erreur lors de la suppression" }, { status: 500 })
   }
 }
+
+// PATCH /api/offers (admin/manager)
+export async function PATCH(request: NextRequest) {
+  const user = await getSessionUser(request)
+  if (!user) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+  }
+  if (!isAdminOrManager(user.role)) {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
+  }
+
+  try {
+    const body = await request.json()
+    const id = Number(body.id)
+    if (!Number.isInteger(id) || id <= 0) {
+      return NextResponse.json({ error: "ID invalide" }, { status: 400 })
+    }
+    if (!body.title) {
+      return NextResponse.json({ error: "Titre requis" }, { status: 400 })
+    }
+
+    const updated = await db
+      .update(offers)
+      .set({
+        title: body.title,
+        description: body.description ?? null,
+        discountType: body.discountType || "percentage",
+        startDate: body.startDate || null,
+        endDate: body.endDate || null,
+        termsConditions: body.termsConditions ?? null,
+        isActive: body.isActive ?? true,
+        totalValueTnd: body.totalValueTnd ?? null,
+        targetAudience: body.targetAudience ?? null,
+        updatedAt: new Date(),
+      })
+      .where(eq(offers.id, id))
+      .returning()
+
+    if (updated.length === 0) {
+      return NextResponse.json({ error: "Offre introuvable" }, { status: 404 })
+    }
+
+    return NextResponse.json({ offer: updated[0] })
+  } catch (error) {
+    console.error("Error updating offer:", error)
+    return NextResponse.json({ error: "Erreur lors de la mise à jour" }, { status: 500 })
+  }
+}
