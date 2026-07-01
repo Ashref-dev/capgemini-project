@@ -39,6 +39,11 @@ function toPersistedAssistantPart(part: unknown): PersistedAssistantPart | null 
     return text === undefined ? null : { type: "text", text }
   }
 
+  if (part.type === "reasoning") {
+    const text = getStringField(part, "text")
+    return text === undefined ? null : { type: "reasoning", text }
+  }
+
   const toolName = getStringField(part, "toolName")
   if (!toolName) return null
 
@@ -269,6 +274,7 @@ export async function POST(req: NextRequest) {
     })
 
     return result.toUIMessageStreamResponse({
+      sendReasoning: true,
       consumeSseStream: consumeStream,
       onError: formatOpenRouterError,
     })

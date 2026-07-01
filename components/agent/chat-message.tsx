@@ -15,6 +15,7 @@ import { InteractiveTable } from "./interactive-table"
 import { LineChart } from "./line-chart"
 import { MethodologyHeader } from "./methodology-header"
 import { PieChart } from "./pie-chart"
+import { ReasoningTrace } from "./reasoning-trace"
 import { ReportPreview, type ReportChart } from "./report-preview"
 import { ToolCallCard } from "./tool-call-card"
 import { ToolCallStack } from "./tool-call-stack"
@@ -491,6 +492,18 @@ export function ChatMessage({ message, isStreaming, onSuggestionClick }: ChatMes
                 {stripInlineDocumentCitations(stripNonNavigableLinks(part.text))}
               </Streamdown>
             </div>
+          )
+        }
+
+        if (part.type === "reasoning") {
+          const reasoningText = typeof part.text === "string" ? part.text : ""
+          const partState = "state" in part && typeof part.state === "string" ? part.state : undefined
+          return (
+            <ReasoningTrace
+              key={partKey}
+              text={reasoningText}
+              isStreaming={Boolean(isStreaming) && partState !== "done"}
+            />
           )
         }
 
