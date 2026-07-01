@@ -23,7 +23,7 @@ export const CAPABILITIES: CapabilityStarter[] = [
     id: "langsmith",
     command: "/langsmith",
     icon: AiBrain01Icon,
-    label: "LangSmith",
+    label: "Analyse LangSmith",
     description: "Rapport exécutif du partenaire fournisseur LangSmith — scoring, churn, RAG, PDF.",
     featured: true,
     prompt:
@@ -33,7 +33,7 @@ export const CAPABILITIES: CapabilityStarter[] = [
     id: "polytech",
     command: "/polytech",
     icon: MortarboardIcon,
-    label: "Polytech Intl",
+    label: "Analyse Polytech",
     description: "Rapport exécutif du partenaire universitaire Polytech Intl — pipeline CDI, RAG, PDF.",
     featured: true,
     prompt:

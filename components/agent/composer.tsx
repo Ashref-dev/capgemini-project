@@ -7,7 +7,6 @@ import { SentIcon, StopIcon, Cancel01Icon } from "@hugeicons/core-free-icons"
 import { cn } from "@/lib/utils"
 import { Spinner } from "@/components/ui/spinner"
 import { SLASH_COMMANDS } from "./capabilities"
-import { PromptStarters } from "./prompt-starters"
 import { SlashCommandMenu } from "./slash-command-menu"
 import type { SlashCommand } from "./types"
 
@@ -23,8 +22,6 @@ interface ComposerProps {
   disabled?: boolean
   placeholder?: string
   textareaRef: React.RefObject<HTMLTextAreaElement | null>
-  showSuggestions?: boolean
-  onSuggestionSelect?: (prompt: string) => void
 }
 
 function filterCommands(query: string): SlashCommand[] {
@@ -47,8 +44,6 @@ export function Composer({
   disabled,
   placeholder,
   textareaRef,
-  showSuggestions,
-  onSuggestionSelect,
 }: ComposerProps) {
   const isComposingRef = React.useRef(false)
   const [menuOpen, setMenuOpen] = React.useState(false)
@@ -213,14 +208,6 @@ export function Composer({
             </button>
           )}
         </div>
-
-        {showSuggestions && onSuggestionSelect && value.trim().length === 0 ? (
-          <PromptStarters
-            onSelect={onSuggestionSelect}
-            disabled={disabled || isBusy}
-            className="mt-2.5"
-          />
-        ) : null}
 
         <div className="mt-1.5 flex items-center justify-between px-1">
           <p className="text-[11px] text-muted-foreground">

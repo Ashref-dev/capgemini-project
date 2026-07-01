@@ -3,10 +3,14 @@
 import * as React from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { AiChat02Icon, ArrowDown01Icon } from "@hugeicons/core-free-icons"
+import { AiChat02Icon } from "@hugeicons/core-free-icons"
+
+import { PromptStarters } from "./prompt-starters"
 
 interface EmptyAgentStateProps {
   userName?: string | null
+  onSuggestionSelect?: (prompt: string) => void
+  disabled?: boolean
 }
 
 function useGreeting(): string {
@@ -19,7 +23,7 @@ function useGreeting(): string {
   }, [])
 }
 
-export function EmptyAgentState({ userName }: EmptyAgentStateProps) {
+export function EmptyAgentState({ userName, onSuggestionSelect, disabled }: EmptyAgentStateProps) {
   const greeting = useGreeting()
   const reduceMotion = useReducedMotion()
   const firstName = userName?.trim().split(/\s+/)[0] ?? null
@@ -70,23 +74,15 @@ export function EmptyAgentState({ userName }: EmptyAgentStateProps) {
           chaque réponse s&apos;appuie uniquement sur vos données réelles.
         </motion.p>
 
-        <motion.div
-          variants={item}
-          className="mt-7 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground/80"
-        >
-          <span>Suggestions sous le champ de saisie</span>
-          {!reduceMotion ? (
-            <motion.span
-              animate={{ y: [0, 3, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-              className="text-primary"
-            >
-              <HugeiconsIcon icon={ArrowDown01Icon} className="h-3.5 w-3.5" />
-            </motion.span>
-          ) : (
-            <HugeiconsIcon icon={ArrowDown01Icon} className="h-3.5 w-3.5 text-primary" />
-          )}
-        </motion.div>
+        {onSuggestionSelect ? (
+          <motion.div variants={item} className="mt-8 w-full">
+            <PromptStarters
+              onSelect={onSuggestionSelect}
+              disabled={disabled}
+              className="justify-center"
+            />
+          </motion.div>
+        ) : null}
       </motion.div>
     </div>
   )

@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
-import { CapgeminiLogo } from "@/components/icons"
+import { CapgeminiLogo, CapgeminiLogoSmall } from "@/components/icons"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
@@ -116,9 +116,9 @@ function SidebarLogo({ open }: { open: boolean }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary shadow-sm shadow-primary/30"
+              className="flex items-center justify-center"
             >
-              <span className="text-white font-bold text-xs">IC</span>
+              <CapgeminiLogoSmall size="md" />
             </motion.div>
           )}
         </AnimatePresence>

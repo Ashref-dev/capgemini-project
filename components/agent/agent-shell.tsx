@@ -109,6 +109,15 @@ export function AgentShell({ userKey, userName, initialThreadId }: AgentShellPro
     [chat],
   )
 
+  // Suggestion pills fill the composer without sending, so the user can edit first.
+  const handleSuggestionFill = React.useCallback(
+    (value: string) => {
+      chat.setInput(value)
+      window.setTimeout(() => chat.textareaRef.current?.focus(), 0)
+    },
+    [chat],
+  )
+
   const showEmptyState =
     !chat.isThreadLoading && chat.messages.length === 0 && chat.pendingUserText === null
 
@@ -209,7 +218,11 @@ export function AgentShell({ userKey, userName, initialThreadId }: AgentShellPro
             </div>
           ) : showEmptyState ? (
             <div className="flex-1 overflow-y-auto">
-              <EmptyAgentState userName={userName} />
+              <EmptyAgentState
+                userName={userName}
+                onSuggestionSelect={handleSuggestionFill}
+                disabled={chat.isBusy}
+              />
             </div>
           ) : (
             <MessageList
@@ -245,8 +258,6 @@ export function AgentShell({ userKey, userName, initialThreadId }: AgentShellPro
           isBusy={chat.isBusy}
           disabled={chat.isThreadLoading}
           textareaRef={chat.textareaRef}
-          showSuggestions={showEmptyState}
-          onSuggestionSelect={handleSubmit}
         />
       </div>
     </div>
