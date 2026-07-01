@@ -44,3 +44,18 @@ export function stripNonNavigableLinks(markdown: string): string {
     isNavigableHref(href) ? match : label,
   )
 }
+
+// The agent emits raw RAG citation tokens like "[partner_document#29-chunk-0]"
+// that map to no route, so they render as literal bracket noise. Sources are
+// already surfaced as real deep links in the final "## Sources" section, so we
+// drop these inline tokens (and any leftover space before them) before display.
+const INLINE_DOCUMENT_CITATION_PATTERN =
+  / ?\[(?:partner_document|project_document)#\d+-chunk-\d+\]/g
+
+export function stripInlineDocumentCitations(markdown: string): string {
+  if (typeof markdown !== "string" || markdown.length === 0) {
+    return markdown
+  }
+
+  return markdown.replace(INLINE_DOCUMENT_CITATION_PATTERN, "")
+}

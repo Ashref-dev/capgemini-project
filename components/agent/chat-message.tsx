@@ -19,7 +19,13 @@ import { ReportPreview, type ReportChart } from "./report-preview"
 import { ToolCallCard } from "./tool-call-card"
 import { ToolCallStack } from "./tool-call-stack"
 import { groupToolParts } from "./tool-grouping"
-import { cn, isInternalDashboardHref, isNavigableHref, stripNonNavigableLinks } from "@/lib/utils"
+import {
+  cn,
+  isInternalDashboardHref,
+  isNavigableHref,
+  stripInlineDocumentCitations,
+  stripNonNavigableLinks,
+} from "@/lib/utils"
 
 export { isInternalDashboardHref } from "@/lib/utils"
 
@@ -482,7 +488,7 @@ export function ChatMessage({ message, isStreaming, onSuggestionClick }: ChatMes
                 animated={Boolean(isStreaming)}
                 linkSafety={{ enabled: false }}
               >
-                {stripNonNavigableLinks(part.text)}
+                {stripInlineDocumentCitations(stripNonNavigableLinks(part.text))}
               </Streamdown>
             </div>
           )

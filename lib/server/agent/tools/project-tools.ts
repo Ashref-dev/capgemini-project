@@ -110,7 +110,7 @@ export const crossEntityAnalysisTool = tool({
 
 export const searchDocumentsTool = tool({
   description:
-    "Vector search over partner + project documents. Returns top-K most similar chunks with citations like 'partner_document#42-chunk-3'. Use when the user asks about document content, contract terms, or anything that might be in a stored document. After using this tool, ALWAYS cite chunks in your answer using the citation format [docKind#docId-chunk-N].",
+    "Vector search over partner + project documents. Returns top-K most similar chunks. Use when the user asks about document content, contract terms, or anything that might be in a stored document. Ground your prose in the returned chunks, but NEVER paste the raw 'partner_document#..-chunk-..' id tokens into your answer — they render as broken bracket noise. Attribute documents by their human title in the sentence and list them once in the final ## Sources section.",
   inputSchema: z.object({
     query: z.string().min(3).describe("The user's question or search query"),
     topK: z.number().int().min(1).max(10).optional().default(5),

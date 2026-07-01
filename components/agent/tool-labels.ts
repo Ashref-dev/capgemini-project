@@ -1,3 +1,31 @@
+import {
+  AiBrain01Icon,
+  AiChat02Icon,
+  AnalyticsUpIcon,
+  BarChartIcon,
+  Briefcase01Icon,
+  Building06Icon,
+  ChartBarLineIcon,
+  ChartIncreaseIcon,
+  ChartLineData01Icon,
+  DashboardSpeed01Icon,
+  FileSearchIcon,
+  GitBranchIcon,
+  PieChartIcon,
+  PresentationBarChart01Icon,
+  Route02Icon,
+  Search01Icon,
+  Structure01Icon,
+  Table01Icon,
+  Target02Icon,
+  TaskDaily01Icon,
+  UserGroup03Icon,
+  UserMultiple02Icon,
+  Wrench01Icon,
+} from "@hugeicons/core-free-icons"
+
+type HugeIcon = typeof Wrench01Icon
+
 /**
  * Human-friendly French labels for the agent's internal tool names.
  *
@@ -64,4 +92,40 @@ function prettifyToolName(toolName: string): string {
 /** Resolve a friendly French label for a raw tool identifier. */
 export function getToolLabel(toolName: string): string {
   return TOOL_LABELS[toolName] ?? prettifyToolName(toolName)
+}
+
+/** Per-tool icon so each step reads by its job; unknown tools fall back to a wrench. */
+const TOOL_ICONS: Readonly<Record<string, HugeIcon>> = {
+  declareMethodology: AiBrain01Icon,
+  createPlan: TaskDaily01Icon,
+  askClarification: AiChat02Icon,
+  queryPartners: Search01Icon,
+  queryAnalytics: AnalyticsUpIcon,
+  getPartnerDetails: Building06Icon,
+  scorePartner: ChartIncreaseIcon,
+  predictChurn: Target02Icon,
+  recommendPartners: UserMultiple02Icon,
+  summarizePartnerPortfolio: DashboardSpeed01Icon,
+  getPartnerActivityTimeline: Route02Icon,
+  getCategoryBenchmarks: ChartBarLineIcon,
+  analyzeProjectHealth: Briefcase01Icon,
+  identifyAtRiskProjects: Briefcase01Icon,
+  forecastProjectDelay: ChartLineData01Icon,
+  recommendStaffing: UserGroup03Icon,
+  findCriticalPath: GitBranchIcon,
+  crossEntityAnalysis: Structure01Icon,
+  searchDocuments: FileSearchIcon,
+  generateReport: PresentationBarChart01Icon,
+  createBarChart: BarChartIcon,
+  createLineChart: ChartLineData01Icon,
+  createPieChart: PieChartIcon,
+  createTable: Table01Icon,
+  executeCode: Wrench01Icon,
+  runCode: Wrench01Icon,
+  createCodeResult: Wrench01Icon,
+}
+
+/** Resolve a task-specific icon for a raw tool identifier. */
+export function getToolIcon(toolName: string): HugeIcon {
+  return TOOL_ICONS[toolName] ?? Wrench01Icon
 }

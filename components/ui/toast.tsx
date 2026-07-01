@@ -58,7 +58,7 @@ function ToastToaster() {
           ),
           description: cn(
             "text-sm font-medium leading-snug break-words",
-            "text-foreground/80",
+            "text-foreground!",
             "group-data-[type=success]:text-green-800 dark:group-data-[type=success]:text-green-100",
             "group-data-[type=error]:text-red-800 dark:group-data-[type=error]:text-red-100",
             "group-data-[type=warning]:text-amber-800 dark:group-data-[type=warning]:text-amber-100",

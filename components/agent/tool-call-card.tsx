@@ -5,13 +5,12 @@ import { motion, AnimatePresence } from "framer-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   ArrowDown01Icon,
-  CheckmarkCircle02Icon,
   AlertCircleIcon,
   Loading03Icon,
 } from "@hugeicons/core-free-icons"
 
 import { cn } from "@/lib/utils"
-import { getToolLabel } from "@/components/agent/tool-labels"
+import { getToolIcon, getToolLabel } from "@/components/agent/tool-labels"
 
 export type ToolCallStatus = "pending" | "success" | "error"
 
@@ -22,24 +21,6 @@ export interface ToolCallCardProps {
   output?: unknown
   errorText?: string
   defaultOpen?: boolean
-}
-
-const statusMeta: Record<ToolCallStatus, { label: string; tone: string; icon: typeof Loading03Icon }> = {
-  pending: {
-    label: "En cours",
-    tone: "text-primary",
-    icon: Loading03Icon,
-  },
-  success: {
-    label: "Terminé",
-    tone: "text-success",
-    icon: CheckmarkCircle02Icon,
-  },
-  error: {
-    label: "Échec",
-    tone: "text-destructive",
-    icon: AlertCircleIcon,
-  },
 }
 
 function stringifyJson(value: unknown): string {
@@ -59,9 +40,11 @@ export function ToolCallCard({
   errorText,
   defaultOpen = false,
 }: ToolCallCardProps) {
-  const meta = statusMeta[status]
-  const Icon = meta.icon
   const label = getToolLabel(toolName)
+  const isError = status === "error"
+  const isPending = status === "pending"
+  const Icon = isError ? AlertCircleIcon : isPending ? Loading03Icon : getToolIcon(toolName)
+  const tone = isError ? "text-destructive" : "text-muted-foreground"
 
   const hasDetail =
     input !== undefined ||
@@ -77,7 +60,7 @@ export function ToolCallCard({
         disabled={!hasDetail}
         onClick={() => hasDetail && setOpen((o) => !o)}
         aria-expanded={hasDetail ? open : undefined}
-        aria-label={`Détail de l'outil ${label} — ${meta.label}`}
+        aria-label={`Détail de l'outil ${label}`}
         className={cn(
           "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
@@ -86,12 +69,11 @@ export function ToolCallCard({
       >
         <HugeiconsIcon
           icon={Icon}
-          className={cn("h-3.5 w-3.5 shrink-0", meta.tone, status === "pending" && "animate-spin")}
+          className={cn("h-3.5 w-3.5 shrink-0", tone, isPending && "animate-spin")}
           strokeWidth={2.5}
         />
-        <span className="truncate text-xs font-medium text-foreground">{label}</span>
-        <span className={cn("shrink-0 text-[10px] font-medium uppercase tracking-wide", meta.tone)}>
-          {meta.label}
+        <span className={cn("truncate text-xs font-medium", isError ? "text-destructive" : "text-foreground")}>
+          {label}
         </span>
         {hasDetail && (
           <span className="ml-auto shrink-0">
