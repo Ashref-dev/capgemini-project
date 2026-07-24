@@ -1,177 +1,168 @@
-\chapter{Module 1 : accès, identité et points d'entrée par rôle}
-
+\chapter{Access, Identity and Auditability}
 \section*{Introduction}
 \addcontentsline{toc}{section}{Introduction}
-Ce premier module pose le socle d'usage de toute la plateforme. Son rôle ne se limite pas à afficher une page d'accueil et un formulaire de connexion : il formalise la frontière entre l'espace public et les espaces métiers, sécurise l'accès aux données de recrutement et prépare l'injection des fonctionnalités transverses comme le chat analytique. Sans cette couche, les modules de gestion des CV, du pipeline candidat et de l'IA ne pourraient pas être exposés de manière fiable dans un contexte d'entreprise.
-
-Dans \projectname{}, l'identité n'est pas un sujet périphérique. Elle détermine les données visibles, les actions autorisées, la navigation initiale et même le périmètre de l'agent conversationnel. Ce chapitre doit donc être lu comme la mise en place du premier contrat d'usage du système : entrer dans la plateforme, être reconnu, être orienté vers le bon espace et être bloqué dès que l'on sort du périmètre autorisé.
-
-\section{Sprint 1 : objectif et périmètre}
-
-\subsection{Objectif du sprint}
-L'objectif principal est de construire la couche d'accès du produit. Dans le contexte de \projectname{}, cela signifie :
+Access is the first technical control in \projectname{} because every later module depends on knowing who is using the platform and which organisational scope they are allowed to see. This chapter therefore covers three connected concerns: authentication, authorization, and auditability. Authentication establishes a verified session, authorization turns that session into page and API permissions, and auditability preserves a record of sensitive partner lifecycle decisions.
+\section{Sprint and module objective}
+This sprint turns the platform from a set of public and private screens into a governed workspace. Its scope is deliberately foundational: before partner CRM, HR workflows, dashboards, reports, or AI tools can be trusted, the system must authenticate the user, route that user to the correct workspace, and enforce a consistent permission model.
+\subsection{Functional objective}
+The objective of this module is to provide a secure entry point for all IntelliConnect users while keeping public pages, internal employee operations and partner self-service separate.
 \begin{itemize}
-  \item proposer une landing page publique qui présente clairement la proposition de valeur ;
-  \item authentifier les utilisateurs par email et mot de passe ;
-  \item rediriger automatiquement chaque utilisateur vers le dashboard correspondant à son rôle ;
-  \item protéger les routes, layouts et vues métiers ;
-  \item fournir un premier niveau d'administration des comptes.
+  \item provide a public entry surface for visitors without exposing protected data;
+  \item authenticate employees and partners with email and password credentials;
+  \item issue a server-verifiable JWT session stored in an httpOnly cookie;
+  \item extract the session on the server before rendering protected layouts or processing protected API requests;
+  \item route employees and partners toward the correct portal after sign-in;
+  \item enforce role-based permissions for Admin, Manager, Commercial, Analyst, HR and Partner users;
+  \item preserve auditable records for partner status changes and other sensitive actions.
 \end{itemize}
-
-Cette séparation entre \textbf{TA}, \textbf{Manager}, \textbf{HR} et \textbf{Admin} n'est pas cosmétique. Elle est réutilisée ensuite dans les pages métiers, dans les Server Actions, dans les services IA et dans l'agent conversationnel, qui doivent tous respecter le périmètre de l'utilisateur connecté.
-
-Au-delà de l'authentification, ce sprint vise aussi trois garanties durables : une confidentialité minimale des données RH, une cohérence de navigation selon le rôle métier et une extensibilité suffisante pour brancher les futurs modules sur un shell commun sans redéfinir la logique d'accès.
-
-\subsection{Backlog du sprint}
+\subsection{Backlog for access, identity and auditability}
 \begin{table}[H]
   \centering
-  \caption{Backlog fonctionnel du module d'accès et d'identité}
-  \begin{tabularx}{\textwidth}{>{\bfseries}p{1.3cm}p{3cm}X>{\raggedright\arraybackslash}p{2cm}}
+  \caption{Backlog of the access, identity and auditability module}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{1.2cm}>{\raggedright\arraybackslash}p{3.1cm}X>{\raggedright\arraybackslash}p{2.1cm}}
     \toprule
-    ID & Thème & User Story & Statut \\
+    ID & Theme & User story & Status \\
     \midrule
-    1 & Marketing produit & En tant que visiteur, je peux consulter une landing page présentant la proposition de valeur de la plateforme. & Réalisé \\
-    2 & Authentification & En tant qu'utilisateur autorisé, je peux me connecter avec mon email et mon mot de passe. & Réalisé \\
-    3 & Redirection par rôle & En tant qu'utilisateur connecté, je suis redirigé vers mon espace TA, Manager, HR ou Admin. & Réalisé \\
-    4 & Protection des routes & En tant qu'utilisateur non authentifié ou non autorisé, je suis bloqué hors des espaces protégés. & Réalisé \\
-    5 & Administration des comptes & En tant qu'administrateur, je peux consulter les utilisateurs, créer un compte, modifier un rôle et bannir ou débannir un utilisateur. & Réalisé \\
-    6 & Shell de dashboard & En tant qu'utilisateur connecté, je bénéficie d'un cadre de navigation commun préparant l'accès aux modules métier et au chat analytique. & Réalisé \\
+    AI-1 & Public access & As a visitor, I can consult public pages without authentication while protected information remains inaccessible. & Completed \\
+    AI-2 & Sign-in & As an authorized user, I can sign in with an email and password through a unified access page. & Completed \\
+    AI-3 & Session security & As the system, I store the authenticated session in an httpOnly cookie and verify it server-side with \sourcecode{jose}. & Completed \\
+    AI-4 & Password security & As the system, I store only hashed passwords using \sourcecode{bcryptjs} and never persist plain-text credentials. & Completed \\
+    AI-5 & Portal routing & As an authenticated user, I am redirected to the employee or partner portal according to my account type and role. & Completed \\
+    AI-6 & RBAC & As an administrator, I can rely on role-based permissions to restrict sensitive screens and operations. & Completed \\
+    AI-7 & API protection & As the backend, I reject unauthenticated, unauthorized or invalid requests with structured API errors. & Completed \\
+    AI-8 & Auditability & As a governance user, I can trace partner status changes with actor, previous status, new status, reason and timestamp. & Completed \\
     \bottomrule
   \end{tabularx}
 \end{table}
+\section{Implementation analysis}
+The implementation deliberately keeps authentication logic server-side. Client pages can display forms and loading states, but they do not decide whether a user is trusted, which role is active, or which partner records can be returned. Those decisions are made by route handlers, layouts, and service functions that read the signed session and enforce the same boundary before any protected data leaves the server.
+\subsection{JWT sessions with httpOnly cookies}
+User sessions are represented by signed JSON Web Tokens issued after a successful credential check. The token is stored in an httpOnly cookie rather than browser storage, which reduces exposure to client-side script access and keeps session handling compatible with server-rendered layouts. The cookie carries only the session claims needed by the application: the user identifier, account type, role, and partner scope when the authenticated user belongs to an external partner organisation.
 
-Ce backlog montre déjà que l'identité traverse toute la plateforme. Elle ne se limite pas au formulaire de connexion ; elle englobe l'interface publique, la redirection, la protection des routes, la structure des dashboards et la gouvernance des comptes.
+This design gives the platform a single portable session format for employee and partner flows. A dashboard request, a partner portal request, and a protected API call all start from the same primitive: read the cookie, verify the signature, recover the claims, then decide whether the requested operation is allowed.
+\subsection{Session extraction and server-side trust boundary}
+The trust boundary is crossed only after verification on the server. In the application layer, session helper functions extract the cookie, validate the token with the configured secret, and normalize the result into a small authenticated-user object. If extraction fails, the protected layout redirects the user to sign in, while API routes return a structured \sourcecode{401} response.
 
-\section{Implémentation du sprint}
+Keeping this extraction centralized avoids duplicating authentication checks across pages. It also prevents a common class of inconsistencies where a route appears protected in the interface but still exposes data through a direct API call. In \projectname{}, protected rendering and protected data access share the same session prerequisite.
+\subsection{Password hashing with bcryptjs}
+Passwords are never stored in clear text. During account creation or demo seeding, the backend hashes the password with \sourcecode{bcryptjs}; during sign-in, the submitted password is compared against that stored hash. The database therefore contains a verifier, not the original secret.
 
-\subsection{Analyse du sprint}
-Le comportement du module repose sur quelques briques fonctionnelles fondamentales :
-\begin{itemize}
-  \item la landing page publique ;
-  \item l'écran de connexion ;
-  \item le module d'authentification, de récupération de session et de contrôle d'accès par rôle ;
-  \item le layout protégé des espaces dashboard ;
-  \item le shell partagé des espaces métier ;
-  \item l'interface d'administration des utilisateurs ;
-  \item la première vue métier du tableau de bord TA branchée sur ce socle.
-\end{itemize}
+The practical consequence is that authentication remains recoverable and maintainable without weakening the storage layer. Administrators can reset or seed demo credentials when needed, but the platform does not need to read or display a user's existing password. Failed sign-in attempts return generic messages so the interface does not reveal whether the email address or the password was the invalid part.
+\subsection{Route protection and role-aware rendering}
+Route protection combines the authenticated session with role-aware rendering. Employee pages live under the internal dashboard area and are only available to employee roles such as Admin, Manager, Commercial, Analyst, and HR. Partner pages live under the partner portal and are scoped to the authenticated partner organisation. The user interface follows this split by showing only the navigation and actions relevant to the current role.
 
-Ce module ne doit donc pas être lu comme un simple travail de design d'interface. Il formalise le premier contrat d'usage du système : qui peut entrer, où il atterrit, et à quel périmètre il a droit.
-
-D'un point de vue architectural, le sprint combine trois niveaux de contrôle complémentaires : la présentation publique et privée, la vérification serveur de la session et des rôles, puis la gouvernance des comptes côté administration. Cette superposition réduit le risque qu'une protection repose uniquement sur le client.
-
-\subsection{Vue fonctionnelle globale}
-Les usages couverts par ce sprint se regroupent en quatre blocs :
-\begin{itemize}
-  \item consulter la page d'accueil publique ;
-  \item se connecter ;
-  \item être redirigé vers un espace adapté au rôle ;
-  \item administrer les comptes si l'utilisateur est \sourcecode{admin}.
-\end{itemize}
-
-Le layout de dashboard prépare déjà l'usage futur de l'IA à deux niveaux : un assistant flottant disponible dans les espaces métier et un workspace dédié \sourcecode{/agent} pour les analyses longues. L'entrée conversationnelle de la plateforme a donc été pensée dès le départ comme une fonctionnalité authentifiée, cloisonnée par rôle et intégrée à la navigation latérale.
-Ce point est important : l'IA n'est pas ajoutée plus tard dans un espace parallèle. Elle s'inscrit dès les fondations dans la même logique d'authentification, de layout et de séparation des rôles que le reste du produit, tout en offrant un parcours hybride entre aide contextuelle rapide et espace d'analyse approfondie.
-
-\subsection{Authentification et redirection par rôle}
-L'écran de connexion contient la logique de connexion. Lors de la soumission du formulaire, la fonction \sourcecode{handleSubmit()} appelle \sourcecode{authClient.signIn.email()} avec l'email et le mot de passe. Si la connexion réussit, le rôle utilisateur est lu depuis la réponse, puis une table de correspondance détermine la destination :
-\begin{itemize}
-  \item \sourcecode{ta} $\rightarrow$ \sourcecode{/ta/dashboard} ;
-  \item \sourcecode{manager} $\rightarrow$ \sourcecode{/manager/dashboard} ;
-  \item \sourcecode{hr} $\rightarrow$ \sourcecode{/hr/dashboard} ;
-  \item \sourcecode{admin} $\rightarrow$ \sourcecode{/admin}.
-\end{itemize}
-
-La même logique existe côté serveur grâce à \sourcecode{getRoleHome()} et \sourcecode{requireRole()}, ce qui évite que la sécurité repose uniquement sur le client.
-
-Le fait de disposer d'un équivalent serveur est essentiel. Même si l'interface connaît la destination à prendre, la plateforme ne fait pas confiance à la seule navigation du navigateur. Les routes sensibles restent protégées par une lecture réelle de la session et des rôles.
-
-\begin{figure}[H]
+The same rule is repeated at the API boundary. A hidden button is not treated as a security control: protected route handlers verify the session and the role before executing the operation. This is especially important for partner records, uploaded documents, status transitions, reports, and AI-assisted analysis, where the user may see different data depending on their role or partner scope.
+\subsection{Structured API errors}
+\begin{verbatim}
+{ "error": "Validation failed", "details": [...] }
+\end{verbatim}
+The status code reflects the failure category: \sourcecode{401} for missing or invalid authentication, \sourcecode{403} for insufficient permissions, \sourcecode{400} for invalid input and \sourcecode{500} for unexpected server failures.
+This error format keeps the frontend predictable. Forms can attach validation details to fields, dashboards can show a recoverable error state, and the agent interface can explain that a protected tool failed without exposing stack traces, SQL details, or secrets. The implementation therefore treats error shape as part of the access contract rather than an incidental response format.
+\section{Role-based access control}
+Role-based access control translates the authenticated identity into concrete application permissions. The module separates three questions that are often mixed together: whether the user is signed in, whether the user belongs to the employee or partner side of the platform, and whether the user's role authorizes the requested action. This separation keeps the public website, employee workspace, and partner self-service portal from leaking into one another.
+\subsection{Access-control flow}
+\begin{figure}[htbp]
   \centering
-  \diagraminput{figures/diagrams/auth-role-sequence}
-  \caption{Séquence d'authentification et de redirection par rôle}
+  \dgram{access-flow}
+  \caption{Access-control decision applied to every protected request.}
+  \label{fig:access-flow}
 \end{figure}
-
-\subsection{Protection du shell et contrôle d'accès}
-Lorsqu'un utilisateur accède à un espace protégé, le layout principal du dashboard vérifie la présence d'une session via \sourcecode{getSession()}. Si aucune session n'existe, une redirection vers \sourcecode{/sign-in} est déclenchée. Sinon, le layout récupère le rôle et le nom de l'utilisateur, les injecte dans \sourcecode{DashboardShell} et monte aussi \sourcecode{StatisticsChat}. Ainsi, toutes les pages métier utilisent un conteneur commun déjà authentifié.
-
-Cette centralisation apporte trois bénéfices majeurs. D'une part, elle évite de dupliquer la logique d'accès dans chaque page. D'autre part, elle garantit une expérience homogène pour tous les rôles. Enfin, elle prépare les futurs composants transverses à s'exécuter dans le même contexte de sécurité que les vues métiers.
-
-\subsection{Administration des comptes}
-Sur la page d'administration, le composant \sourcecode{AdminUsersClient} exploite le plugin \sourcecode{adminClient()} de Better Auth côté client. Il permet de :
+The flow is intentionally evaluated on every protected request, not only at sign-in time. A valid cookie proves that a user authenticated previously; it does not by itself prove that the user can access a particular page, partner record, report, or administrative action. The role and ownership check is therefore repeated where the data is requested.
+\subsection{RBAC role matrix}
+The role matrix below documents the operational permissions used by the platform. It is written from the business capability point of view rather than from file paths, because the same capability can appear in multiple screens or APIs. Partner users are marked separately because their access is limited to their own organisation even when a feature name resembles an employee feature.
+\begin{table}[H]
+  \centering
+  \caption{RBAC matrix for IntelliConnect roles}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.2cm}cccccc}
+    \toprule
+    Capability & Admin & Manager & Commercial & Analyst & HR & Partner \\
+    \midrule
+    Access employee dashboard & Yes & Yes & Yes & Yes & Yes & No \\
+    Access partner portal & No & No & No & No & No & Yes \\
+    Manage user accounts and roles & Yes & No & No & No & No & No \\
+    View partner portfolio & Yes & Yes & Yes & Yes & Yes & Limited \\
+    Create and update partner records & Yes & Yes & Yes & No & No & Limited \\
+    Review partnership requests & Yes & Yes & Yes & No & No & No \\
+    View analytics and BI dashboards & Yes & Yes & Yes & Yes & Yes & Limited \\
+    Manage HR workflows & Yes & No & No & No & Yes & No \\
+    Upload or manage partner documents & Yes & Yes & Yes & No & No & Own scope \\
+    View audit and status history & Yes & Yes & Yes & Yes & Yes & Own scope \\
+    Use AI decision-support tools & Yes & Yes & Yes & Yes & Yes & No \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\subsection{Employee and partner portal separation}
 \begin{itemize}
-  \item lister les utilisateurs avec \sourcecode{authClient.admin.listUsers()} ;
-  \item créer un utilisateur avec \sourcecode{authClient.admin.createUser()} ;
-  \item modifier un rôle avec \sourcecode{authClient.admin.setRole()} ;
-  \item bannir un utilisateur avec \sourcecode{authClient.admin.banUser()} ;
-  \item débannir un utilisateur avec \sourcecode{authClient.admin.unbanUser()}.
+  \item The employee portal, exposed under \sourcecode{/dashboard}, centralizes internal operations: partner records, contacts, offers, events, projects, documents, status history, reports, BI and AI-assisted analysis.
+  \item The partner portal, exposed under \sourcecode{/partner}, provides a self-service workspace for external organizations: profile, contacts, notifications, documents, offers, events, statistics and category-specific collaboration features.
 \end{itemize}
-
-Cette partie montre que l'identité n'est pas seulement un écran de login. Elle inclut déjà une gouvernance minimale du cycle de vie des comptes, indispensable dans un environnement B2B où la création de comptes est pilotée par l'organisation et non par de l'auto-inscription.
-
-La possibilité de bannir ou débannir un compte apporte également une souplesse de gouvernance importante. Elle permet de suspendre rapidement un accès sans perturber toute la structure des rôles ni supprimer brutalement l'utilisateur du système.
-
-\paragraph{Scénarios de validation fonctionnelle.}
-La cohérence du module d'accès peut être vérifiée par trois scénarios simples. Premièrement, un utilisateur authentifié doit être redirigé vers l'espace correspondant à son rôle. Deuxièmement, un utilisateur sans session doit être renvoyé vers la page de connexion lorsqu'il tente d'accéder à un dashboard protégé. Troisièmement, les actions d'administration des comptes doivent rester réservées au rôle \sourcecode{admin}. Ces scénarios matérialisent le contrat principal du sprint : aucune donnée métier sensible ne doit être exposée sans session ni rôle approprié.
-
-\section{Réalisation}
-
-\subsection{Landing page publique}
-La landing page publique positionne la plateforme comme un moteur de recrutement intelligent. Elle met en avant plusieurs axes : le matching intelligent, l'automatisation des workflows, l'analytique prédictive, la collaboration d'équipe et la sécurité d'entreprise. Des appels à l'action comme \textit{Sign In}, \textit{Access Platform} et \textit{Sign In to Continue} orientent immédiatement l'utilisateur vers le point d'entrée authentifié.
-
-Cette page joue aussi un rôle de clarification stratégique. Avant même la connexion, elle pose le positionnement du produit comme une plateforme de recrutement augmentée par l'IA et non comme un simple portail de candidatures.
-
-\begin{figure}[H]
+This separation matters for both security and usability. Employees need a broad operational view across the portfolio, while partners need a narrow workspace that exposes their own documents, offers, notifications, and collaboration data without revealing internal review notes or other organisations' records.
+\subsection{Public routes and protected routes}
+\begin{table}[H]
   \centering
-  \screenshotplaceholder{Landing page}
-  \caption{Page d'accueil publique de la plateforme.}
-\end{figure}
-
-\subsection{Page de connexion}
-La page de connexion propose un formulaire simple et robuste : champ email, champ mot de passe, affichage ou masquage du mot de passe, état de chargement, message d'erreur et lien \textit{Forgot password?}. La phrase \textit{Account creation is managed by your administrator} est particulièrement significative : elle confirme que le produit n'est pas pensé comme un portail ouvert, mais comme une plateforme d'entreprise gouvernée.
-
-Sur le plan UX, le formulaire reste volontairement direct. L'objectif est de réduire l'ambiguïté au moment de l'entrée dans la plateforme et de rendre visible le caractère administré de l'accès.
-
-\begin{figure}[H]
+  \caption{Public and protected route categories}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.6cm}
+                               >{\raggedright\arraybackslash}X}
+    \toprule
+    Category & Access rule \\
+    \midrule
+    Public routes & Accessible without authentication. The public website and legal pages serve visitors without exposing any protected operational data. \\
+    Authentication route & Available to unauthenticated users. After a successful sign-in, the server routes the user to the correct portal based on their identity type. \\
+    Employee protected routes & Require a valid employee session and an authorized employee role. Access to each page is scoped to the user's role in the RBAC matrix. \\
+    Partner protected routes & Require a valid partner session. Every request is restricted to data belonging to the authenticated partner organization. \\
+    Protected API routes & Require session extraction, role verification, input validation, and return structured errors. Raw stack traces and database details are never exposed. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+The route categories make the implementation easier to audit. Public pages are allowed to be anonymous by design; everything else must justify its access path through a session and, when relevant, a role or ownership check. This gives reviewers a simple checklist when adding new routes: decide the category first, then apply the matching guard before returning data.
+\section{Auditability and traceability}
+Auditability completes the access model. It is not enough to know that a user was allowed to perform an action; for partnership management, the platform also needs to preserve who changed a business state, when it changed, what the previous value was, and why the change was made. These records support internal review, traceability during demonstrations, and later governance work if the platform is industrialized.
+\subsection{Partner status history}
+\begin{table}[H]
   \centering
-  \screenshotplaceholder{Sign-in page}
-  \caption{Page de connexion sécurisée de la plateforme.}
-\end{figure}
+  \caption{Information retained for partner status history}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.2cm}X}
+    \toprule
+    Field & Purpose \\
+    \midrule
+    Actor & Identifies the authenticated user who performed the transition. \\
+    Previous status & Preserves the state before the operation, enabling reconstruction of the lifecycle path. \\
+    New status & Records the resulting business state after the operation. \\
+    Reason & Captures the justification entered by the user or produced by the workflow. \\
+    Timestamp & Establishes when the transition occurred for chronological and legal traceability. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+The retained fields are deliberately business-readable. They allow a reviewer to reconstruct a partner's lifecycle without reading raw database logs: the actor identifies responsibility, the previous and new statuses show the transition, the reason explains the decision, and the timestamp orders the event in the broader partnership timeline.
+\subsection{Action logs and status transitions}
+Action logs complement status history by capturing sensitive operations around the partner lifecycle. Typical examples include accepting a partnership request, rejecting an incomplete application, updating a partner's status, or uploading a document that supports a decision. These events are stored as application records, which makes them easier for managers to review than infrastructure logs.
 
-\subsection{Shell de dashboard partagé}
-Le \sourcecode{DashboardShell} constitue un apport structurant du sprint. Il mutualise la navigation latérale, l'en-tête, le contexte utilisateur et l'enveloppe commune de rendu des pages métier. Grâce à ce shell, les modules suivants peuvent s'intégrer progressivement sans reconstruire à chaque fois les fondations de navigation et de sécurité.
-
-En pratique, ce shell joue le rôle de charnière entre sécurité et productivité. Il offre un cadre stable pour toutes les vues TA, Manager, RH et Admin, tout en garantissant qu'elles partagent les mêmes conventions d'identité et de navigation.
-
-\subsection{Première vue métier : tableau de bord TA}
-La page de tableau de bord TA illustre la première exploitation de ce socle. Elle exige le rôle \sourcecode{ta} ou \sourcecode{admin}, puis charge les statistiques globales via \sourcecode{getDashboardStatsAction()} et le planning d'entretiens du jour via \sourcecode{getTodayInterviewScheduleAction()}. Ce tableau de bord montre que le sprint ne s'arrête pas à l'identité : il ouvre déjà la porte au pilotage métier réel.
-
-Ce point est important pour la lecture du rapport : l'accès protégé n'est pas une fin en soi. Il débouche immédiatement sur une valeur métier visible, ce qui prouve que le socle construit est déjà exploitable dans l'usage quotidien.
-
-\begin{figure}[H]
+The objective is not to record every low-level click. The platform focuses on actions that change business state, affect access, or support a decision. This keeps the audit trail useful: dense enough to explain the lifecycle, but not so noisy that important transitions disappear inside routine navigation events.
+\subsection{Security and legal traceability}
+Security traceability also supports legal and organisational accountability. Partner data includes contacts, documents, offers, and project information, so the platform must be able to explain why a user saw or changed a record. By combining role checks, ownership checks, and status history, \projectname{} can show that protected operations followed an explicit access rule.
+\section{Implementation}
+The implementation artefacts below connect the access model to the visible product. They show how the authentication use cases, sign-in surface, and role-routing sequence appear in the delivered platform. The screenshots and diagrams are not separate features; they are the concrete entry points through which the previous security rules are exercised.
+\subsection{Access use cases}
+\begin{figure}[htbp]
   \centering
-  \screenshotplaceholder{TA dashboard}
-  \caption{Tableau de bord TA après authentification.}
+  \dgram{usecase-auth}
+  \caption{Use cases of the access and identity module.}
 \end{figure}
-
-\subsection{Gestion des utilisateurs côté administration}
-La page d'administration des utilisateurs affiche un espace \textit{User Management} avec le sous-titre \textit{Manage user accounts and roles}. Le composant \sourcecode{AdminUsersClient} rend cette promesse effective à travers la consultation de la liste des utilisateurs, la création d'un compte, la modification du rôle et le bannissement ou débannissement.
-
-Cette fonctionnalité matérialise un principe de responsabilité : dans une plateforme RH, les utilisateurs autorisés à voir ou manipuler les candidatures doivent eux-mêmes être gérés de manière explicite et traçable.
-
-\section{Apport du module}
-Ce premier module apporte plusieurs fondations durables au projet :
-\begin{itemize}
-  \item un point d'entrée public compréhensible pour le produit ;
-  \item une authentification alignée sur un usage d'entreprise ;
-  \item une séparation explicite par rôle, réutilisée ensuite dans les routes, les services et l'IA ;
-  \item un shell commun qui accélère tous les développements suivants ;
-  \item un environnement authentifié, contrôlé et traçable pour les futurs usages analytiques.
-\end{itemize}
-
-Autrement dit, même si ce module ne contient pas encore le cœur du pipeline RAG, il construit l'infrastructure d'usage sans laquelle une IA de recrutement ne pourrait pas être exposée de manière sûre.
-
-On peut donc le considérer comme la fondation de confiance du produit. Sans cette base, les modules suivants auraient pu exister techniquement, mais pas comme un système crédible dans un cadre professionnel exigeant.
-
+The use-case diagram summarizes the module from the user's point of view. Public visitors can access only public information, employees authenticate into the internal workspace, partners authenticate into their own portal, and administrators retain the extra responsibility of managing roles and sensitive account operations.
+\subsection{Sign-in page}
+\begin{figure}[htbp]
+  \centering
+  \shot{signin}
+  \caption{Sign-in page used as the controlled entry point to IntelliConnect.}
+\end{figure}
+The sign-in page is the controlled entry point for both employee and partner accounts. It collects credentials once, delegates verification to the server, and then sends the authenticated user to the correct workspace. Keeping the entry point unified reduces confusion while the post-login routing still preserves the employee--partner separation.
+\subsection{Authentication and role-routing sequence}
+\begin{figure}[htbp]
+  \centering
+  \dgram{sequence-auth}
+  \caption{JWT creation, session extraction, and role-based portal routing.}
+\end{figure}
+The sequence diagram shows the same control path in chronological order. The user submits credentials, the server verifies the password hash, creates a signed JWT, stores it in the httpOnly cookie, and resolves the target portal from the authenticated role. Subsequent requests do not repeat password verification; they verify the session and apply the role and ownership rules described earlier.
 \section*{Conclusion}
 \addcontentsline{toc}{section}{Conclusion}
-Ce premier module établit les fondations d'accès et d'identité de \projectname{}. Il transforme une simple interface publique en point d'entrée vers une plateforme gouvernée par les rôles, protégée côté serveur et prête à accueillir les fonctionnalités métier et IA des modules suivants. Le chapitre suivant s'appuie sur ce socle pour traiter le premier cœur documentaire et opérationnel du produit : le vivier de CV et la gestion des offres d'emploi.
+This chapter establishes the access, identity and auditability foundation of \projectname{}. The module combines JWT sessions stored in httpOnly cookies, server-side verification with \sourcecode{jose}, password hashing with \sourcecode{bcryptjs}, protected routing, structured API errors and a role matrix adapted to employee and partner responsibilities.

@@ -1,0 +1,28 @@
+flowchart LR
+  V["Public visitor"]:::actor
+  E["Capgemini employee"]:::actor
+  P["Partner organization"]:::actor
+  subgraph PUBS["Public website"]
+    direction TB
+    A1["Value proposition"]
+    A2["Partnership request"]
+  end
+  subgraph EMPS["Employee portal"]
+    direction TB
+    B1["Partners · projects · documents"]
+    B2["BI · reports · AI assistant"]
+  end
+  subgraph PRTS["Partner portal"]
+    direction TB
+    C1["Offers · events · documents"]
+    C2["Statistics · recruitments"]
+  end
+  V --> PUBS
+  E --> EMPS
+  P --> PRTS
+  classDef default fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;
+  classDef actor fill:#ffffff,stroke:#0B1F33,color:#0B1F33,font-weight:bold;
+  class V,E,P actor;
+  style PUBS fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33
+  style EMPS fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33
+  style PRTS fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33

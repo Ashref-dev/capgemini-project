@@ -1,0 +1,23 @@
+flowchart LR
+  subgraph ingest["Ingestion"]
+    direction LR
+    DOC["Document"] --> EXT["Text + metadata"] --> SPLIT["Chunking<br/>1200 / 200"]
+    SPLIT --> EMB["Embeddings<br/>2048-dim"] --> VSTORE[("pgvector")]
+    SPLIT --> FTS[("Full-text index")]
+  end
+
+  Q["User question"] --> QE["Query embedding"]
+  Q --> LEX["Lexical query"]
+  QE --> DENSE["Dense retrieval<br/>cosine topK"]
+  LEX --> BM25["BM25 retrieval<br/>exact-term rank"]
+  VSTORE --> DENSE
+  FTS --> BM25
+  DENSE --> RRF["Reciprocal Rank Fusion"]
+  BM25 --> RRF
+  RRF --> RERANK["Cross-encoder<br/>re-ranking"]
+  RERANK --> EVID["Selected evidence<br/>topK 5, max 10"]
+  EVID --> ANS["Grounded answer<br/>with citations"]
+
+  classDef store fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;
+  class VSTORE,FTS store;
+  style ingest fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33

@@ -1,0 +1,356 @@
+\chapter{Partnership Lifecycle Management and Customers}
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+Chapter 4 covers the operational core of \projectname{}, the module that manages the partnership lifecycle and related relationship-management functions. Once access and roles are set, Capgemini Engineering Tunisie can register partners, assign categories, track status, coordinate exchanges, manage offers and grants, store documents, and review public partnership requests.
+
+It provides an auditable workflow for lifecycle modeling, relationship entities, document governance, public request intake, notifications, and AI-assisted compatibility analysis.
+
+\section{Sprint 2: module objective and scope}
+This sprint establishes the relationship-management backbone of the platform. It defines the partner lifecycle, the records attached to each partner, and the public-to-employee workflow that turns an external request into a governed internal record.
+
+\subsection{Objective of the module}
+The objective of this sprint is to implement the partnership and relationship-management layer of \projectname{}. The module lets an employee:
+\begin{itemize}
+  \item create, consult, update, and remove partner records;
+  \item classify each partner into a business category;
+  \item follow a controlled lifecycle from first qualification to active collaboration, suspension, or closure;
+  \item maintain contacts, offers, grants, communications, documents, and notifications for each partner;
+  \item receive public partnership requests, analyze them, and convert validated requests into managed partner records;
+  \item keep an audit trail of status changes and decision history.
+\end{itemize}
+
+\subsection{Backlog of the module}
+\begin{table}[H]
+  \centering
+  \caption{Backlog for partnership lifecycle and relationship-management module}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{1.2cm}>{\raggedright\arraybackslash}p{3.2cm}X>{\raggedright\arraybackslash}p{2cm}}
+    \toprule
+    ID & Theme & User Story & Status \\
+    \midrule
+    1 & Partner repository & Create, search, filter, edit, and remove partner records to keep a reliable portfolio. & Completed \\
+    2 & Partner details & Open a partner detail page aggregating identity, category, lifecycle state, contacts, documents, communications, and offers. & Completed \\
+    3 & Categorization & Classify partners as customer, marketing, supplier/technology, or university partners. & Completed \\
+    4 & Lifecycle control & Update partner status and preserve status history so operational decisions remain traceable. & Completed \\
+    5 & Contacts directory & Manage named contacts attached to partners and consult a global contacts directory. & Completed \\
+    6 & Offers and grants & Manage collaboration offers and grants with clear ownership and status. & Completed \\
+    7 & Communications & Plan scheduled events and meetings linked to partners. & Completed \\
+    8 & Documents & Upload, download, preview, and own partner documents. & Completed \\
+    9 & Notifications & Notify users about relevant partner activity and pending actions. & Completed \\
+    10 & Public requests & Submit a partnership or adherence request from the public website. & Completed \\
+    11 & Review queue & Review incoming requests, consult AI-assisted compatibility analysis, and accept or reject them. & Completed \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Partner categories}
+\projectname{} models the partner portfolio through four categories. They share one relationship foundation, but their business meaning, expected data, and downstream use differ (Figure~\ref{fig:partner-categories}).
+
+\begin{figure}[htbp]
+  \centering
+  \dgram{partner-categories}
+  \caption{Partner categories over a shared partner record.}
+  \label{fig:partner-categories}
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \caption{Partner categories supported by the relationship management module}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3cm}X X}
+    \toprule
+    Category & Business role & Typical relationship management focus \\
+    \midrule
+    Customer & Organization that collaborates with Capgemini Engineering Tunisie through commercial or delivery-oriented engagements. & Relationship maturity, key contacts, budget signals, satisfaction, offers, meetings, and project opportunities. \\
+    Marketing & Organization involved in visibility, ecosystem development, co-branding, events, or market outreach. & Communication planning, campaign-related events, public presence, shared activities, and follow-up actions. \\
+    Supplier/\allowbreak technology & Provider of technology, tools, platforms, infrastructure, or specialized services that support internal or client-facing delivery. & Technical relevance, service reliability, support agreements, supplier projects, documentation, and renewal signals. \\
+    University & Academic institution connected to research, education, student programs, events, and long-term ecosystem development. & Academic collaboration, events, grants, student-related programs, institutional contacts, and partnership renewal. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Partner lifecycle and statuses}
+The lifecycle section explains how partner records move between business states. The goal is to keep statuses understandable for users while preserving enough structure for audit, scoring, and reporting.
+
+\subsection{Lifecycle model}
+The partner lifecycle describes how an external organization moves through the platform: public request, employee qualification, negotiation, activation, suspension, or closure.
+
+\begin{figure}[htbp]
+  \centering
+  \dgram{lifecycle-partner}
+  \caption{Lifecycle state diagram for partners}
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \caption{Main lifecycle statuses for partner management}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3cm}X X}
+    \toprule
+    Status & Meaning & Typical transition trigger \\
+    \midrule
+    New & Created or imported, not yet qualified. & Manual creation or accepted public request. \\
+    Under review & Under employee evaluation before a decision. & Review queue assignment or missing information. \\
+    Negotiation & Potential relationship under discussion. & Positive qualification or strategic interest. \\
+    Active & Approved and operational. & Agreement confirmed, collaboration launched, or account activated. \\
+    Suspended & Temporarily paused for risk, missing requirement, or business issue. & Low activity, unresolved issue, compliance concern, or management decision. \\
+    Closed & No longer managed as an active opportunity or collaboration. & Rejection, end of collaboration, duplicate cleanup, or explicit closure. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Status history for audit}
+Every meaningful status change is recorded in a status history entry. The audit trail stores the partner, previous state, new state, transition date, triggering action, and optional reason.
+
+\section{Partners CRUD and detail pages}
+The CRUD and detail pages are the daily operational entry points for employees. They expose the partner portfolio at list level, then consolidate the relationship context inside the detail page.
+
+\subsection{Partner list and CRUD operations}
+The partner list is the entry point of the employee workspace. It provides search, category filters, status filters, and row actions for partner management.
+
+\begin{figure}[htbp]
+  \centering
+  \shot{partners-list}
+  \caption{Partners list with search, filters, and row actions}
+\end{figure}
+
+The CRUD workflow follows three rules: validate essential fields before persistence, keep category and status values constrained, and show loading, success, and error feedback.
+
+\subsection{Partner detail page}
+The partner detail page consolidates one organization and keeps profile data, category, status, contacts, scheduled activity, offers or grants, documents, notifications, and status history together.
+
+\section{Relationship Management Entities and Data Model}
+
+\begin{table}[H]
+  \centering
+  \caption{Core relationship management entities of the partnership module}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.2cm}X X}
+    \toprule
+    Entity & Purpose & Main fields and relationships \\
+    \midrule
+    Partner & Central organization record used by all modules. & Name, category, status, description, location, metadata, timestamps. \\
+    Contact & Named person linked to a partner. & Partner reference, name, role, email, phone, communication details, primary contact indicator. \\
+    Offer or grant & Collaboration proposal, commercial offer, academic grant, or support opportunity. & Partner reference, title, amount, dates, status, description, owner, documents. \\
+    Communication & Scheduled event or meeting linked to a partner. & Partner reference, type, title, date, location or channel, attendees, notes, outcome, follow-up actions. \\
+    Document & File attached to a partner or related record. & Partner reference, owner, metadata, storage key, visibility, preview information, creation date. \\
+    Notification & Actionable message for employee or partner users. & Recipient, related partner or entity, title, message, read state, priority, timestamp. \\
+    Partnership request & Public intake record submitted by an external organization. & Organization identity, requester contact, category preference, motivation, business details, review state, AI analysis. \\
+    Status history & Audit record for lifecycle transitions. & Partner reference, previous status, new status, reason, actor, transition timestamp. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Contacts directory}
+
+The contacts directory centralizes names, roles, contact details, and partner affiliation.
+
+\section{Offers and grants management}
+
+Offers and grants cover commercial collaboration, service opportunities, or technical support for customer and supplier/technology partners, and academic support, program financing, sponsorship, or institutional collaboration for university partners. The interface captures title, description, partner, owner, amount when relevant, dates, and status, while offer status remains independent from partner status.
+
+\begin{figure}[htbp]
+  \centering
+  \shot{partner-documents}
+  \caption{Documents and offers management views}
+\end{figure}
+
+\section{Communications: scheduled events and meetings}
+
+Communications are scheduled events and meetings. The platform records date, type, participants, and expected follow-up. Events can represent workshops, academic sessions, ecosystem activities, or business reviews; meetings can represent operational follow-ups, negotiation sessions, technical alignment, or account reviews.
+
+\begin{figure}[htbp]
+  \centering
+  \shot{partner-communications}
+  \caption{Partner communications: scheduled events and meetings}
+\end{figure}
+
+\section{Partner documents}
+Documents are treated as governed relationship evidence, not as anonymous file attachments. This section explains how uploaded material remains connected to ownership, preview, download, and partner context.
+
+\subsection{Upload, download, preview, and ownership}
+The platform supports upload, download, preview, and ownership for agreements, presentations, reports, specifications, event material, and administrative files while preserving the owning actor, the partner relationship, file metadata, and the creation date.
+
+\subsection{Document governance}
+Governance keeps file metadata separate from the partner record, makes visibility and ownership explicit to reduce accidental exposure, and shares one document identity across preview and download actions.
+
+\section{Notifications}
+
+Notifications help users react to changes without monitoring every page. They can be generated for a public request, document update, upcoming meeting, status change, offer decision, or assigned action, and they store the recipient, message, related entity, read state, and timestamp.
+
+\section{Public partnership and adherence request system}
+The public request system connects the public website to the internal review process. It captures external intent without automatically granting access or creating uncontrolled partner records.
+
+\subsection{Public request intake}
+The public website includes a request path where an external organization can submit a partnership or adherence request. The intake captures identity, contact details, requested category, motivations, and business context. The form stays separate from the authenticated employee portal, so employees decide whether each submission becomes an internal partner record.
+
+\subsection{Review queue}
+Incoming partnership requests enter a structured review pipeline. Employees inspect each request in the queue, consult the AI-assisted compatibility analysis, then accept or reject it. Acceptance creates or updates a partner record and initializes its lifecycle status; rejection preserves a decision trace so the process remains auditable. Figure~\ref{fig:bpmn-onboarding} models this end-to-end business process across the applicant, the system, the reviewer, and the outcome, while Figure~\ref{fig:seq-request-review} details the same flow as a technical sequence.
+
+\begin{figure}[htbp]
+  \centering
+  \dgram{bpmn-onboarding}
+  \caption{Business process (BPMN) of the partnership request-to-onboarding workflow}
+  \label{fig:bpmn-onboarding}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \dgram{sequence-request-review}
+  \caption{Sequence for public partnership request analysis and review}
+  \label{fig:seq-request-review}
+\end{figure}
+
+\section{AI-assisted compatibility analysis for requests}
+
+\begin{table}[H]
+  \centering
+  \caption{Compatibility scoring dimensions for public partnership requests}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{2.2cm}X}
+    \toprule
+    Dimension & Output & Interpretation \\
+    \midrule
+    \sourcecode{dataCompleteness} & Score and explanation & Measures whether the request contains enough identity, contact, category, motivation, and business information to support a serious review. \\
+    \sourcecode{strategicFit} & Score and explanation & Evaluates alignment with Capgemini Engineering Tunisie priorities, expected partnership value, and relevance to the requested category. \\
+    \sourcecode{reliability} & Score and explanation & Estimates whether the organization appears credible, reachable, and operationally stable based on the submitted information. \\
+    \sourcecode{scalePotential} & Score and explanation & Assesses whether the relationship can grow beyond a single action into repeat collaboration, broader ecosystem value, or long-term contribution. \\
+    \sourcecode{categoryBoost} & Score and explanation & Applies category-aware adjustment when the requested category has strong contextual indicators, for example technical complementarity, academic relevance, market visibility, or commercial opportunity. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Portals and Role-Differentiated Dashboards}
+
+The \textbf{public website} is limited to the partnership value proposition and the application form. The \textbf{employee portal} is role-differentiated, with a daily briefing and five internal roles: administrator for accounts and audit trails; manager for lifecycle decisions and project health; commercial user for relationships, contacts, and offers; analyst for BI dashboards, scoring pages, and the AI assistant; and human-resources user for the recruitment pipeline. The following full-width captures replace the compact grid so that each screen remains readable in print.
+
+\begin{figure}[p]
+  \centering
+  \shotprint{dashboard-home}
+  \caption{Employee home dashboard. The page brings together the role-aware daily AI briefing, pending alerts, negotiations, and operational shortcuts so that an employee starts from a single cockpit.}
+  \label{fig:employee-home-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{partnership-requests}
+  \caption{Request review queue with AI prescore. Each incoming partnership request is listed with its review state and AI-assisted compatibility indicators before the human decision.}
+  \label{fig:employee-request-review-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{contacts}
+  \caption{Partner contact directory. The 16:9 crop focuses on the searchable contact table, partner affiliation, and role information used by commercial and management teams.}
+  \label{fig:employee-contact-directory-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{events}
+  \caption{Events with budget and attendance. The cropped view keeps the filter bar and first event rows visible, showing how budget, participation, and relationship activity are followed together.}
+  \label{fig:employee-events-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{profile}
+  \caption{Employee profile and password management. The page gives the user a controlled self-service area for identity details and password updates without exposing administrative functions.}
+  \label{fig:employee-profile-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{status-history}
+  \caption{Auditable partnership status history. Placed after the profile view, this crop highlights the transition log used to verify who changed a partner status, when, and why.}
+  \label{fig:employee-status-history-view}
+\end{figure}
+
+The \textbf{partner portal} is self-service. External partners manage their own data and performance; the ESPRIT university partner shown below creates internship and work-study offers, co-organizes events, follows its student-recruitment pipeline, manages documents and contacts, and reads a home dashboard that benchmarks its indicators against university-category averages. All captures are displayed one after another at full width, with 16:9 crops for long pages, so that the printed report keeps the evidence legible.
+
+\begin{figure}[p]
+  \centering
+  \shotprint{partner-home}
+  \caption{Partner home with category benchmark. The dashboard summarizes ESPRIT's profile, indicators, and comparison with other university partners.}
+  \label{fig:partner-home-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{partner-stats}
+  \caption{Partner statistics against category averages. The top section compares the partner's own performance with aggregated university-partner benchmarks.}
+  \label{fig:partner-stats-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{partner-offers}
+  \caption{Partner offer management. The portal lets the external organization create and follow offers or academic collaboration opportunities from its own workspace.}
+  \label{fig:partner-offers-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{partner-events}
+  \caption{Co-organized events. The cropped view presents event records and their main operational fields, supporting shared planning between Capgemini and the partner.}
+  \label{fig:partner-events-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{partner-recruitments}
+  \caption{Student-recruitment pipeline. The 16:9 crop keeps the top of the long list visible, where filters and the most recent student records guide academic partnership follow-up.}
+  \label{fig:partner-recruitments-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{partner-portal-documents}
+  \caption{Partner documents. The self-service document page gives the partner access to shared files while preserving the ownership and visibility boundaries of the relationship.}
+  \label{fig:partner-documents-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{partner-contacts}
+  \caption{Partner contacts. The page centralizes contact information so that both Capgemini and the external organization can keep communication channels consistent.}
+  \label{fig:partner-contacts-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{partner-profile}
+  \caption{Partner organization profile. The cropped top section shows editable organization details and account information for the external partner.}
+  \label{fig:partner-profile-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{partner-projects}
+  \caption{Partner projects empty state. The page remains informative even when no supplier project is currently attached, avoiding a blank screen.}
+  \label{fig:partner-projects-view}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \shotprint{partner-notifications}
+  \caption{Notification center empty state. The partner portal explains the absence of messages and keeps the notification area ready for future activity.}
+  \label{fig:partner-notifications-view}
+\end{figure}
+
+\clearpage
+
+\section{Functional validation scenarios}
+
+The module can be validated through these scenarios:
+\begin{itemize}
+  \item an employee creates a partner, assigns a category, changes its status, and checks the status history;
+  \item an employee searches the partners list, applies category and status filters, and opens a partner detail page;
+  \item an employee adds a contact and sees it on the partner page and in the global contacts directory;
+  \item an employee creates an offer or grant, updates its state, and checks that the partner relationship remains unchanged unless explicitly modified;
+  \item an employee schedules a meeting or event and sees it in the partner communications view;
+  \item an authorized user uploads a partner document, previews it, downloads it, and verifies ownership metadata;
+  \item a public organization submits a partnership or adherence request, which appears in the review queue;
+  \item an employee reviews the AI-assisted compatibility dimensions and accepts or rejects the request;
+  \item a notification is generated for a relevant action and can be marked as read.
+\end{itemize}
+
+\section{Conclusion}
+
+This chapter described the partnership lifecycle and relationship-management module of \projectname{}. It covers CRUD, detail pages, contacts, offers and grants, communications, documents, notifications, public request intake, review queue management, AI-assisted compatibility analysis, and status history for customer, marketing, supplier/technology, and university partners. The result is a structured, searchable, categorized, and auditable foundation for later analytics and AI services.

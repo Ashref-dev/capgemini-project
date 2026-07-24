@@ -1,0 +1,19 @@
+flowchart TB
+  MSG["User message"]
+  STREAM["Structured stream"]
+  TXT["Streamed text"]
+  HUD["Plan HUD"]
+  TRACE["Reasoning trace"]
+  CHART["Chart cards"]
+  TABLE["Interactive tables"]
+  CARD["Report card + PDF"]
+  LINK["Source deep links"]
+  MSG --> STREAM
+  STREAM --> TXT
+  STREAM --> HUD
+  STREAM --> TRACE
+  STREAM --> CHART
+  STREAM --> TABLE
+  STREAM --> CARD
+  STREAM --> LINK
+  classDef default fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;

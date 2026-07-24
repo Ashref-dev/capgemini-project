@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 860" role="img" aria-labelledby="title desc">
+  <title id="title">IntelliConnect layered architecture</title>
+  <desc id="desc">A four layer architecture: presentation, application, intelligence, and data.</desc>
+  <style>.ink{fill:#0b1826}.muted{fill:#617487}.blue{fill:#0070ad}.pale{fill:#eaf5fa}.wash{fill:#f4f9fb}.t{font:700 38px Arial,sans-serif}.s{font:500 23px Arial,sans-serif}.k{font:700 18px Arial,sans-serif;letter-spacing:2px}.box{stroke:#0070ad;stroke-width:3}</style>
+  <path d="M900 170V720" stroke="#0070ad" stroke-width="8"/><path d="M875 690l25 45 25-45" fill="#0070ad"/>
+  <rect x="120" y="76" width="1560" height="145" rx="20" class="pale box"/><text x="174" y="125" class="k blue">01</text><text x="174" y="179" class="t ink">Presentation</text><text x="590" y="179" class="s muted">Public website · employee portal · partner portal · report editor</text>
+  <rect x="120" y="263" width="1560" height="145" rx="20" class="wash box"/><text x="174" y="312" class="k blue">02</text><text x="174" y="366" class="t ink">Application</text><text x="590" y="366" class="s muted">Route handlers · authentication · shared services · business workflows</text>
+  <rect x="120" y="450" width="1560" height="145" rx="20" class="pale box"/><text x="174" y="499" class="k blue">03</text><text x="174" y="553" class="t ink">Intelligence</text><text x="590" y="553" class="s muted">Typed tools · scoring · retrieval · agent runtime · reports · observability</text>
+  <rect x="120" y="637" width="1560" height="145" rx="20" class="wash box"/><text x="174" y="686" class="k blue">04</text><text x="174" y="740" class="t ink">Data</text><text x="590" y="740" class="s muted">Operational PostgreSQL · BI warehouse · pgvector · documents and embeddings</text>
+</svg>

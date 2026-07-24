@@ -1,0 +1,20 @@
+flowchart TB
+  UIA["Agent workspace<br/>chat, plan HUD, cards"]:::box
+  ORCH["Chat route<br/>AI SDK stream, steps, timeouts"]:::root
+  LLM["External chat model<br/>NVIDIA/OpenAI-compatible"]:::box
+  TOOLS["24-tool registry<br/>Zod-validated, read-oriented"]:::box
+  SVC["Server services"]:::box
+  RET["Retrieval<br/>pgvector semantic search"]:::box
+  DB[("Application DB")]:::store
+  GOV["LangSmith governance<br/>traces, sources, evals"]:::box
+  UIA --> ORCH
+  ORCH --> LLM
+  ORCH --> TOOLS
+  TOOLS --> SVC
+  TOOLS --> RET
+  SVC --> DB
+  RET --> DB
+  ORCH --> GOV
+  classDef box fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;
+  classDef root fill:#0070AD,stroke:#0B1F33,color:#ffffff;
+  classDef store fill:#ffffff,stroke:#0B1F33,color:#0B1F33;

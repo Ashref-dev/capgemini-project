@@ -1,0 +1,18 @@
+sequenceDiagram
+  autonumber
+  actor Emp as Employee
+  participant Q as Review queue
+  participant API as API route
+  participant DB as Application DB
+  participant AI as Scoring service
+  Emp->>Q: Open pending request
+  Q->>API: Request detail
+  API->>DB: Load request
+  DB-->>API: Request data
+  API->>AI: Analyze rubric
+  AI-->>API: Five rubric dimensions
+  API-->>Emp: Rubric + recommendation
+  Emp->>API: Accept or reject
+  API->>DB: Accept: create partner + history
+  API->>DB: Reject: update request + reason
+  API-->>Emp: Applicant email sent

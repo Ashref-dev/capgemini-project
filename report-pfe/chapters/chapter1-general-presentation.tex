@@ -1,134 +1,162 @@
-\chapter{Présentation générale}
-
+\chapter{General Presentation and Methodology}
 \section*{Introduction}
 \addcontentsline{toc}{section}{Introduction}
-Ce premier chapitre pose le cadre organisationnel et métier du projet. Il présente d'abord l'entreprise d'accueil et le type d'environnement dans lequel la solution s'insère, puis formalise la problématique du recrutement, l'analyse synthétique de solutions existantes et les objectifs poursuivis par \projectname{}.
-
-\section{Présentation de l'entreprise d'accueil}
-
-\subsection{Présentation de Capgemini et de Capgemini Engineering}
-Capgemini se présente comme un acteur mondial du conseil, des services technologiques et de la transformation numérique. La marque \textit{Capgemini Engineering} regroupe plus spécifiquement les activités d'ingénierie, de développement logiciel et de transformation de produits numériques. Dans le contexte de ce projet, cette double identité est importante : le besoin traité est bien un besoin métier RH, mais la réponse attendue est une plateforme logicielle industrialisable, intégrant de la donnée, de l'IA et des interfaces adaptées à plusieurs profils utilisateurs \netref{web:capgemini-about}\netref{web:capgemini-engineering}.
-
-\subsection{Structure organisationnelle pertinente pour le projet}
-À l'échelle du projet, l'organisation utile n'est pas une hiérarchie complète de l'entreprise, mais un ensemble d'acteurs qui collaborent sur la chaîne de recrutement :
-\begin{itemize}
-  \item les équipes \textbf{Talent Acquisition (TA)}, responsables du sourcing, du vivier de CV et du pilotage des postes ;
-  \item les \textbf{Managers}, impliqués dans l'évaluation technique ou métier des candidats ;
-  \item les \textbf{RH}, garants de la décision finale, de la communication et de la contractualisation ;
-  \item les \textbf{Administrateurs}, qui supervisent les comptes, les tableaux de bord globaux et les traces d'activité.
-\end{itemize}
-Cette structuration est confirmée dans le projet par la documentation des rôles, par le module d'authentification et par l'organisation des espaces protégés \netref{web:project-docs}.
-
-\subsection{Services et périmètre numérique concernés}
-Le projet s'inscrit dans un périmètre numérique combinant :
-\begin{itemize}
-  \item la gestion opérationnelle du recrutement ;
-  \item l'assistance à la décision par l'analyse de CV, le matching et les rapports IA ;
-  \item la gouvernance par les exports, les notifications, l'historique d'activité et les indicateurs ;
-  \item l'expérience utilisateur multi-rôles, avec des tableaux de bord différenciés.
-\end{itemize}
-Autrement dit, il ne s'agit pas d'un simple ATS documentaire, mais d'un système de travail partagé entre équipes de recrutement et décideurs.
-
-\begin{figure}[H]
+This chapter sets the organizational, business, and methodological context of the final year project. Carried out within \reportcompany{} during a full-time internship, \reporttitle{} produced \projectname{}, an intelligent web platform for enterprise partnership and project management. It presents Capgemini and Capgemini Engineering Tunisie, defines the business problem, outlines the project objectives and functional surfaces, reviews the state of the art to position the platform, and justifies the Agile Scrum choice and sprint cadence.
+\section{Host Company Presentation}
+This section identifies the organizational environment that shaped the project. It starts from the Capgemini group context, narrows to Capgemini Engineering Tunisie, and then lists the stakeholders whose work motivated the platform.
+\subsection{Capgemini Group}
+Capgemini is a global business and technology transformation group covering consulting, technology services, engineering, data, artificial intelligence, cloud, and digital operations. It operates internationally as a partner for companies that want to transform their processes, systems, and digital products through technology and engineering expertise \netref{web:capgemini-about}. This profile is directly relevant to the project because the group works with customers, technology providers, universities, and institutional actors, relies on structured collaboration between internal teams and external partners, and has an engineering culture suited to a platform combining workflows, analytics, and artificial intelligence.
+\subsection{Capgemini Engineering Tunisie}
+Capgemini Engineering is the engineering and research and development branch of Capgemini. It focuses on intelligent industry, product engineering, software engineering, digital continuity, systems engineering, and applied technology services \netref{web:capgemini-engineering}. In Tunisia, Capgemini Engineering Tunisie extends this positioning within a local ecosystem of customers, suppliers, academic institutions, and business partners. This local context gives the project a concrete business basis: partnership management covers commercial opportunities, supplier relationships, university cooperation, marketing actions, events, projects, documents, contacts, performance indicators, and governance follow-up. A platform built for this environment must be reliable, role-aware, traceable, and adaptable to different partner categories.
+\begin{figure}[htbp]
   \centering
-  \screenshotplaceholder{Landing page}
-  \caption{Page d'accueil institutionnelle de la plateforme.}
+  \dgram{org-hierarchy}
+  \caption{Organizational hierarchy and departments of Capgemini Engineering Tunisie.}
 \end{figure}
-
-\section{Présentation du projet}
-
-\subsection{Problématique}
-Les recrutements d'entreprise rencontrent plusieurs difficultés récurrentes : multiplicité des candidatures, hétérogénéité des formats de CV, dispersion des informations, lenteur des validations intermédiaires, manque de visibilité sur le pipeline et difficulté à exploiter l'IA sans perdre la maîtrise métier. L'analyse fonctionnelle du projet montre que le besoin adressé par \projectname{} porte précisément sur cette chaîne complète : ingestion documentaire, structuration, assignation, évaluation multi-étapes, planification d'entretiens et pilotage analytique.
-
-\subsection{Étude synthétique des solutions existantes}
-Avant de construire une solution interne, il est pertinent de situer le projet par rapport à des plateformes largement diffusées comme LinkedIn Talent Solutions, Greenhouse et Workday Recruiting, dont les sites officiels sont référencés en bibliographie et webographie \netref{web:linkedin-talent}\netref{web:greenhouse-recruiting}\netref{web:workday-recruiting}. L'objectif n'est pas d'établir un benchmark de performance absolu, mais d'identifier les écarts entre des offres ATS généralistes et le besoin spécifique du projet.
-
+\subsection{Relevant Partnership Stakeholders}
+The useful organizational scope for this project is the set of stakeholders who interact with the partnership lifecycle and need reliable information to make decisions. The most relevant stakeholders are summarized below.
 \begin{table}[H]
   \centering
-  \caption{Comparaison fonctionnelle orientée besoins du projet}
-  \begin{tabularx}{\textwidth}{>{\bfseries}p{4.2cm}XXX}
+  \caption{Relevant stakeholders for partnership management}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.6cm}X}
     \toprule
-    Critère & LinkedIn Talent Solutions & Greenhouse & Workday Recruiting \\
+    Stakeholder & Role in the partnership lifecycle \\
     \midrule
-    Vivier de CV interne structuré & Partiel & Oui & Oui \\
-    Matching IA directement relié au vivier & Limité & Partiel & Limité \\
-    Pipeline multi-rôles TA / Manager / HR & Partiel & Oui & Oui \\
-    Assistant conversationnel outillé & Non natif & Non natif & Non natif \\
-    Recherche sémantique sur CV avec citations & Non mise en avant & Non mise en avant & Non mise en avant \\
-    Gouvernance intégrée (activité, emails, onboarding) & Partiel & Partiel & Partiel \\
-    Adaptation au périmètre exact du projet & Faible & Moyenne & Moyenne \\
+    Executive and management teams & Monitor strategic value, portfolio health, performance indicators, and major partnership decisions. \\
+    Commercial teams & Follow customer and market-facing relationships, offers, contacts, meetings, opportunities, and negotiation status. \\
+    Project and delivery teams & Connect supplier and customer relationships to concrete projects, milestones, workload, risks, and delivery indicators. \\
+    Human resources teams & Coordinate university cooperation, student programs, employee information, and internal collaboration needs linked to partners. \\
+    Partner representatives & Access their dedicated portal to follow shared information such as profile data, events, documents, offers, notifications, and category-specific activities. \\
+    Platform administrators & Govern accounts, permissions, portfolio consistency, activity logs, reporting, and operational supervision. \\
     \bottomrule
   \end{tabularx}
 \end{table}
-La lecture de cette comparaison met en évidence trois constats. LinkedIn Talent Solutions est surtout fort pour la visibilité et le sourcing, mais ne répond pas directement au besoin d'un vivier interne entièrement gouverné. Greenhouse couvre mieux les workflows ATS, mais reste moins orienté vers une recherche sémantique interne avec citations et agent conversationnel outillé. Workday Recruiting est pertinent dans une suite RH globale, mais il répond moins directement à un projet ciblé sur un pipeline interne, modulaire et fortement branché sur les données de recrutement du projet.
-
-Ainsi, l'écart principal ne concerne pas une fonctionnalité unique, mais l'intégration complète entre données internes, workflow multi-rôles, IA contrôlée et gouvernance. C'est précisément cet écart que \projectname{} cherche à couvrir.
-
-Cette synthèse justifie le choix d'une plateforme dédiée : le besoin ne porte pas seulement sur la publication d'offres ou le suivi d'entretien, mais sur l'orchestration d'un processus complet enrichi par l'IA, avec une forte maîtrise interne des données, des rôles et des règles de décision.
-
-\subsection{Objectifs du projet}
-Les objectifs fonctionnels et techniques peuvent être résumés comme suit.
-
+These stakeholders explain the need for several surfaces rather than a single back-office screen: public visitors need a clear entry point, employees need a complete operational workspace, and external partners need a secure self-service portal.
+\section{Project Presentation}
+The project presentation connects the observed business problem to the product response. It explains why a dedicated platform was necessary, what objectives it had to satisfy, and how the proposed solution organizes the public, employee, partner, and AI-assisted surfaces.
+\subsection{Problem Statement}
+Enterprise partnership management is often fragmented across spreadsheets, email threads, isolated documents, informal follow-ups, and unrelated tools. As a result, partner information is scattered, meetings, events, offers, projects, and documents are disconnected, relationship status is unclear, and managers lack consolidated indicators when prioritizing action. In the context of Capgemini Engineering Tunisie, partnership relationships cover customers, marketing partners, suppliers, and universities. Each category has specific expectations, but all require structured data, traceability, communication history, performance indicators, and controlled access. The challenge is to manage the full partnership lifecycle through a unified, intelligent, role-based platform. The project addresses the following central question: how can Capgemini Engineering Tunisie centralize and govern its enterprise partnerships while giving operational teams, decision-makers, and external partners useful digital services and AI-assisted insights?
+\subsection{Project Objectives}
+The objectives of \projectname{} cover business, functional, technical, and methodological expectations. They are summarized in the following table.
 \begin{table}[H]
   \centering
-  \caption{Objectifs structurants de \projectname{}}
-  \begin{tabularx}{\textwidth}{>{\bfseries}p{4cm}X}
+  \caption{Main objectives of \projectname{}}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.4cm}X}
     \toprule
-    Axe & Objectif \\
+    Objective axis & Expected result \\
     \midrule
-    Centralisation & Unifier le vivier de CV, les postes, les candidats, les entretiens et les notifications dans une même plateforme. \\
-    Accélération & Réduire le temps de tri et de passage entre étapes grâce à l'automatisation et à l'IA. \\
-    Fiabilisation & Encadrer les décisions via des rôles explicites, des états de pipeline, des logs et des exports. \\
-    Assistance intelligente & Générer des screenings, guides d'entretien, analyses et recherches avancées à partir des données du système. \\
-    Gouvernance & Donner aux administrateurs une vision globale de l'activité, des emails et de l'onboarding. \\
-    Évolutivité & S'appuyer sur une architecture par fonctionnalités, plus adaptée à l'évolution incrémentale qu'un empilement de pages isolées. \\
+    Centralization & Provide a unified source of information for partners, contacts, documents, events, offers, projects, requests, and relationship history. \\
+    Lifecycle governance & Support partner creation, categorization, status evolution, follow-up actions, notifications, and traceability. \\
+    Multi-surface access & Offer a public website, a protected employee portal, and a protected partner portal, each adapted to its audience. \\
+    Decision support & Provide portfolio metrics, scoring, dashboards, reports, and AI-assisted recommendations to help teams prioritize actions. \\
+    Collaboration & Improve communication between internal teams and partners through shared data, documents, events, notifications, and category-specific services. \\
+    Demonstrability & Deliver a coherent final year project that can be presented, tested, and evaluated through realistic scenarios and seeded data. \\
+    Maintainability & Build a structured application that separates routing, interface components, server services, database access, authentication, and AI capabilities. \\
     \bottomrule
   \end{tabularx}
 \end{table}
-
-\subsection{Solution proposée}
-La solution proposée est une application web full-stack appelée \projectname{}, organisée autour de quatre rôles métier et d'un noyau de services métier regroupés par fonctionnalité. L'application repose sur :
-\begin{itemize}
-  \item une page d'accueil et une authentification par email/mot de passe ;
-  \item des espaces de travail spécifiques pour TA, Manager, HR et Admin ;
-  \item un vivier de CV avec extraction automatique des données ;
-  \item des offres d'emploi structurées, réutilisables sous forme de modèles ;
-  \item un pipeline candidat à douze états ;
-  \item des modules d'entretien, de reporting et d'onboarding ;
-  \item une couche IA combinant matching, génération et agent conversationnel outillé.
-\end{itemize}
-
-\section{Méthodologie adoptée}
-
-\subsection{Choix de la méthodologie}
-La structure du projet et la livraison progressive de ses modules rendent une méthodologie itérative particulièrement adaptée. La plateforme n'a pas été construite comme un livrable unique et figé ; elle a évolué par incréments successifs couvrant le contrôle d'accès, la gestion du vivier de CV, les offres, la progression des candidats, les capacités IA, la communication et la gouvernance.
-
-\subsection{Comparaison entre approches de gestion de projet}
-Deux grandes approches peuvent être envisagées pour ce type de projet : l'approche classique, qui définit les besoins en détail dès le départ puis exécute le projet de manière séquentielle, et l'approche agile, qui livre la valeur de façon incrémentale, intègre le retour d'expérience au fil du développement et permet d'ajuster le périmètre lorsque les priorités métier se précisent.
-
+\subsection{Proposed Solution}
+The proposed solution is \projectname{}, a full-stack intelligent web platform for enterprise partnership management. It is organized around three complementary surfaces, each serving a distinct audience with its own dashboard and feature set, as shown in Figure~\ref{fig:surfaces}.
+\begin{figure}[htbp]
+  \centering
+  \dgram{surfaces}
+  \caption{The three product surfaces of \projectname{} and their audiences.}
+  \label{fig:surfaces}
+\end{figure}
 \begin{table}[H]
   \centering
-  \caption{Comparaison entre approche agile et approche classique}
-  \begin{tabularx}{\textwidth}{>{\bfseries}p{3.4cm}XX}
+  \caption{Main product surfaces of \projectname{}}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{3.5cm}X}
     \toprule
-    Critère & Approche agile & Approche classique \\
+    Surface & Target users & Main purpose \\
     \midrule
-    Mode de livraison & Incrémental et itératif & Séquentiel \\
-    Intégration du feedback & Continue, à chaque module livré & Tardive, souvent concentrée en fin de cycle \\
-    Adaptation au changement & Élevée, adaptée aux ajustements métier et IA & Faible, car les changements perturbent le plan initial \\
-    Visibilité sur l'avancement & Fréquente grâce aux incréments fonctionnels & Limitée entre les jalons majeurs \\
-    Adéquation à ce projet & Forte, car le produit combine workflows métier, interfaces et expérimentation IA & Moyenne, car le besoin évolue avec les résultats techniques observés \\
+    Public surface & Visitors and potential partners & Present Capgemini partnership value, show collaboration models, display success stories, and collect partnership requests through a public form. \\
+    Employee surface & Internal Capgemini users & Manage the partner portfolio, requests, contacts, events, offers, documents, projects, HR cooperation workflows, BI dashboards, reports, and the AI assistant. \\
+    Partner surface & External partner representatives & Give partners a secure self-service space to consult profile data, offers, events, documents, notifications, statistics, contacts, and category-specific operations. \\
     \bottomrule
   \end{tabularx}
 \end{table}
-
-Comme ce projet combine conception produit, workflows d'entreprise et expérimentation autour de l'IA, l'approche agile apparaît plus adaptée qu'un processus strictement séquentiel. Elle permet de stabiliser d'abord le socle métier, puis d'enrichir progressivement le produit avec l'analytique, l'aide à la décision, l'outillage conversationnel et les modules de gouvernance.
-
-\subsection{Méthodologie retenue}
-Une méthode agile et incrémentale a donc été retenue. Le travail a été organisé en modules fonctionnels livrés progressivement, chaque incrément apportant une valeur métier visible à la plateforme. Cette méthodologie est également cohérente avec l'architecture du projet : comme l'application est organisée par fonctionnalités, chaque itération pouvait se concentrer sur une tranche métier cohérente, sans disperser les changements dans des couches techniques déconnectées.
-
-Ce choix présente trois avantages : il rend visible la progression de la valeur métier, il permet d'associer chaque incrément à des routes, composants et services identifiables, et il isole clairement la montée en complexité de la couche IA, qui n'intervient qu'après la mise en place du socle documentaire et opérationnel.
-
+The solution also includes an AI-assisted layer. Its role is to summarize information, search partner documents, calculate scores, identify risks, generate analytical reports, and help employees explore portfolio data. The platform combines operational management and intelligent assistance while keeping the business data structured and governed.
+\section{State of the Art and Positioning}
+\label{sec:chapter1-state-of-the-art}
+This section positions \projectname{} against existing tooling on two levels: the market platforms that address relationship management, and the technical foundations of its intelligence layer.
+\subsection{Relationship and Partner Management Platforms}
+Customer Relationship Management (CRM) platforms such as HubSpot organise contacts, sales pipelines, and customer interactions \netref{web:hubspot-crm}. Partner Relationship Management (PRM) modules, including the Salesforce partner capabilities, add channel collaboration and shared workflows \netref{web:salesforce-prm}. These products are mature and broad, but general-purpose: covering the exact scope expected here, namely four first-class partner categories, native public request intake, an integrated partner portal, project delivery, and a governed AI layer, would require substantial configuration, licensing, and integration. \projectname{} implements this scope directly for the Capgemini Engineering Tunisie context.
+\subsection{Enterprise AI Assistants}
+A recent alternative is to add a generic enterprise AI assistant over existing data rather than build a dedicated one. Atlassian Rovo offers search, chat, and agents over a Teamwork Graph, but it targets general knowledge work inside the Atlassian ecosystem and provides no native partner-scoring or partnership-CRM runtime \netref{web:atlassian-rovo}. Salesforce Agentforce is CRM-native and capable, yet it assumes Salesforce as the system of record and carries seat- and credit-based pricing that is heavy for a focused custom product \netref{web:salesforce-agentforce}. A bare retrieval chatbot over company data is lighter still, yet on its own it provides neither deterministic scoring, typed domain actions, nor a role-aware audit trail. Table~\ref{tab:ai-assistant-comparison} summarises the comparison.
+\begin{table}[H]
+  \centering
+  \caption{Positioning of \projectname{} against enterprise AI assistants}
+  \label{tab:ai-assistant-comparison}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.4cm}
+                               >{\raggedright\arraybackslash}X
+                               >{\raggedright\arraybackslash}X
+                               >{\raggedright\arraybackslash}X}
+    \toprule
+    Criterion & Atlassian Rovo & Salesforce Agentforce & \projectname{} \\
+    \midrule
+    Orientation & Atlassian teamwork knowledge work & Salesforce CRM automation & Enterprise partnership and project management \\
+    \addlinespace
+    Partnership-CRM fit & Generic & Native CRM, not partnership-specific & Purpose-built \\
+    \addlinespace
+    Deterministic explainable scoring & No & Custom build required & Native five-dimension model \\
+    \addlinespace
+    Typed domain tools & General agents & Platform-dependent & 24 typed, validated tools \\
+    \addlinespace
+    Data control & Atlassian Cloud & Salesforce Hyperforce & Single-owner self-hosted database \\
+    \addlinespace
+    Cost model & Per seat & Seats plus credits & Internal build, no per-seat license \\
+    \addlinespace
+    MCP interoperability & Yes & Yes & Roadmap \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+The comparison motivates the project: a generic assistant answers questions, whereas partnership decisions at Capgemini require reproducible scoring, typed actions bound to real business data, role-aware access, and control over where that data lives. \projectname{} is therefore built as a domain runtime rather than a chatbot, and interoperability through the Model Context Protocol (MCP) \netref{web:mcp}, already supported by the assistants above, is kept as an explicit roadmap item.
+\subsection{Technical Foundations}
+The intelligence layer builds on established techniques. Retrieval-Augmented Generation grounds model answers in retrieved passages rather than parametric memory \netref{web:rag-lewis}\netref{web:rag-survey}. Dense retrieval with transformer embeddings \netref{web:dpr}\netref{web:sbert} captures semantic proximity that lexical matching misses, while sparse ranking such as BM25 \netref{web:bm25} stays strong on exact terms; the two are complementary and can be merged with Reciprocal Rank Fusion \netref{web:rrf}. Agentic use of language models, where the model plans and calls typed tools, follows the ReAct pattern and the broader agent literature \netref{web:react-agent}\netref{web:agent-survey}. Partner deduplication and matching draw on classical entity-resolution work \netref{web:entity-matching}. \projectname{} combines these foundations into the hybrid, agentic design detailed in the chapters dedicated to the agentic assistant and to the retrieval and scoring layer.
+\section{Methodology Adopted}
+The methodology section explains how the work was planned and controlled during the internship. Because the platform covers several business domains and technical layers, the project needed an iterative cadence rather than a single late integration phase.
+\subsection{Why Agile Scrum Was Selected}
+The development of \projectname{} required an iterative methodology because the product combines public communication, secure access, internal operations, partner self-service, dashboards, project tracking, HR cooperation, document management, and AI-assisted analysis. These dimensions could not be designed and validated as a single block. Agile Scrum was selected because it supports incremental delivery, regular inspection, backlog prioritization, and continuous adaptation. It made it possible to build a usable foundation first, then enrich it through successive increments, with each sprint focused on a coherent capability while priorities could still evolve according to technical findings, functional complexity, and demonstration needs.
+\subsection{Agile and Classical Methodologies Compared}
+The following table shows why an agile approach suits this project better than a classical sequential one.
+\begin{table}[H]
+  \centering
+  \caption{Comparison between agile and classical project management approaches}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{3.5cm}XX}
+    \toprule
+    Criterion & Agile approach & Classical approach \\
+    \midrule
+    Delivery mode & Incremental delivery through short iterations & Sequential delivery after successive specification, design, implementation, and validation phases \\
+    Requirement handling & Requirements can be refined as the product becomes clearer & Requirements are expected to be stable early in the project \\
+    Feedback integration & Frequent feedback after each increment & Feedback often arrives late, near the end of the project \\
+    Risk control & Technical and functional risks are discovered progressively & Major risks may remain hidden until integration or final validation \\
+    Visibility & Regular progress is visible through working features & Progress may be documented but not always visible in a usable product \\
+    Fit for \projectname{} & Strong fit because the platform combines workflows, portals, analytics, and AI capabilities & Weaker fit because late changes would be costly for a multi-surface platform \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+The project needed a method that could turn a broad vision into demonstrable increments while keeping the final product coherent, which Agile Scrum provides.
+\subsection{Sprint Cadence}
+The internship spanned roughly seventeen weeks, divided into five implementation sprints after an initial framing effort.
+\begin{table}[H]
+  \centering
+  \caption{Sprint cadence across the internship}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{3.2cm}X}
+    \toprule
+    Period & Sprint focus & Expected increment \\
+    \midrule
+    Week 1 & Framing and backlog preparation & Understand the host context, define the product scope, identify stakeholders, prepare the backlog, and set up the project structure. \\
+    Weeks 2 to 4 & Sprint 1: Public and access foundation & Build the public entry point, authentication flow, protected navigation structure, and first employee workspace foundation. \\
+    Weeks 5 to 7 & Sprint 2: Partner portfolio core & Implement partner records, categories, contacts, status management, documents, events, and basic operational follow-up. \\
+    Weeks 8 to 10 & Sprint 3: Requests and partner portal & Connect public partnership requests to employee review workflows and provide the secured partner self-service portal. \\
+    Weeks 11 to 13 & Sprint 4: Projects, HR cooperation, and analytics & Add project delivery tracking, human-resources cooperation modules, dashboards, statistics, reporting, and portfolio indicators. \\
+    Weeks 14 to 16 & Sprint 5: AI assistance and governance & Integrate scoring, recommendations, document search, AI reports, activity supervision, notifications, and governance features. \\
+    Week 17 & Stabilization and report alignment & Validate the main flows, refine the demonstration data, improve documentation, and align the report chapters with the implemented product. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 \section*{Conclusion}
 \addcontentsline{toc}{section}{Conclusion}
-Le projet \projectname{} répond à une problématique de recrutement d'entreprise plus large qu'un simple suivi de candidatures. Il vise la centralisation des opérations, l'aide à la décision et la traçabilité du processus complet. Le chapitre suivant formalise cette ambition sous forme d'acteurs, d'exigences, d'architecture et de modèle de données.
+This chapter presented the project context. It introduced Capgemini and Capgemini Engineering Tunisie, identified the stakeholders concerned by the platform, formulated the business problem, defined the objectives and surfaces of \projectname{}, and positioned it through a state of the art of relationship platforms, enterprise AI assistants, and the underlying retrieval and agent techniques. It also justified Agile Scrum and outlined the sprint cadence followed during the internship. The next chapter builds on this context by detailing the planning, requirements, and architecture of the solution. It moves from the general presentation of the project to a structured analysis of actors, functional needs, data organization, and technical design.

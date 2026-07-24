@@ -1,0 +1,18 @@
+flowchart LR
+  REQ["User request"]
+  RUN["Agent run"]
+  MODEL["Model call"]
+  SPANS["Tool spans<br/>retrieval · scoring · report"]
+  EVID["Retrieved evidence"]
+  RESP["Final response"]
+  LS["LangSmith trace"]
+  DS["Curated LangSmith dataset<br/>reviewed examples"]
+  FT["Future optional fine-tuning<br/>after client approval"]
+  REQ --> RUN --> MODEL --> RESP
+  RUN --> SPANS --> EVID
+  RUN --> LS
+  SPANS --> LS
+  LS --> DS --> FT
+  classDef default fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;
+  classDef hl fill:#0070AD,stroke:#0B1F33,color:#ffffff;
+  class LS hl;

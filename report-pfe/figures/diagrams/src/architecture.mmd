@@ -1,0 +1,38 @@
+flowchart TB
+  subgraph PRES["Presentation layer"]
+    direction LR
+    PUB["Public website"]
+    EMP["Employee portal"]
+    PRT["Partner portal"]
+  end
+  subgraph APPL["Application layer"]
+    direction LR
+    API["Access control<br/>auth · roles · validation"]
+    SVC["Business services<br/>partners · scoring · projects · reports"]
+  end
+  subgraph AIL["AI layer"]
+    direction LR
+    AG["Agent &amp; tools"]
+    RET["Retrieval"]
+  end
+  subgraph DATA["Data layer"]
+    direction LR
+    APPDB[("Application database")]
+    DW[("Data warehouse")]
+    VEC[("Vector store")]
+  end
+  EXT["External AI model + email"]
+  PRES --> APPL
+  APPL --> AIL
+  APPL --> DATA
+  AIL --> DATA
+  AIL --> EXT
+  APPL --> EXT
+  classDef box fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;
+  classDef store fill:#FFFFFF,stroke:#0B1F33,color:#0B1F33;
+  class PUB,EMP,PRT,API,SVC,AG,RET,EXT box;
+  class APPDB,DW,VEC store;
+  style PRES fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33
+  style APPL fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33
+  style AIL fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33
+  style DATA fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33

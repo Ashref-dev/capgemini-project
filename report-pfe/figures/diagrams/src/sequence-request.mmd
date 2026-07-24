@@ -1,0 +1,22 @@
+sequenceDiagram
+  autonumber
+  actor U as Employee
+  participant APP as Web app
+  participant API as Server (API + services)
+  participant DB as Database
+  participant AG as AI agent
+  U->>APP: Sign in
+  APP->>API: Authenticate
+  API->>DB: Verify credentials + load role
+  API-->>APP: Session (httpOnly cookie)
+  U->>APP: Manage partners (create, update, status)
+  APP->>API: Partner operations
+  API->>DB: Persist partner + status history
+  U->>APP: Review partnership request
+  API->>DB: Load request + compute rubric
+  API-->>U: Decision (accept creates a partner)
+  U->>AG: Ask an executive report
+  AG->>API: Grounded, validated tool calls
+  API->>DB: Query partners, projects, documents
+  DB-->>AG: Real data + cited evidence
+  AG-->>U: Report with charts, tables, PDF

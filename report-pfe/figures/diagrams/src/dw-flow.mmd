@@ -1,0 +1,9 @@
+flowchart LR
+  OP[("Application DB<br/>operational tables")]
+  AGG["Server-side aggregation<br/>ETL &amp; refresh"]
+  DW[("Data warehouse<br/>dimensions &amp; facts")]
+  BI["BI dashboard<br/>charts &amp; indicators"]
+  OP --> AGG --> DW --> BI
+  classDef default fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;
+  classDef store fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;
+  class OP,DW store;

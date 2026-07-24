@@ -1,0 +1,86 @@
+classDiagram
+  direction TB
+  class Employee {
+    +string name
+    +Role role
+  }
+  class Partner {
+    +string name
+    +Category category
+    +Status status
+    +int score
+  }
+  class Contact {
+    +string name
+    +string email
+  }
+  class Offer {
+    +string title
+    +string type
+  }
+  class Event {
+    +string title
+    +date date
+  }
+  class Meeting {
+    +string type
+    +date date
+  }
+  class Document {
+    +string name
+    +Visibility visibility
+  }
+  class Kpi {
+    +string period
+    +decimal satisfaction
+  }
+  class StatusHistory {
+    +Status toStatus
+    +date changedAt
+  }
+  class PartnershipRequest {
+    +string organization
+    +Status status
+  }
+  class Project {
+    +string name
+    +int progress
+  }
+  class Milestone {
+    +string title
+    +date dueDate
+  }
+  class Task {
+    +string title
+    +Status status
+  }
+  class Allocation {
+    +Role role
+  }
+  class DocumentEmbedding {
+    +int chunkIndex
+    +vector embedding
+  }
+  class ChatThread {
+    +string title
+  }
+  class Message {
+    +Role role
+    +text content
+  }
+  Employee "1" --> "*" Partner
+  Employee "1" --> "*" ChatThread
+  PartnershipRequest "1" --> "0..1" Partner
+  Partner "1" --> "*" Contact
+  Partner "1" --> "*" Offer
+  Partner "1" --> "*" Event
+  Partner "1" --> "*" Meeting
+  Partner "1" --> "*" Document
+  Partner "1" --> "*" Kpi
+  Partner "1" --> "*" StatusHistory
+  Partner "1" --> "*" Project
+  Project "1" --> "*" Milestone
+  Project "1" --> "*" Task
+  Project "1" --> "*" Allocation
+  Document "1" --> "*" DocumentEmbedding
+  ChatThread "1" --> "*" Message

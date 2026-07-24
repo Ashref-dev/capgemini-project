@@ -1,0 +1,54 @@
+flowchart LR
+  PUB["Public<br/>visitor"]:::actor
+  EMP["Employee<br/>Admin · Manager<br/>Commercial · Analyst · HR"]:::actor
+  PRT["Partner"]:::actor
+
+  subgraph INTAKE["Public request intake"]
+    direction TB
+    U0(["Submit request"])
+  end
+
+  subgraph OPS["Partnership pipeline"]
+    direction TB
+    U2(["Review &amp; decide"])
+    U3(["Manage lifecycle"])
+    U4(["Communications &amp; documents"])
+  end
+
+  subgraph DEL["Delivery &amp; intelligence"]
+    direction TB
+    U5(["Track projects"])
+    U6(["BI dashboards"])
+    U7(["Score &amp; rank"])
+    U8(["AI assistant &amp; reports"])
+  end
+
+  subgraph GOV["Governance &amp; access"]
+    direction TB
+    U9(["Govern &amp; audit"])
+    U11(["HR &amp; recruitment"])
+  end
+
+  subgraph PORTAL["Partner portal"]
+    direction TB
+    U10(["Partner self-service"])
+  end
+
+  PUB --> U0
+  EMP --> U2
+  EMP --> U3
+  EMP --> U4
+  EMP --> U5
+  EMP --> U6
+  EMP --> U7
+  EMP --> U8
+  EMP --> U9
+  EMP --> U11
+  PRT --> U10
+
+  classDef actor fill:#ffffff,stroke:#0B1F33,color:#0B1F33,font-weight:bold;
+  style INTAKE fill:#EAF4FB,stroke:#0070AD,color:#0B1F33
+  style OPS fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33
+  style DEL fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33
+  style GOV fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33
+  style PORTAL fill:#EAF4FB,stroke:#0070AD,color:#0B1F33

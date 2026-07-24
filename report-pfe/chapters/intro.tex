@@ -1,26 +1,48 @@
-\chapter*{Introduction générale}
-\addcontentsline{toc}{chapter}{Introduction générale}
+\chapter*{General Introduction}
+\addcontentsline{toc}{chapter}{General Introduction}
 
-La transformation numérique des fonctions \textit{Talent Acquisition} ne se limite plus à la publication d'offres et au suivi administratif des candidatures. Dans les contextes de recrutement à volume élevé, les équipes doivent simultanément centraliser des CV hétérogènes, structurer les données utiles, coordonner plusieurs intervenants métiers, documenter chaque décision et accélérer les délais de traitement sans sacrifier la qualité d'évaluation. Cette pression opérationnelle crée un terrain favorable à l'automatisation, à l'analytique temps réel et à l'intelligence artificielle appliquée aux flux RH.
+\noindent
+Enterprise competitiveness increasingly depends on how well an organization manages the relationships around it. A company such as \reportcompany{} works with corporate customers, technology and service suppliers, marketing organizations, and engineering schools. Each of these relationships carries its own contacts, commercial terms, shared projects, documents, and obligations. When this network grows, managing it through email threads, spreadsheets, and shared drives becomes error-prone. Renewals slip, warning signs stay hidden until attrition is already under way, and teams lose the common view they need to decide where to focus.
 
-C'est dans ce cadre que s'inscrit \projectname{}, une plateforme de recrutement orientée entreprise développée avec \sourcecode{Next.js 16}, \sourcecode{TypeScript}, \sourcecode{Bun}, \sourcecode{Neon PostgreSQL}, \sourcecode{Drizzle ORM} et un socle d'IA s'appuyant sur des API compatibles OpenAI/NVIDIA \netref{web:nextjs-docs}\netref{web:typescript-docs}\netref{web:bun-docs}\netref{web:neon-docs}\netref{web:drizzle-docs}. Les documentations officielles des principales technologies citées sont regroupées dans la bibliographie et webographie. La solution couvre l'ensemble du cycle de recrutement : page d'accueil et authentification, gestion d'un vivier de CV, création et suivi des postes, assignation des candidats, historique des transitions, planification des entretiens, rapports d'évaluation, notifications, exports, tableaux de bord administratifs, centre de gouvernance et assistant conversationnel IA.
+\projectname{} was designed and built during a master's final-year internship to replace that fragmented tooling with one governed platform. It centralizes the full partnership lifecycle and the project portfolio behind a secure, role-aware interface, and it adds an intelligence layer that turns operational data into grounded decision support.
 
-L'originalité majeure de la solution réside dans sa couche d'intelligence. Le système ne se contente pas d'ajouter une fonctionnalité d'aide à la rédaction ; il intègre un agent conversationnel multi-outils, un pipeline hybride de recherche \textit{Retrieval-Augmented Generation} (RAG), des mécanismes de \textit{grounding} destinés à limiter les réponses non fondées, une confirmation explicite avant les actions IA qui modifient les données et des évaluations quantitatives sur un jeu de 40 requêtes. Le principe RAG s'appuie sur la littérature de référence en récupération augmentée \netref{web:rag-lewis}, tandis que l'implémentation du projet l'adapte aux contraintes métier RH.
+\medskip
 
-L'objectif de ce rapport est de présenter, dans un cadre académique, la conception et la réalisation de cette plateforme selon une progression structurée : un cadrage général, un chapitre d'analyse et d'architecture, puis cinq chapitres d'implémentation organisés par modules fonctionnels. Cette structuration permet d'exposer à la fois la logique métier, les décisions techniques et la valeur produite pour les différents rôles de l'application : \textbf{TA}, \textbf{Manager}, \textbf{HR} et \textbf{Admin}.
+The platform is organized around three surfaces. The public website presents the company's partnership offer and lets an organization submit a partnership request that enters the internal review queue directly. The employee portal is the operational hub for Capgemini staff, giving access to partners, communications, documents, project delivery, business-intelligence dashboards, and the AI assistant. The partner portal gives each external organization a secure self-service space adapted to its category, covering customers, suppliers, marketing partners, and universities.
 
-La question directrice du mémoire peut donc être formulée ainsi : comment concevoir une plateforme de recrutement qui centralise les opérations métier tout en intégrant une assistance IA utile, mesurable et gouvernée ? Cette question guide la structure du rapport : chaque chapitre ne présente pas seulement une fonctionnalité isolée, mais une brique nécessaire à cette chaîne complète, depuis l'accès sécurisé jusqu'à la supervision des décisions et des communications.
+The intelligence layer is the distinguishing contribution of the project. \projectname{} implements an agentic assistant built on a streaming conversational interface and a typed, validated tool set, where every answer is grounded in real data from the live database. It combines deterministic partner and project scoring with semantic document retrieval, and it produces executive reports that analysts can export for real use.
 
-Le présent mémoire est organisé comme suit :
+\medskip
+
+These choices are driven by a single question that runs through the report:
+
+\begin{quote}
+\itshape
+How can a unified, role-aware platform cover the full operational lifecycle of enterprise partnerships and projects while embedding a governed agentic AI layer whose outputs are grounded, measurable, and trustworthy in a production context?
+\end{quote}
+
+\medskip
+
+\noindent
+The remainder of this report is organized into seven chapters.
+
 \begin{itemize}
-  \item le \textbf{chapitre 1} présente l'entreprise d'accueil, le contexte métier du recrutement et les objectifs du projet ;
-  \item le \textbf{chapitre 2} formalise les besoins, le Product Backlog, les objectifs de sprint, l'architecture applicative, le modèle de données et l'environnement technique ;
-  \item le \textbf{chapitre 3} traite le module d'accès, d'identité et d'entrée par rôle ;
-  \item le \textbf{chapitre 4} couvre la gestion du vivier de CV et des offres d'emploi ;
-  \item le \textbf{chapitre 5} détaille le pipeline candidat et la conduite des entretiens ;
-  \item le \textbf{chapitre 6} expose la couche d'intelligence artificielle, le matching, l'autopilot d'entretien et le pipeline RAG ;
-  \item le \textbf{chapitre 7} présente la supervision, les notifications, l'analytique et la gouvernance opérationnelle ;
-  \item enfin, une \textbf{conclusion générale} synthétise les acquis, la validation et les apports du projet.
+  \item \textbf{Chapter 1, General Presentation and Methodology}, introduces the host company, the business context of enterprise partnership management, the project objectives, the positioning of \projectname{} against existing solutions, and the agile method followed during the internship.
+
+  \item \textbf{Chapter 2, Planning and Architecture}, defines the functional and non-functional requirements, the product backlog and sprint plan, the use-case and data models, the overall application architecture, and the technical environment.
+
+  \item \textbf{Chapter 3, Access, Identity and Auditability}, covers authentication, the role-based access-control model, session handling, and the audit trail that records every sensitive operation across the platform.
+
+  \item \textbf{Chapter 4, Partnership Lifecycle Management and Customers}, presents the partner registry and status workflow, the contact, offer, and event modules, secure document handling, notifications, and the public request intake and review pipeline.
+
+  \item \textbf{Chapter 5, Project Delivery, Operations and Business Intelligence}, covers project delivery, the human-resources workflows, and the data-warehouse-backed analytics dashboard.
+
+  \item \textbf{Chapter 6, Agentic AI Harness and Generative Interface}, examines the conversational agent in depth: its validated tool set, the streaming protocol, multi-step plan execution and the live plan interface, in-line charts and tables, and the report-generation pipeline.
+
+  \item \textbf{Chapter 7, Knowledge Retrieval, Scoring and Observability}, covers document retrieval, the partner and project scoring models, churn-risk prediction, recommendations, and the evaluation and observability framework used to keep AI output measurable.
 \end{itemize}
 
-Ainsi, ce rapport ne décrit pas seulement une interface web de recrutement, mais une plateforme métier complète, conçue pour fiabiliser les décisions, améliorer la traçabilité des opérations et préparer l'industrialisation d'usages IA dans un contexte RH exigeant.
+\medskip
+
+\noindent
+A \textbf{General Conclusion} closes the report with a synthesis of the achieved results, an assessment against the initial objectives, and perspectives for future development and industrialization.

@@ -1,0 +1,11 @@
+flowchart LR
+  REQ["User request"]
+  ROUTE["Chat route"]:::root
+  SYS["System prompt<br/>execution contract"]
+  METH["Methodology<br/>loading"]
+  CAT["Tool catalog<br/>24 typed tools"]
+  EVID["Database-backed<br/>evidence"]
+  SYN["Grounded synthesis<br/>charts, tables, report"]
+  REQ --> ROUTE --> SYS --> METH --> CAT --> EVID --> SYN
+  classDef default fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;
+  classDef root fill:#0070AD,stroke:#0B1F33,color:#ffffff;

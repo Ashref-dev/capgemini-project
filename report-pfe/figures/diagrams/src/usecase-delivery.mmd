@@ -1,0 +1,20 @@
+flowchart LR
+  MGR["Manager"]:::actor
+  HR["HR"]:::actor
+  ANA["Analyst"]:::actor
+  subgraph SYS["Delivery, BI &amp; HR"]
+    P1(["Manage projects &amp; milestones"])
+    P2(["Track tasks &amp; team allocation"])
+    P3(["Monitor project health"])
+    P4(["Consult BI dashboards"])
+    P5(["Follow student pipeline"])
+    P6(["Export reports"])
+  end
+  MGR --> P1
+  MGR --> P2
+  MGR --> P3
+  ANA --> P4
+  ANA --> P6
+  HR --> P5
+  classDef actor fill:#ffffff,stroke:#0B1F33,color:#0B1F33,font-weight:bold;
+  style SYS fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33

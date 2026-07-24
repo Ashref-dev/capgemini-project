@@ -1,0 +1,18 @@
+flowchart LR
+  EMP["Employee"]:::actor
+  PAR["Partner"]:::actor
+  ADM["Admin"]:::actor
+  subgraph SYS["Access &amp; identity"]
+    A1(["Sign in"])
+    A2(["Recover server session"])
+    A3(["Route to authorized portal"])
+    A4(["Enforce role permissions"])
+    A5(["Record audit trail"])
+  end
+  EMP --> A1
+  PAR --> A1
+  A1 --> A2 --> A3
+  ADM --> A4
+  A4 --> A5
+  classDef actor fill:#ffffff,stroke:#0B1F33,color:#0B1F33,font-weight:bold;
+  style SYS fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33

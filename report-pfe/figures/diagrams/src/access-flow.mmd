@@ -1,0 +1,9 @@
+flowchart LR
+  REQ["Protected request"] --> GUARD["Route guard"]
+  GUARD --> SESS["Extract session<br/>JWT httpOnly cookie"]
+  SESS --> ROLE{"Role &amp;<br/>ownership valid?"}
+  ROLE -- authorized --> DATA["Return scoped data"]
+  ROLE -- denied --> REJ["Reject / redirect"]
+  classDef default fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;
+  classDef dec fill:#FFFFFF,stroke:#0B1F33,color:#0B1F33;
+  class ROLE dec;

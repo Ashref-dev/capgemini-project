@@ -1,0 +1,23 @@
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant AG as Agent
+  participant T as Tool catalog
+  participant SVC as Services / DB
+  participant UI as Generative UI
+  U->>AG: Analytical request
+  AG->>T: declareMethodology
+  T-->>UI: Methodology event
+  AG->>T: createPlan
+  T-->>UI: Plan HUD event
+  AG->>T: queryPartners / scorePartner
+  T->>SVC: Validated query
+  SVC-->>T: Structured data
+  AG->>T: createBarChart / createTable
+  T-->>UI: Chart + table cards
+  AG->>T: searchDocuments
+  T->>SVC: Semantic retrieval
+  SVC-->>T: Ranked chunks + citations
+  T-->>AG: Cited evidence
+  AG->>T: generateReport
+  T-->>UI: Report card + PDF

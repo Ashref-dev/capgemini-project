@@ -1,0 +1,11 @@
+stateDiagram-v2
+  direction TB
+  [*] --> Prospect
+  Prospect --> Negotiation: qualify
+  Negotiation --> Active: sign
+  Negotiation --> Rejected: decline
+  Active --> Suspended: suspend
+  Suspended --> Active: resume
+  Active --> Closed: end
+  Rejected --> [*]
+  Closed --> [*]

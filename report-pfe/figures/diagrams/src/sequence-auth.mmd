@@ -1,0 +1,20 @@
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant SI as Sign-in page
+  participant API as Auth API
+  participant AUTH as Auth service
+  participant DB as Application DB
+  participant P as Portal
+  U->>SI: Enter credentials
+  SI->>API: POST credentials
+  API->>DB: Load account by email + type
+  DB-->>API: Account record + password hash + role
+  API->>AUTH: Compare bcrypt hash
+  AUTH-->>API: Password valid
+  API->>AUTH: Sign JWT
+  API-->>SI: User payload + httpOnly cookie
+  SI->>P: Redirect by account type / role
+  P->>API: Request protected data
+  API->>AUTH: Extract session + guard
+  API-->>P: Authorized scoped data

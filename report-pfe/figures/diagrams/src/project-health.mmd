@@ -1,0 +1,15 @@
+flowchart LR
+  subgraph SIG["Signals"]
+    direction TB
+    A["Progress"]
+    B["Budget consumption"]
+    C["Milestone completion"]
+    D["Overdue tasks"]
+  end
+  SIG --> CALC["Health computation"]:::root
+  CALC --> G["Green<br/>on track"]
+  CALC --> O["Orange<br/>watch"]
+  CALC --> R["Red<br/>at risk"]
+  classDef default fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;
+  classDef root fill:#0070AD,stroke:#0B1F33,color:#ffffff;
+  style SIG fill:#F5F7FA,stroke:#7EA7C6,color:#0B1F33

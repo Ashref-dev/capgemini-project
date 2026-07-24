@@ -1,41 +1,295 @@
-\chapter*{Bibliographie et webographie}
+% -----------------------------------------------------------------------
+%  Netographie : IntelliConnect
+%  All \netref{...} labels used across chapters are defined here exactly
+%  once, sequentially numbered via \newcounter{netrefctr}.
+%  Usage in chapters: \netref{web:nextjs-docs}  →  [6]  (hyperlinked)
+% -----------------------------------------------------------------------
+\chapter*{Netography}
 \phantomsection
-\addcontentsline{toc}{chapter}{Bibliographie et webographie}
+\addcontentsline{toc}{chapter}{Netography}
+
+% Counter that drives sequential [N] reference numbers.
+\newcounter{netrefctr}
+
+% \netsrc{label} : steps the counter, attaches the label, and typesets [N]
+% in the left column of the longtable below.
+\newcommand{\netsrc}[1]{%
+  \refstepcounter{netrefctr}\label{#1}%
+  \textbf{[\thenetrefctr]}%
+}
 
 \begingroup
 \sloppy
+\small
+\setlength{\LTpre}{4pt}
+\setlength{\LTpost}{4pt}
 
-\paragraph{Sources institutionnelles et métier.}
-\begin{enumerate}
-  \item\label{web:project-docs} Dossier technique du projet \projectname{} : documentation d'architecture, schéma de données, services métier, routage applicatif, scripts de validation et rapport d'évaluation RAG. Consultation locale des artefacts du projet.
-  \item\label{web:capgemini-about} Capgemini, \textit{About us}. \url{https://www.capgemini.com/about-us/}. Dernier accès : 23 mai 2026.
-  \item\label{web:capgemini-engineering} Capgemini, \textit{Capgemini Engineering}. \url{https://www.capgemini.com/about-us/who-we-are/our-brands/capgemini-engineering/}. Dernier accès : 23 mai 2026.
-  \item\label{web:linkedin-talent} LinkedIn Talent Solutions. \url{https://business.linkedin.com/talent-solutions}. Dernier accès : 23 mai 2026.
-  \item\label{web:greenhouse-recruiting} Greenhouse Recruiting. \url{https://www.greenhouse.com/recruiting}. Dernier accès : 23 mai 2026.
-  \item\label{web:workday-recruiting} Workday Recruiting. \url{https://www.workday.com/en-us/products/human-capital-management/recruiting.html}. Dernier accès : 23 mai 2026.
-\end{enumerate}
+\noindent
+The resources listed below are cited in the report through the
+\texttt{\textbackslash netref\{label\}} command, which produces a hyperlinked
+reference of the form \textbf{[N]} pointing to the corresponding entry.
 
-\paragraph{Documentation technique officielle.}
-\begin{enumerate}[resume]
-  \item\label{web:nextjs-docs} Next.js Documentation. \url{https://nextjs.org/docs}. Dernier accès : 23 mai 2026.
-  \item\label{web:react-docs} React Documentation. \url{https://react.dev/}. Dernier accès : 23 mai 2026.
-  \item\label{web:typescript-docs} TypeScript Documentation. \url{https://www.typescriptlang.org/docs/}. Dernier accès : 23 mai 2026.
-  \item\label{web:bun-docs} Bun Documentation. \url{https://bun.sh/docs}. Dernier accès : 23 mai 2026.
-  \item\label{web:tailwind-docs} Tailwind CSS Documentation. \url{https://tailwindcss.com/docs}. Dernier accès : 23 mai 2026.
-  \item\label{web:shadcn-docs} shadcn/ui Documentation. \url{https://ui.shadcn.com/docs}. Dernier accès : 23 mai 2026.
-  \item\label{web:better-auth-docs} Better Auth Documentation. \url{https://www.better-auth.com/docs}. Dernier accès : 23 mai 2026.
-  \item\label{web:drizzle-docs} Drizzle ORM Documentation. \url{https://orm.drizzle.team/docs/overview}. Dernier accès : 23 mai 2026.
-  \item\label{web:neon-docs} Neon Documentation. \url{https://neon.com/docs}. Dernier accès : 23 mai 2026.
-  \item\label{web:postgres-docs} PostgreSQL Documentation. \url{https://www.postgresql.org/docs/}. Dernier accès : 23 mai 2026.
-  \item\label{web:pgvector-docs} pgvector Documentation. \url{https://github.com/pgvector/pgvector}. Dernier accès : 23 mai 2026.
-  \item\label{web:zod-docs} Zod Documentation. \url{https://zod.dev/}. Dernier accès : 23 mai 2026.
-  \item\label{web:vitest-docs} Vitest Documentation. \url{https://vitest.dev/guide/}. Dernier accès : 23 mai 2026.
-\end{enumerate}
+\medskip
 
-\paragraph{Références scientifiques.}
-\begin{enumerate}[resume]
-  \item\label{web:rag-lewis} Patrick Lewis, Ethan Perez, Aleksandra Piktus et al., \textit{Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks}, 2020. \url{https://arxiv.org/abs/2005.11401}. Dernier accès : 23 mai 2026.
-  \item\label{web:vector-johnson} Jeff Johnson, Matthijs Douze et Hervé Jégou, \textit{Billion-scale similarity search with GPUs}, 2017. \url{https://arxiv.org/abs/1702.08734}. Dernier accès : 23 mai 2026.
-\end{enumerate}
+% Two-column longtable: [N] | full bibliographic entry
+\begin{longtable}{@{} p{0.055\linewidth} p{0.895\linewidth} @{}}
+
+% ====================================================================
+% 1 : Institutional and professional sources
+% ====================================================================
+\multicolumn{2}{@{}l@{}}{%
+  \rule[0.55ex]{0.10\linewidth}{0.35pt}\enspace
+  \textsc{\textbf{Institutional and business sources}}%
+  \enspace\rule[0.55ex]{0.28\linewidth}{0.35pt}}\\[5pt]
+
+\netsrc{web:capgemini-about}
+  & Capgemini. \textit{About Capgemini}.
+    \url{https://www.capgemini.com/about-us/}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:capgemini-engineering}
+  & Capgemini. \textit{Capgemini Engineering: our engineering brand}.
+    \url{https://www.capgemini.com/about-us/who-we-are/our-brands/capgemini-engineering/}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:project-docs}
+  & \textit{\projectname{} project technical file}: architecture documentation,
+    data schema, business services, application routing, validation scripts,
+    and RAG evaluation report. Local consultation of project artifacts,
+    \reportinternshipperiod.\\[4pt]
+
+\netsrc{web:salesforce-prm}
+  & Salesforce. \textit{Partner Relationship Management (PRM)}.
+    \url{https://www.salesforce.com/products/partner-management/}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:hubspot-crm}
+  & HubSpot. \textit{HubSpot CRM: customer relationship management platform}.
+    \url{https://www.hubspot.com/products/crm}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:atlassian-rovo}
+  & Atlassian. \textit{Rovo: search, chat, and AI agents over the Teamwork Graph}.
+    \url{https://www.atlassian.com/software/rovo/features}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:salesforce-agentforce}
+  & Salesforce. \textit{Agentforce: AI agents for CRM (pricing and Einstein Trust Layer)}.
+    \url{https://www.salesforce.com/agentforce/pricing/}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:microsoft-copilot-studio}
+  & Microsoft. \textit{Microsoft Copilot Studio: custom agents and connectors}.
+    \url{https://learn.microsoft.com/en-us/microsoft-copilot-studio/}.
+    Last accessed: July 1, 2026.\\[10pt]
+
+% ====================================================================
+% 2 : Core application framework documentation
+% ====================================================================
+\multicolumn{2}{@{}l@{}}{%
+  \rule[0.55ex]{0.10\linewidth}{0.35pt}\enspace
+  \textsc{\textbf{Official technical documentation: application foundation}}%
+  \enspace\rule[0.55ex]{0.14\linewidth}{0.35pt}}\\[5pt]
+
+\netsrc{web:nextjs-docs}
+  & Vercel. \textit{Next.js Documentation}.
+    \url{https://nextjs.org/docs}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:react-docs}
+  & Meta Open Source. \textit{React: the library for web and native user interfaces}.
+    \url{https://react.dev/}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:typescript-docs}
+  & Microsoft. \textit{TypeScript Documentation}.
+    \url{https://www.typescriptlang.org/docs/}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:bun-docs}
+  & Oven. \textit{Bun Documentation: JavaScript runtime and package manager}.
+    \url{https://bun.sh/docs}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:tailwind-docs}
+  & Tailwind Labs. \textit{Tailwind CSS Documentation}.
+    \url{https://tailwindcss.com/docs}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:shadcn-docs}
+  & shadcn. \textit{shadcn/ui: reusable components built with Radix UI and Tailwind CSS}.
+    \url{https://ui.shadcn.com/docs}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:drizzle-docs}
+  & Drizzle Team. \textit{Drizzle ORM Documentation}.
+    \url{https://orm.drizzle.team/docs/overview}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:postgres-docs}
+  & The PostgreSQL Global Development Group. \textit{PostgreSQL Documentation}.
+    \url{https://www.postgresql.org/docs/}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:pgvector-docs}
+  & pgvector contributors. \textit{pgvector: open-source vector similarity
+    search for PostgreSQL}.
+    \url{https://github.com/pgvector/pgvector}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:zod-docs}
+  & Colin McDonnell. \textit{Zod: TypeScript-first schema validation}.
+    \url{https://zod.dev/}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:framer-docs}
+  & Framer. \textit{Framer Motion: animation library for React}.
+    \url{https://www.framer.com/motion/}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:recharts-docs}
+  & Recharts Group. \textit{Recharts: composable charting library for React}.
+    \url{https://recharts.org/en-US/guide}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:nodemailer-docs}
+  & Nodemailer. \textit{Nodemailer: sending emails with Node.js}.
+    \url{https://nodemailer.com/about/}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:vitest-docs}
+  & Vitest contributors. \textit{Vitest: Vite-powered unit test framework}.
+    \url{https://vitest.dev/guide/}.
+    Last accessed: July 1, 2026.\\[10pt]
+
+% ====================================================================
+% 3 : Artificial intelligence, models and observability
+% ====================================================================
+\multicolumn{2}{@{}l@{}}{%
+  \rule[0.55ex]{0.10\linewidth}{0.35pt}\enspace
+  \textsc{\textbf{Artificial intelligence, models and observability}}%
+  \enspace\rule[0.55ex]{0.12\linewidth}{0.35pt}}\\[5pt]
+
+\netsrc{web:aisdk-docs}
+  & Vercel. \textit{AI SDK: TypeScript toolkit for building AI applications}.
+    \url{https://ai-sdk.dev/docs}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:openrouter-docs}
+  & OpenRouter. \textit{OpenRouter Documentation: unified router to large
+    language models}.
+    \url{https://openrouter.ai/docs}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:nvidia-nim-docs}
+  & NVIDIA Corporation. \textit{NVIDIA NIM: inference microservices for AI models}.
+    \url{https://docs.nvidia.com/nim/}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:langsmith-docs}
+  & LangChain. \textit{LangSmith Documentation: LLM observability and evaluation platform}.
+    \url{https://docs.smith.langchain.com/}.
+    Last accessed: July 1, 2026.\\[10pt]
+
+% ====================================================================
+% 4 : Scientific references
+% ====================================================================
+\multicolumn{2}{@{}l@{}}{%
+  \rule[0.55ex]{0.10\linewidth}{0.35pt}\enspace
+  \textsc{\textbf{Scientific references}}%
+  \enspace\rule[0.55ex]{0.30\linewidth}{0.35pt}}\\[5pt]
+
+\netsrc{web:rag-lewis}
+  & Patrick Lewis, Ethan Perez, Aleksandra Piktus \textit{et al.}
+    \textit{Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks}.
+    Advances in Neural Information Processing Systems (NeurIPS), 2020.
+    \url{https://arxiv.org/abs/2005.11401}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:vector-johnson}
+  & Jeff Johnson, Matthijs Douze and Hervé Jégou.
+    \textit{Billion-Scale Similarity Search with GPUs}.
+    IEEE Transactions on Big Data, 2019.
+    \url{https://arxiv.org/abs/1702.08734}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:rag-survey}
+  & Yunfan Gao, Yun Xiong, Xinyu Gao \textit{et al.}
+    \textit{Retrieval-Augmented Generation for Large Language Models: A Survey}.
+    arXiv:2312.10997, 2024.
+    \url{https://arxiv.org/abs/2312.10997}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:dpr}
+  & Vladimir Karpukhin, Barlas O\u{g}uz, Sewon Min \textit{et al.}
+    \textit{Dense Passage Retrieval for Open-Domain Question Answering}.
+    Conference on Empirical Methods in Natural Language Processing (EMNLP), 2020.
+    DOI: 10.18653/v1/2020.emnlp-main.550.\\[4pt]
+
+\netsrc{web:sbert}
+  & Nils Reimers and Iryna Gurevych.
+    \textit{Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks}.
+    EMNLP-IJCNLP, 2019.
+    \url{https://arxiv.org/abs/1908.10084}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:bm25}
+  & Stephen Robertson and Hugo Zaragoza.
+    \textit{The Probabilistic Relevance Framework: BM25 and Beyond}.
+    Foundations and Trends in Information Retrieval, 2009.
+    DOI: 10.1561/1500000019.\\[4pt]
+
+\netsrc{web:rrf}
+  & Gordon V. Cormack, Charles L. A. Clarke and Stefan B\"uttcher.
+    \textit{Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods}.
+    ACM SIGIR, 2009.
+    DOI: 10.1145/1571941.1572114.\\[4pt]
+
+\netsrc{web:react-agent}
+  & Shunyu Yao, Jeffrey Zhao, Dian Yu \textit{et al.}
+    \textit{ReAct: Synergizing Reasoning and Acting in Language Models}.
+    International Conference on Learning Representations (ICLR), 2023.
+    \url{https://arxiv.org/abs/2210.03629}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:agent-survey}
+  & Lei Wang, Chen Ma, Xueyang Feng \textit{et al.}
+    \textit{A Survey on Large Language Model based Autonomous Agents}.
+    Frontiers of Computer Science, 2024.
+    DOI: 10.1007/s11704-024-40231-1.\\[4pt]
+
+\netsrc{web:entity-matching}
+  & Ahmed K. Elmagarmid, Panagiotis G. Ipeirotis and Vassilios S. Verykios.
+    \textit{Duplicate Record Detection: A Survey}.
+    IEEE Transactions on Knowledge and Data Engineering, 2007.
+    DOI: 10.1109/TKDE.2007.250581.\\[4pt]
+
+\netsrc{web:ragas}
+  & Shahul Es, Jithin James, Luis Espinosa-Anke and Steven Schockaert.
+    \textit{RAGAS: Automated Evaluation of Retrieval Augmented Generation}.
+    Conference of the European Chapter of the ACL (EACL), System Demonstrations, 2024.
+    DOI: 10.18653/v1/2024.eacl-demo.16.\\[4pt]
+
+\netsrc{web:llm-judge}
+  & Lianmin Zheng, Wei-Lin Chiang, Ying Sheng \textit{et al.}
+    \textit{Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena}.
+    Advances in Neural Information Processing Systems (NeurIPS), 2023.
+    \url{https://arxiv.org/abs/2306.05685}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:mcp}
+  & Anthropic. \textit{Introducing the Model Context Protocol: an open
+    standard for connecting agents to tools and data}. 2024.
+    \url{https://modelcontextprotocol.io}.
+    Last accessed: July 1, 2026.\\[4pt]
+
+\netsrc{web:harness-problem}
+  & \textit{The Harness Problem}. Article arguing that an agent's execution
+    harness matters more than the underlying model.
+    Blog can.ac, February 12, 2026.
+    \url{https://blog.can.ac/2026/02/12/the-harness-problem/}.
+    Last accessed: July 1, 2026.\\
+
+\end{longtable}
 
 \endgroup

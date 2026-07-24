@@ -1,0 +1,193 @@
+\chapter{Agentic AI Harness and Generative Interface}
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+This chapter presents the AI module of \projectname{} as a decision-support system for Capgemini Tunisia. It helps employees explore the partnership portfolio, compare partners, assess delivery risk, inspect evidence, and generate executive reports.
+The core choice is an \textbf{agentic AI harness}. The assistant clarifies uncertainty, declares a method, plans work, calls typed tools, inspects results, visualizes evidence, and returns a sourced answer.
+\section{Sprint Objective and Module Backlog}
+The sprint scope is split between product value and engineering control. The backlog below records the user-visible capabilities, while the rest of the chapter explains how the harness prevents those capabilities from becoming an uncontrolled chatbot.
+\subsection{Objective of the AI module}
+This sprint turned \projectname{} into an intelligent partnership cockpit. The AI layer combines partners, projects, documents, metrics, and reports in one guided flow.
+The module answers partnership questions with real platform data, guides complex analysis through methodology and planning, calls typed tools for partner and project intelligence, visualization, reporting, and RAG, streams reasoning with plan progress and source links, and produces exportable executive reports.
+It is accessed from the employee portal at \sourcecode{/dashboard/agent} and complements the structured screens with a higher-level interface for multi-step questions.
+\subsection{Sprint backlog}
+\begin{table}[H]
+  \centering
+  \caption{Backlog of the agentic AI module}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{1.2cm}>{\raggedright\arraybackslash}p{3.2cm}X>{\raggedright\arraybackslash}p{2cm}}
+    \toprule
+    ID & Theme & User Story & Status \\
+    \midrule
+    1 & Agent workspace & As an employee, I can open a dedicated AI workspace from the dashboard and start an analytical conversation. & Completed \\
+    2 & Streaming runtime & As a user, I receive streamed responses instead of waiting for a full blocking answer. & Completed \\
+    3 & Reasoning visibility & As a user, I can inspect the assistant's plan, reasoning trace, and methodological choices. & Completed \\
+    4 & Tool orchestration & As a user, my complex request can trigger multiple validated tools before the final synthesis. & Completed \\
+    5 & Partner analytics & As a user, I can ask questions about partners, scores, categories, activity, churn risk, and recommendations. & Completed \\
+    6 & Project analytics & As a user, I can inspect delivery health, risk signals, delays, staffing fit, and critical paths. & Completed \\
+    7 & Visual outputs & As a user, I receive dynamic bar charts, line charts, pie charts, and tables inside the answer. & Completed \\
+    8 & Report generation & As a user, I can generate an executive report and export it as a PDF. & Completed \\
+    9 & RAG evidence & As a user, I can search partner and project documents and receive cited excerpts with deep links. & Completed \\
+    10 & Guardrails & As a product owner, I need timeouts, no fabricated data, French user-facing output, and source-backed conclusions. & Completed \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section{Agentic AI vs. a Simple Chatbot}
+A simple chatbot returns fluent text, but it can stay disconnected from the operational system and lack current data, methodology, intermediate work, or traceable sources. That is insufficient for a partnership-management platform where decisions depend on budgets, project status, activity history, scores, documents, and user roles. The \projectname{} assistant instead searches before concluding, asks for clarification when the request is under-specified, declares its methodology, creates a plan, calls tools, synthesizes evidence, visualizes results, and attaches sources.
+\begin{figure}[htbp]
+  \centering
+  \dgram{agent-loop}
+  \caption{The agentic reasoning loop of the \projectname{} assistant.}
+  \label{fig:agent-loop}
+\end{figure}
+\begin{table}[H]
+  \centering
+  \caption{Difference between a simple chatbot and the IntelliConnect agentic harness}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.5cm}XX}
+    \toprule
+    Dimension & Simple chatbot & IntelliConnect agentic harness \\
+    \midrule
+    Data grounding & Generates text mainly from model context. & Calls typed tools connected to platform data and documents. \\
+    Execution structure & Usually single-turn text completion. & Multi-step workflow with plan, tool calls, synthesis, and sources. \\
+    Methodology & Often implicit or absent. & Declares an analytical method before deep analysis. \\
+    Uncertainty handling & May answer even when the prompt lacks detail. & Uses clarification when scope, entity, period, or output format is ambiguous. \\
+    Visual output & Mostly text. & Interleaves charts, tables, report cards, source links, and reasoning traces. \\
+    Evidence & May not expose where facts came from. & Uses tool outputs, RAG excerpts, and deep links to product pages. \\
+    Product fit & Generic assistant behavior. & Specialized partnership-intelligence behavior aligned with \projectname{}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section{Harness Engineering from the System Prompt}
+The quality of an agent depends less on the raw language model than on the harness around it, including the operating contract, tool set, grounding rules, and execution loop. This view, that the harness matters more than the model itself \netref{web:harness-problem}, guided the design of the \projectname{} assistant.
+\subsection{System prompt as an execution contract}
+The system prompt defines the assistant's operating contract before any tool call occurs. The key rule is \textbf{SEARCH BEFORE CONCLUDING}, which prevents synthesis before the assistant has inspected the available platform data. The harness requires seven recurring behaviors: \textbf{Search before concluding}, \textbf{Clarify} when scope is unclear, \textbf{Declare methodology}, \textbf{Create a plan}, \textbf{Run tools} for retrieval, computation, visualization, report creation, and RAG, \textbf{Synthesize} without inventing facts, and \textbf{Visualize and cite sources} near the supporting section.
+\subsection{Agent orchestration architecture}
+\begin{figure}[htbp]
+  \centering
+  \dgram{orchestration}
+  \caption{Agent orchestration from user request to grounded synthesis}
+\end{figure}
+The orchestration runs from the chat interface to the server route that hosts the AI runtime. The runtime injects the system prompt, loads the tool catalog, and streams the answer back to the UI while allowing tool calls during generation. Each tool validates its input, queries the relevant service or database-backed function, and returns structured results for text, charts, tables, source links, or report cards. The orchestration separates three responsibilities: \textbf{The model} chooses the method and tool sequence, \textbf{the tools} perform validated access to real application data, and \textbf{the UI renderer} turns tool results into an interactive interface.
+\section{AI SDK Runtime}
+The runtime layer is responsible for turning a user message into a streaming, tool-capable execution. It manages the model call, intermediate events, tool step limits, and the UI message format consumed by the frontend.
+\subsection{Streaming execution}
+The runtime is implemented with the Vercel AI SDK. \sourcecode{streamText} streams tokens, tool-call events, reasoning information, and final content, while \sourcecode{toUIMessageStreamResponse} converts the stream into a UI-compatible event feed. The runtime configuration includes \sourcecode{sendReasoning: true}, which supports the plan HUD and reasoning trace by exposing the assistant's intermediate analytical path. It also defines \sourcecode{MAX\_AGENT\_STEPS = 1000}; executive analysis can require several tool calls, so the value is balanced by tool-level timeouts and strict data-grounding rules.
+\subsection{NVIDIA-compatible chat provider}
+The model provider is configured through an NVIDIA-compatible chat interface. The application can connect to a chat-completion endpoint that follows an OpenAI-style protocol while remaining compatible with NVIDIA-hosted or NVIDIA-routable models. In practice, \sourcecode{streamText} starts model execution, \sourcecode{toUIMessageStreamResponse} sends the structured UI stream, \sourcecode{sendReasoning: true} exposes reasoning events, \sourcecode{MAX\_AGENT\_STEPS = 1000} keeps long multi-tool analysis possible, and the NVIDIA-compatible chat provider supplies the model.
+\section{Method and Skill Loading}
+Method loading gives the assistant reusable analytical frames before it starts calling tools. Instead of improvising every answer, the runtime supplies named methods that guide how partner, project, finance, recruitment, and churn questions should be decomposed.
+\subsection{Purpose of analytical method loading}
+The assistant does not treat every question as the same generic task. It auto-loads analytical methodologies that guide how the answer should be structured and provide reusable patterns for decomposition, comparison, scoring, benchmarking, and funnel analysis. Exactly nine analytical methodologies are auto-loaded for this module and are listed in Table~\ref{tab:chapter6-methodologies}.
+\begin{table}[H]
+  \centering
+  \caption{Auto-loaded analytical methodologies}
+  \label{tab:chapter6-methodologies}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{1cm}>{\raggedright\arraybackslash}p{3.7cm}X>{\raggedright\arraybackslash}p{3.2cm}}
+    \toprule
+    No. & Methodology & Analytical Purpose & Typical Output \\
+    \midrule
+    1 & Margin Waterfall & Decomposes margin movement into revenue, delivery cost, staffing, delay, discount, and operational effects. & Waterfall explanation, variance table, executive summary. \\
+    2 & Best-in-Class + Root Cause & Compares top performers with lower performers, then traces the operational drivers behind the gap. & Benchmark table, root-cause narrative, priority actions. \\
+    3 & COGS Comparison & Compares cost of goods or delivery effort across partners, projects, categories, or periods. & Cost comparison table, bar chart, efficiency interpretation. \\
+    4 & Revenue Decomposition & Breaks revenue movement into volume, price, project mix, partner category, and period effects. & Revenue bridge, line chart, segment commentary. \\
+    5 & Peer Benchmark & Compares one partner or project against a peer group with normalized indicators. & Benchmark matrix, ranking, gap analysis. \\
+    6 & Activity-Decay Churn & Detects churn risk by measuring declining interactions, events, meetings, offers, KPIs, and document activity. & Risk score, warning signals, retention plan. \\
+    7 & Strategic-Fit Scoring & Scores alignment with partnership category, status, budget, satisfaction, activity, track record, and strategic fit. & Score table, radar or bar visualization, recommendation. \\
+    8 & Vendor Performance Index & Aggregates supplier delivery signals such as project health, delay exposure, budget pressure, and support quality. & Supplier index, risk segmentation, corrective actions. \\
+    9 & Recruitment Funnel & Measures academic or HR-related flow from sourcing volume to conversion and retention outcomes. & Funnel table, conversion ratios, improvement actions. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\section{Tool Calling Layer}
+The tool layer is the boundary between language-model reasoning and real platform data. It exposes only named, validated operations, so the assistant can ask for business information without receiving direct database access or inventing uncontrolled actions.
+\subsection{Typed tools with Zod schemas}
+The harness exposes tools through the AI SDK \sourcecode{tool()} pattern. Each tool defines a description, a Zod input schema, and a server-side execution function. The Zod schema constrains tool arguments before business logic executes and prevents malformed natural-language intent from becoming unsafe server input. The general tool shape is a precise tool name, a description, a Zod input schema, a bounded execution function, and a safe result format.
+\subsection{Complete tool catalog}
+The AI harness exposes exactly twenty-four tools, grouped into seven categories. Table~\ref{tab:chapter6-tools} lists the full catalog.
+\begin{table}[H]
+  \centering
+  \caption{Tool catalog exposed to the agentic harness}
+  \label{tab:chapter6-tools}
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.8cm}>{\raggedright\arraybackslash}p{2.4cm}>{\ttfamily\raggedright\arraybackslash}p{4.5cm}X}
+    \toprule
+    \normalfont\bfseries No. & \normalfont\bfseries Group & \normalfont\bfseries Tool & \normalfont\bfseries Purpose \\
+    \midrule
+    1 & Meta & \sourcecode{declareMethodology} & Declares the analytical method selected for the request before execution. \\
+    2 & Meta & \sourcecode{createPlan} & Creates a visible multi-step plan for complex analysis. \\
+    3 & Meta & \sourcecode{askClarification} & Requests missing scope, entity, metric, period, or output details. \\
+    4 & Partner intelligence & \sourcecode{queryPartners} & Searches partners by name, category, status, activity, score, or portfolio filters. \\
+    5 & Partner intelligence & \sourcecode{getPartnerDetails} & Retrieves a detailed partner profile for analysis and deep links. \\
+    6 & Partner intelligence & \sourcecode{queryAnalytics} & Retrieves aggregate metrics for partner activity, budgets, satisfaction, and trends. \\
+    7 & Partner intelligence & \sourcecode{scorePartner} & Computes or retrieves strategic scoring for one partner or a batch of partners. \\
+    8 & Partner intelligence & \sourcecode{predictChurn} & Estimates partnership churn risk from activity, satisfaction, and relationship signals. \\
+    9 & Partner intelligence & \sourcecode{recommendPartners} & Produces partner recommendations based on category, objective, score, and fit. \\
+    10 & Portfolio & \sourcecode{summarizePartnerPortfolio} & Summarizes the whole portfolio by category, status, score, budget, and activity. \\
+    11 & Portfolio & \sourcecode{getCategoryBenchmarks} & Provides category-level benchmarks for peer comparison and strategic positioning. \\
+    12 & Portfolio & \sourcecode{getPartnerActivityTimeline} & Builds a timeline of events, meetings, offers, documents, and KPI interactions. \\
+    13 & Project intelligence & \sourcecode{analyzeProjectHealth} & Evaluates project health using progress, budget, milestones, tasks, and risk indicators. \\
+    14 & Project intelligence & \sourcecode{identifyAtRiskProjects} & Lists projects exposed to delay, budget pressure, weak progress, or operational blockers. \\
+    15 & Project intelligence & \sourcecode{forecastProjectDelay} & Forecasts potential delay using progress, milestone, and task completion signals. \\
+    16 & Project intelligence & \sourcecode{recommendStaffing} & Recommends internal staffing options based on skills, availability, and fit. \\
+    17 & Project intelligence & \sourcecode{findCriticalPath} & Identifies the task or milestone chain most likely to affect delivery timing. \\
+    18 & Project intelligence & \sourcecode{crossEntityAnalysis} & Combines partner and project context to produce joint operational insights. \\
+    19 & Visualization & \sourcecode{createBarChart} & Creates a bar chart for ranked scores, category comparison, or risk levels. \\
+    20 & Visualization & \sourcecode{createLineChart} & Creates a line chart for KPI trends, activity evolution, or period comparison. \\
+    21 & Visualization & \sourcecode{createPieChart} & Creates a pie chart for category distribution, activity mix, or status share. \\
+    22 & Visualization & \sourcecode{createTable} & Creates a structured table for comparisons, recommendations, source summaries, or action plans. \\
+    23 & Reporting & \sourcecode{generateReport} & Generates an executive report artifact that can be previewed and exported as a PDF. \\
+    24 & RAG & \sourcecode{searchDocuments} & Performs semantic document search and returns cited excerpts with source metadata. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\subsection{Tool-call sequence}
+\begin{figure}[htbp]
+  \centering
+  \dgram{sequence-toolcall}
+  \caption{Sequence of method declaration, plan creation, tool calls, visualization, and synthesis}
+\end{figure}
+A typical executive report request follows this sequence: first, the model calls \sourcecode{declareMethodology} to state the analytical frame. Second, it calls \sourcecode{createPlan} so the user sees the expected steps. Third, it retrieves the relevant partner or portfolio data through partner-intelligence tools. Fourth, it invokes visualization tools to create charts and tables near the related analysis section. Fifth, it uses \sourcecode{searchDocuments} if the prompt asks for document-backed clauses or evidence. Finally, it calls \sourcecode{generateReport} when an exportable executive artifact is requested.
+\section{Generative User Interface}
+The generative interface is the visible result of the harness. It does not render a static answer block; it progressively combines streamed text, plan state, tool progress, charts, tables, source links, and report artifacts into one analytical workspace. This is why the AI module is treated as a product feature rather than a hidden API integration.
+
+\subsection{From streamed text to rich analytical workspace}
+The UI is generative because the response is neither a static page nor a plain text transcript. The assistant can stream text, update a plan HUD, display reasoning trace events, render charts and tables, attach source links, and produce a report preview card. Supported elements include bar, line, and pie charts; tables; report preview and PDF export; a plan HUD; reasoning trace; and source links.
+
+\subsection{Generative UI flow}
+The flow begins when the server emits model and tool events through the AI SDK stream. The client converts those events into user-visible states: pending plan steps, active tool calls, completed visualizations, cited source cards, and final synthesis. The user therefore sees not only the final answer, but also the path that produced it.
+\begin{figure}[H]
+  \centering
+  \dgram{genui-flow}
+  \caption{Generative UI flow from streaming events to rendered analytical components}
+\end{figure}
+The important design decision is that visual components stay interleaved with the answer. A chart appears next to the scoring explanation it supports, a table appears next to the comparison it summarizes, and a report card appears only when the report artifact exists. This keeps generated UI grounded in tool outputs instead of decorative interface elements.
+
+\subsection{Implementation}
+The implementation uses a compact chat workspace with a left thread/history area, a central analytical response area, and generated components inserted as typed message parts. The following figures show the main states: the chat workspace, the plan HUD with reasoning progress, and the generated report card.
+\begin{figure}[H]
+  \centering
+  \shot{agent-chat}
+  \caption{Agent chat workspace}
+\end{figure}
+The chat workspace is optimized for long analytical answers. It keeps the conversation readable while still leaving enough horizontal room for charts, tables, citations, and report previews.
+\begin{figure}[H]
+  \centering
+  \shot{agent-plan-hud}
+  \caption{Plan HUD and reasoning trace}
+\end{figure}
+The plan HUD makes multi-step work inspectable. It shows the user which phase is active, which tools have already returned, and where the assistant is waiting on data or synthesis.
+\begin{figure}[H]
+  \centering
+  \shot{agent-report-card}
+  \caption{Generated report card}
+\end{figure}
+The report card closes the loop by turning the generated analysis into an exportable artifact. It gives the user a visible success state, a preview entry point, and a PDF export path without requiring a separate reporting workflow.
+\section{Guardrails and Product Constraints}
+Guardrails define the behaviours that must hold even when the model output is fluent. They cover data access, runtime limits, language, source discipline, and the difference between a grounded answer and an unsupported guess.
+\subsection{Runtime and data guardrails}
+The AI module includes guardrails at multiple levels. Tool calls use timeouts so a slow query or remote model step does not block the entire chat session. The agent is instructed not to fabricate data. If a tool returns no result, the assistant must say that no data was found and propose a next step instead of filling the gap with plausible text. The platform also enforces language and navigation constraints: user-facing output is written in French, because the application UI is French, while technical implementation details remain in English in the codebase. Source links are deep links into \projectname{} pages, such as partner profiles, scoring pages, projects, documents, reports, or BI views. The main guardrails are tool timeouts, no fabricated data, French user output, deep links, interleaved visualizations, validated inputs, structured errors, and read-oriented behavior.
+\subsection{Evidence discipline}
+The agent's evidence discipline is what makes it suitable for an AI Engineer chapter. The system creates a repeatable analytical loop: understand the request, choose a method, plan the work, search the available data, call bounded tools, render structured outputs, and cite sources. When the assistant compares three partners, it should retrieve the partners, compute or read their scores, build a comparative table, create a bar chart, explain the gaps, and link to the scoring pages. When the assistant generates a document-backed report, it should use RAG to retrieve excerpts and place source references near the claims they support.
+\section{Representative End-to-End Scenario}
+An end-to-end request shows how the pieces combine. Suppose an employee asks for an executive analysis of a strategic supplier. The assistant first declares a method such as Strategic-Fit Scoring or Vendor Performance Index. It then creates a plan covering profile retrieval, score analysis, activity distribution, KPI trends, churn signals, document evidence, and report generation. The runtime streams this plan to the UI. Tool calls retrieve the supplier profile, scoring dimensions, portfolio benchmarks, project health, activity timeline, and relevant document excerpts. Visualization tools create a bar chart for scoring, a pie chart for activity mix, a line chart for KPI evolution, and a table for the action plan. The assistant synthesizes the results in French and adds source links to the partner profile, scoring page, project pages, and report viewer. If requested, \sourcecode{generateReport} produces a report card with a PDF export action.
+\section{Conclusion}
+The Agentic AI Harness and Generative Interface module gives \projectname{} a high-value analytical layer for partnership management. It lets employees ask complex questions, receive grounded answers, inspect charts and tables, follow reasoning, and export reports. Architecturally, it shows how a language model can sit inside a controlled harness with typed tools, Zod validation, method loading, streaming UI events, source links, and safety constraints. The assistant searches before concluding, clarifies uncertainty, declares methodology, creates a plan, runs validated tools, synthesizes evidence, visualizes results, and cites sources. This turns natural language into a structured analytical interface for Capgemini Tunisia's partnership operations.

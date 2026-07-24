@@ -7,12 +7,13 @@
 \usepackage{geometry}
 \usepackage{setspace}
 \usepackage{graphicx}
-\usepackage{adjustbox}
 \usepackage{array}
 \usepackage{tabularx}
+% Left-align tabularx X-columns everywhere (default is full-justify, which
+% produces uneven word spacing in narrow report tables).
+\renewcommand{\tabularxcolumn}[1]{>{\raggedright\arraybackslash}m{#1}}
 \usepackage{longtable}
 \usepackage{booktabs}
-\usepackage{enumitem}
 \usepackage{float}
 \usepackage{xcolor}
 \usepackage{hyperref}
@@ -22,20 +23,43 @@
 \usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric}
 
 \geometry{margin=2.5cm}
-\setstretch{1.15}
+\setstretch{1.13}
+% Tighter float separation so figures pack better in this figure-heavy report
+\setlength{\floatsep}{7pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{9pt plus 2pt minus 2pt}
+\setlength{\intextsep}{7pt plus 2pt minus 2pt}
+\captionsetup{font=small,labelfont=bf,skip=4pt}
 \captionsetup{font=small,labelfont=bf}
-\setlist[itemize]{leftmargin=1.5em}
-\setlist[enumerate]{leftmargin=1.8em}
+\setlength{\leftmargini}{1.5em}
+\setlength{\leftmarginii}{1.8em}
+\let\standardenumerate\enumerate
+\let\endstandardenumerate\endenumerate
+\renewenvironment{enumerate}[1][]{\standardenumerate}{\endstandardenumerate}
 \raggedbottom
 \emergencystretch=2em
 
+% Allow more floats per page so figures stay near their text (figure-heavy report)
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{6}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.9}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.7}
+
+\definecolor{cgblue}{HTML}{0070AD}
+\definecolor{cgdeep}{HTML}{0B1F33}
+\definecolor{cglight}{HTML}{EAF4FB}
+\definecolor{boxgray}{HTML}{F5F7FA}
+\definecolor{boxborder}{HTML}{7EA7C6}
+
 \hypersetup{
   colorlinks=true,
-  linkcolor=blue!50!black,
-  urlcolor=blue!50!black,
-  citecolor=blue!50!black,
-  pdftitle={Capgemini Talent Intelligence - Rapport de projet},
-  pdfauthor={Auteur à compléter}
+  linkcolor=cgblue,
+  urlcolor=cgblue,
+  citecolor=cgblue,
+  pdftitle={IntelliConnect: Development of an Intelligent Platform for Enterprise Partnership Management},
+  pdfauthor={Mohamed Achref Ben Abdallah}
 }
 
 \pagestyle{fancy}
@@ -43,11 +67,6 @@
 \fancyhead[L]{\nouppercase{\leftmark}}
 \fancyhead[R]{\thepage}
 \setlength{\headheight}{15pt}
-
-\definecolor{cgblue}{HTML}{0070AD}
-\definecolor{cgdeep}{HTML}{0B1F33}
-\definecolor{cglight}{HTML}{EAF4FB}
-\definecolor{boxgray}{HTML}{F5F7FA}
 
 \tikzset{
   box/.style={draw=cgblue, rounded corners, thick, fill=cglight, align=center, minimum height=1cm, inner sep=6pt},
@@ -58,58 +77,119 @@
   dashedline/.style={-{Latex[length=3mm]}, thick, dashed, draw=cgdeep}
 }
 
-\newcommand{\projectname}{Capgemini Talent Intelligence}
-\newcommand{\reportinstitution}{\textit{Établissement universitaire à compléter}}
-\newcommand{\reportauthor}{\textit{À compléter}}
-\newcommand{\reportacademicadvisor}{\textit{À compléter}}
-\newcommand{\reportcompanyadvisor}{\textit{À compléter}}
+\newcommand{\projectname}{IntelliConnect}
+\newcommand{\reportinstitution}{\textit{Academic institution to be completed}}
+\newcommand{\reportauthor}{\textit{To be completed}}
+\newcommand{\reportacademicadvisor}{\textit{To be completed}}
+\newcommand{\reportcompanyadvisor}{\textit{To be completed}}
+\newcommand{\reportcompany}{Capgemini Engineering Tunisie}
+\newcommand{\reportacademicyear}{2025--2026}
+\newcommand{\reportinternshipperiod}{04/02/2026--03/06/2026}
+\newcommand{\reporttitle}{Development of an Intelligent Platform for Enterprise Partnership Management}
+\newcommand{\reporttitlefr}{Développement d'une plateforme intelligente pour la gestion des partenariats d'entreprise}
+
 \newcommand{\screenshotplaceholder}[2][0.28\textheight]{%
-  \noindent\adjustbox{max width=0.92\linewidth,max totalheight=0.38\textheight,center}{%
+  \begin{center}%
     \begin{tikzpicture}
-      \node[draw=cgblue, rounded corners, thick, fill=boxgray, inner sep=10pt] {
+      \node[draw=boxborder, rounded corners, thick, fill=boxgray, inner sep=10pt] {
         \begin{minipage}[c][#1][c]{0.84\linewidth}
           \centering
-          {\color{cgblue}\bfseries Illustration à insérer}\\[0.7em]
-          {\large\ttfamily #2}\\[0.9em]
-          {\small Capture d'écran prévue lors de la finalisation du mémoire.}
+          {\color{cgblue}\bfseries Application implementation}\\[0.7em]
+          {\large\ttfamily #2}
         \end{minipage}
       };
     \end{tikzpicture}%
-  }%
+  \end{center}%
 }
+
+\newcommand{\diagramplaceholder}[2][0.32\textheight]{%
+  \begin{center}%
+    \begin{tikzpicture}
+      \node[draw=cgblue, rounded corners, thick, fill=cglight, inner sep=10pt] {
+        \begin{minipage}[c][#1][c]{0.84\linewidth}
+          \centering
+          {\color{cgdeep}\bfseries Diagram}\\[0.7em]
+          {\large\ttfamily #2}
+        \end{minipage}
+      };
+    \end{tikzpicture}%
+  \end{center}%
+}
+
 \newcommand{\diagraminput}[1]{%
-  \noindent\adjustbox{max width=0.96\linewidth,max totalheight=0.74\textheight,center}{%
-    \input{#1}%
-  }%
+  \diagramplaceholder{#1}%
 }
+% Real asset embedding helpers (fall back to a labelled box if the asset is not yet produced)
+\newcommand{\dgram}[1]{\IfFileExists{figures/diagrams/#1.png}{\includegraphics[width=\linewidth,height=0.40\textheight,keepaspectratio]{figures/diagrams/#1}}{\diagramplaceholder{#1}}}
+\newcommand{\dgramtall}[1]{\IfFileExists{figures/diagrams/#1.png}{\includegraphics[width=0.62\linewidth,height=0.5\textheight,keepaspectratio]{figures/diagrams/#1}}{\diagramplaceholder{#1}}}
+\newcommand{\dgramwide}[1]{\IfFileExists{figures/diagrams/#1.png}{\rotatebox{90}{\includegraphics[width=0.9\textheight,keepaspectratio]{figures/diagrams/#1}}}{\diagramplaceholder{#1}}}
+\newcommand{\dgramfull}[1]{\IfFileExists{figures/diagrams/#1.png}{\includegraphics[width=\textwidth,height=0.92\textheight,keepaspectratio]{figures/diagrams/#1}}{\diagramplaceholder{#1}}}
+\newcommand{\shot}[1]{\IfFileExists{figures/screenshots/#1.png}{\fbox{\includegraphics[width=\linewidth,height=0.38\textheight,keepaspectratio]{figures/screenshots/#1}}}{\screenshotplaceholder{#1}}}
+\newcommand{\shotcell}[2]{\begin{minipage}[t]{0.48\linewidth}\centering\IfFileExists{figures/screenshots/#1.png}{\fbox{\includegraphics[width=\linewidth,height=3cm,keepaspectratio]{figures/screenshots/#1}}}{\fbox{\parbox[c][2.4cm][c]{0.9\linewidth}{\centering\ttfamily\scriptsize #1}}}\\[2pt]{\scriptsize #2}\end{minipage}}
+\newcommand{\shotprint}[1]{\IfFileExists{figures/screenshots/print/#1-16x9.png}{{\setlength{\fboxsep}{0pt}\fbox{\includegraphics[width=0.995\linewidth]{figures/screenshots/print/#1-16x9.png}}}}{\shot{#1}}}
 \newcommand{\sourcecode}[1]{\texttt{#1}}
 \newcommand{\netref}[1]{\hyperref[#1]{[\ref*{#1}]}}
 
 \begin{document}
-\selectlanguage{french}
+\selectlanguage{english}
 
+\definecolor{coverline}{HTML}{9E1B32}
+\newgeometry{top=1.3cm,bottom=1cm,left=2cm,right=2cm}
 \begin{titlepage}
+  \thispagestyle{empty}
+  \begin{tikzpicture}[remember picture, overlay]
+    \node[inner sep=0pt] at (current page.center)
+      {\includegraphics[width=\paperwidth,height=\paperheight]{figures/coverpage/cover-bg}};
+  \end{tikzpicture}%
   \centering
-  {\Large République Tunisienne\par}
-  \vspace{0.4cm}
-  {\large \reportinstitution\par}
-  \vspace{1.5cm}
-  {\Huge\bfseries Rapport de projet de fin d'études\par}
-  \vspace{0.8cm}
-  {\LARGE Conception et développement d'une plateforme de recrutement augmentée par l'IA\par}
-  \vspace{0.4cm}
-  {\Large \textbf{\projectname}\par}
-  \vspace{1.5cm}
-  \begin{tabular}{>{\bfseries}p{4.2cm}p{9.5cm}}
-    Réalisé par : & \reportauthor \\
-    Entreprise d'accueil : & Capgemini / Capgemini Engineering \\
-    Encadrant académique : & \reportacademicadvisor \\
-    Encadrant professionnel : & \reportcompanyadvisor \\
-    Année universitaire : & 2025--2026 \\
-  \end{tabular}
-  \vfill
-  {\large Version structurée pour compilation et finalisation académique sur Overleaf.\par}
+  \vspace*{0.05cm}
+  {\bfseries\normalsize Ministry of Higher Education and Scientific Research\par}
+  \vspace{0.16cm}
+  {\bfseries\normalsize Polytech International -- Private International Polytechnic School of Tunis\par}
+  \vspace{0.22cm}
+  \includegraphics[width=5.4cm]{figures/coverpage/polytech-logo}\par
+  \vspace{0.3cm}
+  {\bfseries\Huge Final Year Project\par}
+  \vspace{0.28cm}
+  {\large In order to obtain the degree of\par}
+  \vspace{0.18cm}
+  {\bfseries\Large Professional Master's Degree\par}
+  \vspace{0.04cm}
+  {\itshape\large Specialization: Software Engineering\par}
+  \vspace{0.28cm}
+  {\color{coverline}\rule{0.55\textwidth}{0.8pt}}\par
+  \vspace{0.22cm}
+  {\bfseries\LARGE \reporttitle\par}
+  \vspace{0.22cm}
+  {\color{coverline}\rule{0.55\textwidth}{0.8pt}}\par
+  \vspace{0.28cm}
+  {\large Presented and prepared by:\par}
+  \vspace{0.12cm}
+  {\bfseries\Large Mohamed Achref Ben Abdallah\par}
+  \vspace{0.04cm}
+  {\itshape\large July 2026\par}
+  \vspace{0.28cm}
+  {\large Prepared at:\par}
+  \vspace{0.12cm}
+  {\bfseries\large Capgemini Engineering Tunisie\par}
+  \vspace{0.18cm}
+  \includegraphics[width=4.0cm]{figures/coverpage/capgemini}\par
+  \vspace{0.3cm}
+  {\bfseries\large JURY\par}
+  \vspace{0.18cm}
+  {\normalsize
+  \begin{tabular}{@{}>{\bfseries}l l l@{}}
+    Mrs. Ahlem Tayachi               & Polytech Intl                  & President \\[3pt]
+    Mrs. Imen Msakni                 & Polytech Intl                  & Examiner \\[3pt]
+    Mrs. Eya Khemiri                 & Capgemini Engineering Tunisie  & Company Supervisor \\[3pt]
+    Dr. Aymen Louati                 & Polytech Intl                  & Academic Supervisor \\
+  \end{tabular}\par}
+  \vspace{2.0cm}
+  {\large Academic Year: \textbf{2025/2026}\par}
+  \vspace{0.22cm}
+  \includegraphics[width=3.4cm]{figures/coverpage/eur-ace}\par
 \end{titlepage}
+\restoregeometry
 
 \pagenumbering{roman}
 \input{chapters/abstract-en}
@@ -125,10 +205,10 @@
 \input{chapters/chapter1-general-presentation}
 \input{chapters/chapter2-planning-architecture}
 \input{chapters/chapter3-access-identity}
-\input{chapters/chapter4-cv-jobs}
-\input{chapters/chapter5-pipeline-interviews}
-\input{chapters/chapter6-ai-intelligence}
-\input{chapters/chapter7-admin-governance}
+\input{chapters/chapter4-partnership-crm}
+\input{chapters/chapter5-delivery-bi-hr}
+\input{chapters/chapter6-agentic-ai}
+\input{chapters/chapter7-rag-scoring-observability}
 \input{chapters/conclusion}
 \input{chapters/netography}
 

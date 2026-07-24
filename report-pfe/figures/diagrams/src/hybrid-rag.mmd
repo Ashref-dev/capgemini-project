@@ -1,0 +1,9 @@
+flowchart TB
+  Q["Analyst question"] --> AGENT["Agentic RAG orchestrator"]:::root
+  AGENT --> DET["Deterministic signals<br/>hybrid scoring &amp; metrics"]
+  AGENT --> SEM["Semantic retrieval<br/>vector search"]
+  DET --> FUSE["Hybrid fusion"]:::root
+  SEM --> FUSE
+  FUSE --> ANS["Grounded, cited answer"]
+  classDef default fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;
+  classDef root fill:#0070AD,stroke:#0B1F33,color:#ffffff;

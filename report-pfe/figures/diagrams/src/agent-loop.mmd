@@ -1,0 +1,11 @@
+flowchart LR
+  REQ["User request"] --> PLAN["Declare methodology<br/>&amp; plan"]
+  PLAN --> SEL["Select tool"]
+  SEL --> EXE["Execute tool<br/>grounded &amp; validated"]
+  EXE --> OBS["Observe result"]
+  OBS --> DEC{"Goal met?"}
+  DEC -- no --> SEL
+  DEC -- yes --> SYN["Synthesize answer<br/>report + citations"]
+  classDef default fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;
+  classDef dec fill:#FFFFFF,stroke:#0B1F33,color:#0B1F33;
+  class DEC dec;

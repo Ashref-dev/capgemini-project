@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="820" viewBox="0 0 1800 820" role="img" aria-labelledby="title desc">
+  <title id="title">Global use-case diagram of IntelliConnect</title>
+  <desc id="desc">Complete landscape rendering of the IntelliConnect global use-case model with a public visitor, a partner, and five employee roles.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0b1826"/>
+    </marker>
+    <style>
+      .ink { fill: #0b1826; font-family: "Avenir Next", "Segoe UI", sans-serif; }
+      .label { font-size: 22px; font-weight: 700; }
+      .node { font-size: 20px; font-weight: 600; }
+      .actor { fill: #ffffff; stroke: #0b1826; stroke-width: 3; }
+      .area { fill: #eef7fb; stroke: #0070ad; stroke-width: 2; }
+      .use { fill: #ffffff; stroke: #0070ad; stroke-width: 3; }
+      .link { fill: none; stroke: #0b1826; stroke-width: 2.3; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1800" height="820" fill="#ffffff"/>
+
+  <rect class="actor" x="40" y="130" width="235" height="72" rx="4"/>
+  <text class="ink label" x="157" y="176" text-anchor="middle">Public visitor</text>
+  <rect class="actor" x="40" y="358" width="235" height="72" rx="4"/>
+  <text class="ink label" x="157" y="404" text-anchor="middle">Partner</text>
+  <rect class="actor" x="40" y="600" width="235" height="125" rx="4"/>
+  <text class="ink label" x="157" y="636" text-anchor="middle">Employee</text>
+  <text class="ink node" x="157" y="668" text-anchor="middle">Admin · Manager</text>
+  <text class="ink node" x="157" y="696" text-anchor="middle">Commercial · Analyst · HR</text>
+
+  <rect class="area" x="390" y="42" width="1370" height="145" rx="3"/>
+  <text class="ink label" x="1075" y="76" text-anchor="middle">Public request intake</text>
+  <rect class="use" x="900" y="100" width="350" height="55" rx="28"/>
+  <text class="ink node" x="1075" y="135" text-anchor="middle">Submit request</text>
+
+  <rect class="area" x="390" y="215" width="1370" height="145" rx="3"/>
+  <text class="ink label" x="1075" y="249" text-anchor="middle">Partner portal</text>
+  <rect class="use" x="900" y="273" width="350" height="55" rx="28"/>
+  <text class="ink node" x="1075" y="308" text-anchor="middle">Partner self-service</text>
+
+  <rect class="area" x="390" y="388" width="1370" height="175" rx="3"/>
+  <text class="ink label" x="1075" y="422" text-anchor="middle">Governance and access</text>
+  <rect class="use" x="610" y="455" width="315" height="55" rx="28"/>
+  <text class="ink node" x="767" y="490" text-anchor="middle">Govern and audit</text>
+  <rect class="use" x="1235" y="455" width="315" height="55" rx="28"/>
+  <text class="ink node" x="1392" y="490" text-anchor="middle">HR and recruitment</text>
+
+  <rect class="area" x="390" y="590" width="1370" height="205" rx="3"/>
+  <text class="ink label" x="1075" y="624" text-anchor="middle">Delivery and intelligence</text>
+  <rect class="use" x="455" y="650" width="330" height="55" rx="28"/>
+  <text class="ink node" x="620" y="685" text-anchor="middle">Track projects</text>
+  <rect class="use" x="885" y="650" width="330" height="55" rx="28"/>
+  <text class="ink node" x="1050" y="685" text-anchor="middle">BI dashboards</text>
+  <rect class="use" x="455" y="720" width="330" height="55" rx="28"/>
+  <text class="ink node" x="620" y="755" text-anchor="middle">Score and rank</text>
+  <rect class="use" x="885" y="720" width="520" height="55" rx="28"/>
+  <text class="ink node" x="1145" y="755" text-anchor="middle">AI assistant and reports</text>
+
+  <path class="link" d="M 275 166 C 325 166, 340 128, 390 128"/>
+  <path class="link" d="M 275 394 C 330 394, 345 300, 390 300"/>
+  <path class="link" d="M 275 620 C 325 620, 345 482, 610 482"/>
+  <path class="link" d="M 275 620 C 350 620, 400 482, 1235 482"/>
+  <path class="link" d="M 275 665 C 340 665, 380 678, 455 678"/>
+  <path class="link" d="M 275 665 C 350 665, 450 678, 885 678"/>
+  <path class="link" d="M 275 700 C 350 700, 390 748, 455 748"/>
+  <path class="link" d="M 275 700 C 350 700, 500 748, 885 748"/>
+</svg>

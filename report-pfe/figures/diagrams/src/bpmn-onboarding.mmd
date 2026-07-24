@@ -1,0 +1,29 @@
+flowchart LR
+  subgraph APP["Applicant (partner organisation)"]
+    A1(["Submit partnership request"]) --> A2["Provide organisation<br/>and collaboration details"]
+    A6["Complete missing information"]
+  end
+  subgraph SYS["System and AI"]
+    S1["Validate and store request"]
+    S2["AI pre-scoring<br/>five-dimension rubric"]
+    S5["Create partner record<br/>and compute score"]
+  end
+  subgraph REV["Employee reviewer"]
+    R1["Review request<br/>and AI score"]
+    R2{"Decision"}
+  end
+  subgraph OUT["Outcome"]
+    O1(["Partner onboarded"])
+    O2(["Request declined<br/>notification sent"])
+  end
+  A2 --> S1 --> S2 --> R1 --> R2
+  R2 -- Accept --> S5 --> O1
+  R2 -- Request info --> A6 --> S1
+  R2 -- Reject --> O2
+  classDef default fill:#EAF4FB,stroke:#0070AD,color:#0B1F33;
+  classDef dec fill:#FFFFFF,stroke:#0B1F33,color:#0B1F33;
+  class R2 dec;
+  style APP fill:#F4F9FD,stroke:#0070AD,color:#0B1F33;
+  style SYS fill:#F4F9FD,stroke:#0070AD,color:#0B1F33;
+  style REV fill:#F4F9FD,stroke:#0070AD,color:#0B1F33;
+  style OUT fill:#F4F9FD,stroke:#0070AD,color:#0B1F33;

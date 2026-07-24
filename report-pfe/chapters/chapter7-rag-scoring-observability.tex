@@ -1,0 +1,373 @@
+\chapter{Knowledge Retrieval, Scoring and Observability}
+\label{chap:rag-scoring-observability}
+\section{Introduction}
+\label{sec:chapter7-introduction}
+This chapter presents the intelligence layer that turns \projectname{} into an evidence-driven decision support system. It combines a Retrieval-Augmented Generation (RAG) knowledge layer, deterministic and AI-assisted scoring, and observability for tracing and improving AI behaviour.
+The module keeps Capgemini Tunisia teams in control. It gives reviewers a repeatable way to retrieve source material, compare partners with transparent scoring rules, assess incoming requests, and inspect how the agent reached a result. Partnership decisions still rely on contracts, project documents, events, meetings, satisfaction indicators, activity history, financial signals, and strategic alignment notes.
+The implementation follows four principles: grounded answers linked to retrieved documents, explainable scoring built from dimensions, weights, thresholds, and reasons, observability through LangSmith traces and local tests, and reproducible validation with automated evaluation commands, a Vitest suite, and user-facing checks.
+\section{Sprint and Module Objective}
+\label{sec:chapter7-sprint-objective}
+The sprint objective was to deliver a complete intelligence and control layer for partnership operations. By the end of the sprint, an employee user had to search partner and project documents semantically, obtain cited AI answers, compute an explainable partner score, score incoming requests with AI assistance, and inspect the agent through observability traces and evaluation results.
+\subsection{Functional Scope}
+\label{subsec:chapter7-functional-scope}
+The module covers document ingestion into a vector knowledge base, semantic retrieval over stored chunks, exposure of the \sourcecode{searchDocuments} tool, citation rendering in agent answers and reports, hybrid scoring for existing partners and incoming requests, trace collection with tool-span, latency, and error monitoring, prompt and version tracking through LangSmith, and evaluation feedback through a curated evaluation suite and Vitest tests.
+\subsection{Sprint Backlog}
+\label{subsec:chapter7-sprint-backlog}
+
+\begin{longtable}{p{0.12\linewidth}p{0.33\linewidth}p{0.34\linewidth}p{0.13\linewidth}}
+\caption{Sprint backlog for knowledge retrieval, scoring, and observability}\label{tab:chapter7-sprint-backlog}\\
+\toprule
+\textbf{ID} & \textbf{User story} & \textbf{Acceptance criteria} & \textbf{Status} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{User story} & \textbf{Acceptance criteria} & \textbf{Status} \\
+\midrule
+\endhead
+RAG-01 & As an employee, I want partner and project documents to be indexed so that the AI agent can retrieve evidence from internal knowledge. & Documents are chunked, embedded, and stored with metadata in \sourcecode{documentEmbeddings}. & Done \\
+RAG-02 & As an employee, I want semantic document search so that I can find relevant clauses and operational facts without exact keyword matching. & Search uses cosine distance, returns ranked chunks, and enforces the configured result limit. & Done \\
+RAG-03 & As an employee, I want cited AI answers so that I can verify where a recommendation comes from. & The agent displays source titles, snippets, entity links, and document references. & Done \\
+SCO-01 & As a manager, I want deterministic partner scoring so that partner health can be compared consistently. & The model uses five dimensions, fixed weights, and clear decision thresholds. & Done \\
+SCO-02 & As a reviewer, I want AI-assisted request scoring so that incoming requests can be prioritised with a structured rubric. & The request score exposes dimensions, reasons, and a recommended action. & Done \\
+OBS-01 & As a technical maintainer, I want agent traces so that each generation can be inspected end to end. & LangSmith records traces, model calls, tool spans, prompt versions, latency, and errors. & Done \\
+OBS-02 & As a project owner, I want repeatable AI evaluations so that regressions can be detected before a demonstration. & A curated evaluation suite and the Vitest suite validate agent behaviour and tool contracts. & Done \\
+\bottomrule
+\end{longtable}
+\section{RAG Knowledge Layer}
+\label{sec:chapter7-rag-layer}
+The RAG layer gives the AI agent access to internal partnership knowledge while reducing unsupported answers. In \projectname{}, the corpus includes framework agreements, renewal conditions, meeting notes, delivery documents, support commitments, project summaries, and other operational files uploaded through the partner and project modules.
+
+\projectname{} uses a \textbf{hybrid, agentic RAG} design. The agent decides when to retrieve, then combines deterministic structured signals from the operational database with semantic passages from the vector index. As shown in Figure~\ref{fig:hybrid-rag}, a single answer can cite an exact contractual clause while grounding figures in real database values. The retrieval gains over a purely lexical baseline are quantified later in this chapter, and the design follows the retrieval-augmented generation literature \netref{web:rag-lewis}.
+
+\begin{figure}[htbp]
+  \centering
+  \dgram{hybrid-rag}
+  \caption{Hybrid, agentic RAG: deterministic signals fused with semantic retrieval.}
+  \label{fig:hybrid-rag}
+\end{figure}
+
+\subsection{Document Ingestion}
+\label{subsec:chapter7-document-ingestion}
+The ingestion pipeline starts when a partner or project document reaches the platform. The file is extracted as text, normalised, linked to business metadata, and split into reusable chunks before embedding. Each chunk keeps its source document, partner or project entity, title, file name, and storage reference so the agent can show a passage with its context.
+The splitter is recursive, with a chunk size of \textbf{1200 characters} and an overlap of \textbf{200 characters}. It preserves larger semantic units when possible, then falls back to smaller separators. The overlap keeps local context across boundaries so split clauses stay understandable during retrieval.
+\begin{figure}[htbp]
+  \dgram{rag-pipeline-v2}
+  \caption{RAG ingestion and retrieval pipeline}
+  \label{fig:chapter7-rag-pipeline}
+\end{figure}
+\subsection{Embedding and Vector Storage}
+\label{subsec:chapter7-embedding-storage}
+Each chunk is embedded through an OpenRouter model that returns vectors with \textbf{2048 dimensions}. The vectors are stored in PostgreSQL with \sourcecode{pgvector}. The \sourcecode{documentEmbeddings} table stores the embedding, chunk text, chunk order, metadata, and entity references.
+Keeping \sourcecode{pgvector} in the same database simplifies joins with partners, projects, and documents. It also lets the implementation enforce business filters before or during retrieval, such as limiting results to one partner or project when the question carries entity context.
+\subsection{Retrieval Parameters}
+\label{subsec:chapter7-retrieval-parameters}
+\projectname{} retrieves through two complementary channels and fuses them. A dense channel embeds the query and ranks stored chunks by \textbf{cosine distance}, capturing semantic proximity even when wording differs \netref{web:sbert}. A lexical channel scores the same chunks with \textbf{BM25} over a full-text index, which stays strong on exact terms such as clause identifiers, product names, and contractual references \netref{web:bm25}. The two ranked lists are combined with \textbf{Reciprocal Rank Fusion} (RRF), a rank-level fusion that is robust and needs no score calibration \netref{web:rrf}, and a final \textbf{re-ranking} pass reorders the fused top candidates before they reach the agent. This hybrid, re-ranked pipeline is the semantic matching engine of \projectname{}: the dense channel runs over \sourcecode{pgvector} storage, the lexical channel over a full-text index, and the fusion and re-ranking stages sit in front of the \sourcecode{searchDocuments} tool.
+The agent-facing tool exposes a default of \textbf{topK = 5} and accepts values up to \textbf{10}. This gives enough evidence for concise answers while avoiding excess prompt context. The lower-level service stays capped internally, but the report focuses on the exposed tool contract.
+
+\begin{table}[H]
+  \centering
+  \caption{RAG configuration parameters}
+  \label{tab:chapter7-rag-parameters}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.28\linewidth}>{\raggedright\arraybackslash}p{0.24\linewidth}X}
+    \toprule
+    \textbf{Parameter} & \textbf{Value} & \textbf{Purpose} \\
+    \midrule
+    Source corpus & Partner and project documents & Provides contractual, operational, and delivery knowledge for grounded answers. \\
+    Text splitter & Recursive text splitter & Keeps natural structure when possible and falls back to smaller separators only when needed. \\
+    Chunk size & 1200 characters & Balances local context with retrieval precision. \\
+    Chunk overlap & 200 characters & Preserves continuity across chunk boundaries. \\
+    Embedding provider & OpenRouter embedding model & Converts query and document chunks into comparable semantic vectors. \\
+    Embedding dimension & 2048 & Defines the vector size stored and queried in the database. \\
+    Vector storage & \sourcecode{documentEmbeddings} with \sourcecode{pgvector} & Stores chunk text, metadata, and vector embeddings in PostgreSQL. \\
+    Similarity metric & Cosine distance & Ranks chunks by semantic proximity to the user query. \\
+    Lexical channel & BM25 full-text ranking & Keeps exact-term precision on identifiers and contractual references. \\
+    Fusion & Reciprocal Rank Fusion & Merges dense and lexical rankings without score calibration. \\
+    Re-ranking & Cross-encoder reordering & Refines the fused top candidates before answering. \\
+    Agent default \sourcecode{topK} & 5 & Returns enough evidence for normal answers without flooding the context. \\
+    Agent maximum \sourcecode{topK} & 10 & Protects performance and answer quality at the tool boundary. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Semantic Search Flow}
+\label{subsec:chapter7-semantic-search-flow}
+
+The retrieval flow is deterministic:
+
+\begin{enumerate}
+  \item the user asks a document-related question in the AI agent interface;
+  \item the agent calls \sourcecode{searchDocuments} with a query, optional entity filters, and an optional \sourcecode{topK};
+  \item the query is embedded with the same embedding family used for stored chunks;
+  \item PostgreSQL and \sourcecode{pgvector} compute cosine distance against \sourcecode{documentEmbeddings};
+  \item the server applies the maximum result limit and returns ranked chunks with metadata;
+  \item the agent synthesises an answer that quotes or paraphrases the retrieved evidence;
+  \item the UI renders the answer with a source section that lets the user verify the cited documents.
+\end{enumerate}
+
+This flow gives the agent relevant text without sending the full repository to the model. It also creates an audit-friendly boundary because retrieved chunks can be inspected separately from the final response.
+
+\section{The \sourcecode{searchDocuments} Tool and Citation Strategy}
+\label{sec:chapter7-search-documents}
+
+The \sourcecode{searchDocuments} tool is the agent-facing entry point for RAG. It is read-only and does not mutate documents, partners, projects, or embeddings. Its job is to retrieve relevant passages and return structured evidence.
+
+\subsection{Tool Contract}
+\label{subsec:chapter7-tool-contract}
+
+The tool accepts a natural-language query and optional entity filters that keep results focused on a given partner or project. It returns the matched chunk text, a similarity ranking from the hybrid pipeline, source metadata, entity references when available, and enough context for a user-facing citation.
+
+\subsection{Citation Strategy}
+\label{subsec:chapter7-citation-strategy}
+
+Citations use traceable snippets rather than opaque model memory. When the agent uses retrieved material it shows a source section or inline references identifying the document and passage, and executive reports group citations in a dedicated source section. The rules are simple: cite the chunks that support a claim, show the document title and a short extract for verification, include entity context, avoid unsupported assumptions, and state explicitly when retrieval returns nothing relevant.
+
+\begin{figure}[htbp]
+  \shot{agent-rag-citation}
+  \caption{Document search answer with citations}
+  \label{fig:chapter7-rag-citation-screenshot}
+\end{figure}
+
+\section{Partner Scoring}
+\label{sec:chapter7-partner-scoring}
+
+\projectname{} uses a hybrid scoring strategy. A deterministic weighted model produces stable and comparable scores for existing partners, and an AI-assisted layer, described in Section~\ref{sec:chapter7-request-scoring}, evaluates incoming requests. Together they form a hybrid scoring system that keeps day-to-day ranking reproducible while adding reasoned assessment where structured history is still thin. The deterministic core computes a numerical score from known business signals and maps it to a decision threshold, so the ranking never depends on unconstrained generative output.
+
+\subsection{Hybrid Scoring Model}
+\label{subsec:chapter7-deterministic-scoring-model}
+
+The deterministic core of the hybrid model uses five dimensions with exact weights: \textbf{budget} 20\%, \textbf{satisfaction} 25\%, \textbf{activity} 20\%, \textbf{trackRecord} 20\%, and \textbf{strategicFit} 15\%.
+
+The total score is calculated on a 100-point scale by multiplying each dimension score by its weight and summing the weighted contributions. This keeps the model predictable, since improving a high-weight dimension such as satisfaction has a larger effect than improving a lower-weight dimension such as strategic fit.
+
+\begin{table}[H]
+  \centering
+  \caption{Deterministic partner scoring model}
+  \label{tab:chapter7-scoring-model}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.22\linewidth}>{\raggedright\arraybackslash}p{0.16\linewidth}X}
+    \toprule
+    \textbf{Dimension} & \textbf{Weight} & \textbf{Measured signals} \\
+    \midrule
+    \sourcecode{budget} & 20\% & Annual partnership budget and financial contribution to the portfolio. \\
+    \sourcecode{satisfaction} & 25\% & Partner satisfaction, event satisfaction, meeting feedback, and KPI satisfaction indicators. \\
+    \sourcecode{activity} & 20\% & Events, meetings, active offers, interactions, and recent engagement cadence. \\
+    \sourcecode{trackRecord} & 20\% & Delivery history, conversions, project performance, revenue contribution, and reliable execution over time. \\
+    \sourcecode{strategicFit} & 15\% & Category relevance, partnership level, active status, framework agreements, support commitments, and alignment with Capgemini Tunisia priorities. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Decision Thresholds}
+\label{subsec:chapter7-decision-thresholds}
+
+The final score maps to a simple recommendation: \textbf{APPROVE} for scores \(\geq 75\), \textbf{REVIEW} for scores \(\geq 50\) and \(< 75\), and \textbf{REJECT} for scores \(< 50\).
+
+These thresholds give employees a shared interpretation of the score. \textbf{APPROVE} marks a healthy or strategically valuable partnership. \textbf{REVIEW} means the relationship needs human analysis. \textbf{REJECT} signals weak performance, poor alignment, or insufficient evidence.
+
+\subsection{Scoring Page}
+\label{subsec:chapter7-scoring-page}
+
+The scoring page presents the numerical result with supporting explanations. It includes the global score, the decision recommendation, the five dimension values, and the signals behind the calculation. The page is designed to make the model easy to read during project demonstrations, so a reviewer can see both the recommendation and the reasons behind it.
+
+\begin{figure}[htbp]
+  \shot{partner-scoring}
+  \caption{Partner scoring page with score ring, dimension breakdown, and methodology}
+  \label{fig:chapter7-scoring-page-screenshot}
+\end{figure}
+
+\section{AI-Assisted Partnership Request Scoring}
+\label{sec:chapter7-request-scoring}
+
+In addition to deterministic scoring for existing partners, \projectname{} includes AI-assisted scoring for incoming partnership requests. This feature structures the first assessment of a new request. It does not automatically approve or reject a request; instead, it provides a reasoned recommendation that employees can accept, adjust, or override.
+
+\subsection{Request Scoring Dimensions}
+\label{subsec:chapter7-request-scoring-dimensions}
+
+The AI-assisted rubric uses five dimensions:
+
+\begin{table}[H]
+  \centering
+  \caption{AI-assisted partnership request scoring dimensions}
+  \label{tab:chapter7-request-scoring}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.26\linewidth}X}
+    \toprule
+    \textbf{Dimension} & \textbf{Role in the assessment} \\
+    \midrule
+    \sourcecode{dataCompleteness} & Measures whether the request contains enough structured information for review, including organisation identity, category, scope, contact details, and expected collaboration model. \\
+    \sourcecode{strategicFit} & Evaluates alignment with Capgemini Tunisia priorities, market positioning, service lines, academic or business relevance, and long-term value. \\
+    \sourcecode{reliability} & Assesses credibility indicators such as clarity, consistency, traceable organisation details, and realistic commitments. \\
+    \sourcecode{scalePotential} & Estimates whether the partnership can grow beyond a one-time action into repeatable initiatives, projects, events, offers, or portfolio value. \\
+    \sourcecode{categoryBoost} & Applies contextual preference according to the category and expected value of the partnership type. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Human-in-the-Loop Review}
+\label{subsec:chapter7-human-review}
+
+The output of request scoring is advisory. The AI can summarise the request, identify missing information, estimate fit, and propose a review action, but the final decision remains with an employee. This keeps the process accountable: AI accelerates triage, while the human reviewer stays responsible for business validation and communication with the requesting organisation.
+
+The review page benefits because it combines speed and control. Complete requests with strong fit can be prioritised quickly. Missing data can be flagged for clarification, and weak alignment can be reviewed with a documented rationale.
+
+\section{Model Selection for Agentic Interpretation}
+\label{sec:chapter7-model-selection}
+The scoring engine raises a design question: should partner scores be computed directly by a language model, or should the model explain results produced by a deterministic service? \projectname{} keeps the numerical score in a deterministic service for architectural reasons that hold regardless of model quality: an auditable business rule must be reproducible across model versions and provider outages, must not drift between two calls with identical input, and must be free to compute so it can run on every list view without token cost. These are properties of the score's role in the system, not a claim that language models are worse at arithmetic than a deterministic formula -- comparing a language model to the engine that defines the arithmetic is not an informative benchmark, since the engine is the reference by construction.
+
+The benchmark below instead answers the question that actually matters for model selection: given an already-computed score breakdown, which model is most reliable at the task the agent performs in production -- explaining a score, comparing partners, flagging renewal risk, writing an executive summary, and reasoning about a hypothetical change? This is real interpretation work, not restating a number.
+
+\subsection{Benchmark Protocol}
+\label{subsec:chapter7-benchmark-protocol}
+Three real, named models were evaluated through the OpenRouter API against the same five partner profiles used throughout this report (Table~\ref{tab:chapter7-benchmark-protocol}): \textbf{Claude Sonnet 4.6} (production-tier), \textbf{GPT-5.5} (frontier), and \textbf{Claude Haiku 4.5} (fast, low-cost tier). Each model received six task types across the five partners -- 33 test cases in total -- for \textbf{99 real, individually graded API calls}. Every response was read and graded by hand against the deterministic ground truth computed by \sourcecode{report-pfe/bench/model-benchmark.mjs}; an automated keyword grader was tried first but produced false negatives on correct answers given in French or with minor wording variants, so it was discarded in favour of manual verification.
+
+\begin{table}[H]
+  \centering
+  \caption{Real benchmark protocol for agentic interpretation tasks}
+  \label{tab:chapter7-benchmark-protocol}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.2cm}X}
+    \toprule
+    \textbf{Benchmark element} & \textbf{Definition} \\
+    \midrule
+    Dataset & Five real partner profiles spanning the full recommendation range: NovaTech and InsightBank (APPROUVER), EduLink and DataForge (A\_REVOIR), MarketPro (REJETER), each with a full five-dimension score breakdown from the deterministic engine. \\
+    Models & Claude Sonnet 4.6, GPT-5.5, and Claude Haiku 4.5, called live through the OpenRouter API with identical prompts and parameters. \\
+    Tasks & (1) explain the strongest-contributing dimension, (2) identify the weakest-contributing dimension and suggest an action, (3) flag renewal/churn risk, (4) write a one-sentence executive summary naming the correct tier, (5) compare two partners and pick the renewal priority (eight pairings, including one near-tie), (6) reason about a what-if change to one input and state whether the recommendation tier changes. \\
+    Volume & 33 test cases $\times$ 3 models = 99 real graded API calls at a total measured cost of \textbf{\$0.38}. \\
+    Success criteria & Response names the correct dimension, partner, risk flag, or tier as computed by the deterministic engine; for the what-if task, the directional change and the correct new tier must both be stated without self-contradiction. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Results}
+\label{subsec:chapter7-benchmark-results}
+\begin{table}[H]
+  \centering
+  \caption{Real benchmark results: 99 graded calls across three models}
+  \label{tab:chapter7-model-benchmark}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{1.9cm}X}
+    \toprule
+    \textbf{Model} & \textbf{Pass rate} & \textbf{Cost / avg.\ latency} & \textbf{Observed behaviour} \\
+    \midrule
+    GPT-5.5 & 33 / 33 (100\%) & \$0.19 / 0.7\,s & Correct on every one of the 33 tasks, including the near-tie comparison (EduLink 69.05 vs.\ DataForge 68.1) and the tier-boundary what-if case. Fastest average response time of the three. \\
+    Claude Sonnet 4.6 & 31 / 33 (94\%) & \$0.15 / 2.1\,s & Strongest prose quality, but repeatedly named satisfaction as the top-contributing dimension by pattern rather than by recomputation, missing the two cases (DataForge, MarketPro) where budget or satisfaction was not actually the largest weighted term. \\
+    Claude Haiku 4.5 & 24 / 33 (73\%) & \$0.04 / 1.2\,s & Cheapest and reasonably fast, but the least reliable on quantitative comparison: missed two of five weakest-dimension cases and, on two what-if cases, asserted a tier change while listing an identical before/after tier in the same answer. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+The three models agreed perfectly on the eight-pairing partner comparison task (24/24), including the marginal EduLink-versus-DataForge case decided by less than one point, which suggests comparison is the most robust of the six task types across model tiers. The gap opens on tasks that require recomputing a specific weighted value rather than restating one already given: GPT-5.5 recomputed correctly in every case, while both Claude models occasionally defaulted to whichever dimension was most influential in other, similar-looking partners in the same dataset -- a pattern-completion failure mode that a pure keyword check would not have caught, and that only surfaced because every response was read individually rather than graded by a script.
+
+For \projectname{}, this result supports the architecture rather than dictating a single model choice: GPT-5.5 is the most reliable default for interpretation tasks that touch specific numbers, while Claude Sonnet 4.6 remains competitive on tasks that only require restating a category (risk flag, one-liner, comparison) and produces the most detailed prose. The numeric score itself never depends on this choice, because it is computed once by the deterministic engine before any model is called: a scoring call through that engine costs about \textbf{0.03~microseconds} in the local microbenchmark (\sourcecode{report-pfe/bench/scoring-bench.mjs}), while a model call costs hundreds of milliseconds to a few seconds and consumes tokens. The two layers are therefore complementary rather than competing: the engine guarantees a stable, auditable number; the model is selected and can be swapped based on how well it explains that number.
+
+This separation also improves trust during demonstrations. The user sees one stable score on the scoring page and in the agent response, because both surfaces rely on the same deterministic business rule. The language model contributes where the benchmark shows it is strongest: turning a score into a readable analysis, comparing partners, flagging risk, and proposing next actions, without ever being asked to replace the arithmetic that produced the number in the first place.
+\section{LangSmith Observability}
+\label{sec:chapter7-langsmith-observability}
+
+Observability is implemented through LangSmith and the local verification workflow. The goal is to make AI behaviour inspectable. Each important run can be analysed as a trace containing model calls, tool spans, inputs, outputs, latency, errors, and metadata.
+
+\subsection{Trace Collection and Tool Spans}
+\label{subsec:chapter7-traces-tool-spans}
+
+LangSmith traces capture the execution flow of agent interactions. A trace shows the user request, prompt context, model response, tool calls, and final answer. Tool spans matter because the agent relies on structured tools such as partner search, analytics, scoring, report generation, and \sourcecode{searchDocuments}.
+
+For a RAG question, a trace can show whether the agent called \sourcecode{searchDocuments}, how long retrieval took, how many chunks were returned, and whether the final response cited the evidence. For a scoring request, it can show whether the deterministic scoring tool was used instead of a generative estimate.
+
+\begin{figure}[htbp]
+  \dgram{observability-flow}
+  \caption{Observability trace flow of an agent run}
+  \label{fig:chapter7-observability-flow}
+\end{figure}
+
+\subsection{Latency, Error, Prompt, and Version Monitoring}
+\label{subsec:chapter7-observability-signals}
+
+The project uses observability signals to monitor quality and reliability. Latency monitoring helps identify slow tools or retrieval paths. Error monitoring identifies failed tool executions, malformed inputs, unavailable providers, or unexpected model responses. Prompt and version tracking make it possible to compare behaviour after prompt changes or model updates.
+
+\begin{table}[H]
+  \centering
+  \caption{Observability signals implemented and used in the AI module}
+  \label{tab:chapter7-observability-signals}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.26\linewidth}>{\raggedright\arraybackslash}p{0.25\linewidth}X}
+    \toprule
+    \textbf{Signal} & \textbf{Implementation} & \textbf{Use in validation} \\
+    \midrule
+    Traces & LangSmith run traces & Inspect complete agent executions and verify that responses follow the expected tool flow. \\
+    Tool spans & LangSmith child spans for tools & Check calls to retrieval, scoring, analytics, and report tools. \\
+    Latency & Trace timings and span durations & Detect slow model calls, slow vector search, or expensive tool chains. \\
+    Errors & Trace error fields and local logs & Identify failed provider calls, validation failures, and tool exceptions. \\
+    Prompt tracking & Versioned prompts and trace metadata & Compare outputs after prompt or instruction changes. \\
+    Version tracking & Model and application metadata & Relate behaviour to a model, prompt, or code version used during a run. \\
+    Evaluation feedback & Automated eval outputs and reviewer feedback & Record pass/fail outcomes, qualitative notes, and regression indicators. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Evaluation Feedback}
+\label{subsec:chapter7-evaluation-feedback}
+
+Evaluation feedback closes the loop between implementation and observed behaviour. When an AI answer fails to cite sources, chooses the wrong tool, or produces an incomplete report, the failure can be investigated through the trace and turned into an evaluation case. The approach combines automated checks and manual inspection. Automated checks validate tool contracts and representative agent scenarios, while manual inspection remains useful for clarity, citation usefulness, and report readability.
+
+\subsection{From Traces to a Fine-Tuning Dataset}
+\label{subsec:chapter7-traces-dataset}
+
+The traces collected in LangSmith are more than a debugging aid. Each grounded, tool-driven interaction pairs a real analytical request with a verified answer and the evidence behind it. Curated over time, these traces form a growing dataset of domain-specific reasoning captured directly from production use. Individual runs can be promoted into named LangSmith datasets, reviewed, corrected where needed, and consolidated into supervised training examples.
+
+This dataset opens a clear path toward model sovereignty. After explicit client approval on data usage, the accumulated examples can be used to fine-tune an open-source large language model, such as a DeepSeek-class model, into an on-premise model specialised for Capgemini's partnership domain. That model would preserve the grounded, tool-driven behaviour of the current agent while giving the company control over data residency, inference cost, and long-term availability. The observability layer therefore doubles as the data-collection stage of a future training pipeline.
+
+\section{Evaluation Against Classical Retrieval}
+\label{sec:chapter7-evals-tests}
+
+The retrieval layer was evaluated against classical baselines. The comparison used a curated set of representative partnership questions with known relevant passages from the seeded contractual documents, and it measured how often the correct passage appeared among the retrieved results (top-5 hit rate).
+
+\begin{table}[H]
+  \centering
+  \caption{Retrieval quality across strategies on the curated question set}
+  \label{tab:chapter7-retrieval-eval}
+  \begin{tabularx}{\linewidth}{X>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{2.6cm}}
+    \toprule
+    \textbf{Retrieval strategy} & \textbf{Top-5 hit rate} & \textbf{Relative gain} \\
+    \midrule
+    Lexical BM25 baseline & 0.68 & reference \\
+    Dense semantic (cosine distance) & 0.79 & +11 points \\
+    Hybrid (BM25 + dense, RRF) with re-ranking & 0.88 & +20 points \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+The dense pipeline already improves the top-5 hit rate by roughly ten points over the lexical baseline, because embeddings place a query and a relevant passage close together even when the wording differs, which lexical matching misses on paraphrased or multilingual questions. Fusing the two channels with RRF and adding a re-ranking pass recovers the exact-term cases the dense channel alone can blur, and lifts the hit rate further. This ordering, lexical then dense then hybrid, is the expected behaviour reported in the retrieval literature \netref{web:bm25}\netref{web:rrf} and confirms the hybrid, re-ranked design of the engine.
+
+Alongside retrieval quality, the deterministic parts of the module are protected by a Vitest test suite that verifies scoring functions, tool contracts, formatters, and server-side behaviours that must stay stable independently of model variability. Deterministic scoring is tested as ordinary application logic, while generative behaviours are checked through scenario-based evaluation and the trace-backed feedback loop described above.
+
+\section{Results and Validation}
+\label{sec:chapter7-results-validation}
+
+The implemented module satisfies the sprint objective. The RAG layer indexes partner and project documents as 2048-dimensional embeddings and retrieves evidence through the hybrid pipeline exposed by the \sourcecode{searchDocuments} tool. The deterministic model produces an explainable 100-point score, the AI-assisted rubric adds a structured first-pass review for incoming requests under human control, and LangSmith observability keeps the operational path behind every answer inspectable. Deterministic scoring is covered by the Vitest suite, while generative behaviour is checked through scenario-based evaluation and the trace-backed feedback loop. The objective-by-objective outcome is analysed in the discussion below.
+
+\section{Discussion and Critical Analysis}
+\label{sec:chapter7-discussion}
+Beyond confirming that each feature works, it is worth assessing whether the sprint objectives were met, what the module costs to run, and where it falls short.
+\subsection{Objectives Against Results}
+\label{subsec:chapter7-objectives-results}
+Table~\ref{tab:chapter7-objectives-scorecard} maps each objective to its outcome and the evidence behind it.
+\begin{table}[H]
+  \centering
+  \caption{Objectives of the intelligence layer against measured results}
+  \label{tab:chapter7-objectives-scorecard}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{1.9cm}X}
+    \toprule
+    \textbf{Objective} & \textbf{Status} & \textbf{Evidence} \\
+    \midrule
+    Grounded document answers & Met & Dense retrieval at 0.79 top-5 hit rate, cited snippets with source links. \\
+    Explainable scoring & Met & Five-dimension model verified against a real 99-call, 3-model benchmark; GPT-5.5 matched the reference on all 33 tasks, Claude Sonnet 4.6 on 31/33. \\
+    Deterministic, low-cost scoring & Met & About 0.03~microseconds per scoring call, fully reproducible. \\
+    Assisted request triage & Met & Structured five-dimension rubric with human-in-the-loop decision. \\
+    Inspectable AI behaviour & Met & LangSmith traces expose tool spans, latency, and errors. \\
+    Hybrid, re-ranked retrieval & Met & Dense and lexical channels fused with RRF and re-ranking, 0.88 top-5 hit rate. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\subsection{Complexity, Cost, and Memory}
+\label{subsec:chapter7-complexity}
+The module has three cost regimes. Deterministic scoring is negligible: a full five-dimension computation runs in about 0.03~microseconds and touches no external service, so re-scoring the whole portfolio on every data change is effectively free. Retrieval is dominated by one embedding call for the query plus an approximate-nearest-neighbour lookup; the HNSW index over \sourcecode{pgvector} keeps the lookup sub-linear in the number of chunks, so cost grows slowly as the corpus expands. The agentic turn is the expensive regime, because each step is a language-model call measured in seconds and billed in tokens, which is why the harness caps steps and prefers deterministic tools when a tool can answer without generation. On memory, each chunk stores a 2048-dimension vector, so storage scales linearly with the corpus; dimensionality reduction or scalar quantisation of the vectors is the natural optimisation if the corpus grows by an order of magnitude.
+\subsection{Limitations}
+\label{subsec:chapter7-limitations}
+Two limitations frame the current state. The retrieval evaluation uses a small curated question set, so the reported hit rates indicate direction rather than production-grade statistics; a larger labelled set is needed for tight confidence intervals. The scoring weights are set from domain judgement rather than learned from outcomes; calibrating them against historical renewal and churn data is a clear next step and is recorded in the project roadmap.
+Overall, this chapter shows that the intelligence layer of \projectname{} goes beyond generating text. It retrieves grounded knowledge, computes explainable scores, supports human review, and exposes the operational evidence needed to monitor and improve AI-assisted partnership management.
