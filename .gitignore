@@ -64,3 +64,14 @@ qa-*.png
 .impeccable
 .kiro
 /.omo
+
+# Local LaTeX compiler intermediates
+/report-pfe/main.aux
+/report-pfe/main.fdb_latexmk
+/report-pfe/main.fls
+/report-pfe/main.lof
+/report-pfe/main.log
+/report-pfe/main.lot
+/report-pfe/main.out
+/report-pfe/main.toc
+/report-pfe/tmp/
